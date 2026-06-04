@@ -1,0 +1,39 @@
+# Copyright (C) 2026 aSolution.company
+msgid ""
+msgstr ""
+"Project-Id-Version: aS.c AI Boiler 1.0.0\n"
+"Report-Msgid-Bugs-To: https://asolution.company\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-03-07T10:45:33+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: asc-ai-boiler\n"
+
+#. Plugin Name of the plugin
+#: asc-ai-boiler.php
+msgid "aS.c AI Boiler"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: asc-ai-boiler.php
+msgid "https://asolution.company"
+msgstr ""
+
+#. Description of the plugin
+#: asc-ai-boiler.php
+msgid "WordPress boilerplate plugin with an example site demonstrating partials, shortcodes, content sync, custom post types, and front-end assets."
+msgstr ""
+
+#. Author of the plugin
+#: asc-ai-boiler.php
+msgid "Keith Gardner, aSolution.company"
+msgstr ""
+
+#. Author URI of the plugin
+#: asc-ai-boiler.php
+msgid "https://asolution.company"
+msgstr ""

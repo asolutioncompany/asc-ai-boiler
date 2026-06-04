@@ -1,0 +1,248 @@
+/*! Sync / Backup–Restore admin (boiler) */
+.asc-ai-boiler-settings-page__hub-back {
+	margin-bottom: 24px;
+}
+
+.asc-ai-boiler-settings-page__default-form {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	margin: 0;
+}
+
+.asc-ai-boiler-settings-page__default-form > h2 {
+	margin: 0;
+}
+
+.asc-ai-boiler-settings-page__default-form > p {
+	margin: 0;
+}
+
+.asc-ai-boiler-settings-page__default-form .form-table {
+	margin: 0;
+}
+
+.asc-ai-boiler-settings-page__sync-settings-form {
+	margin-bottom: 24px;
+}
+
+.asc-ai-boiler-settings-page__sync {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	margin: 0;
+}
+
+.asc-ai-boiler-settings-page__sync > .description {
+	margin: 0;
+}
+
+.asc-ai-boiler-settings-page__sync > p {
+	margin: 0;
+}
+
+.asc-ai-boiler-sync-status {
+	margin: 0;
+}
+
+.asc-ai-boiler-diff-highlight:empty {
+	display: none;
+}
+
+.asc-ai-boiler-diff-highlight--loading,
+.asc-ai-boiler-diff-highlight--empty,
+.asc-ai-boiler-diff-highlight--has-items,
+.asc-ai-boiler-diff-highlight--error {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 12px 16px;
+	border-radius: 2px;
+	border: 1px solid #2271b1;
+	border-left-width: 4px;
+	background: #f0f6fc;
+}
+
+.asc-ai-boiler-diff-highlight--empty {
+	background: #edfaef;
+	border-color: #68de7c;
+	border-left-color: #00a32a;
+}
+
+.asc-ai-boiler-diff-highlight--error {
+	background: #fcf0f1;
+	border-color: #f0b0b5;
+	border-left-color: #d63638;
+}
+
+.asc-ai-boiler-diff-heading {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.asc-ai-boiler-diff-loading,
+.asc-ai-boiler-diff-summary {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.asc-ai-boiler-diff-item {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 10px 12px;
+	border-radius: 2px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-left-width: 4px;
+}
+
+.asc-ai-boiler-diff-item--suggest-backup {
+	border-left-color: #00a32a;
+}
+
+.asc-ai-boiler-diff-item--suggest-restore {
+	border-left-color: #2271b1;
+}
+
+.asc-ai-boiler-diff-item--suggest-unclear {
+	border-left-color: #dba617;
+}
+
+.asc-ai-boiler-diff-path {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+	word-break: break-all;
+}
+
+.asc-ai-boiler-diff-issues {
+	margin: 0;
+	padding-left: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	list-style: disc;
+}
+
+.asc-ai-boiler-diff-suggestion {
+	margin: 0;
+	font-size: 14px;
+	color: #1d2327;
+}
+
+/* No layout footprint until JS sets progress text (empty <p> still has line-height; flex gap still counts the item). */
+#asc-ai-boiler-sync-progress:empty {
+	display: none;
+}
+
+.asc-ai-boiler-sync-status--backup-running,
+.asc-ai-boiler-sync-status--backup-done,
+.asc-ai-boiler-sync-status--backup-error,
+.asc-ai-boiler-sync-status--restore-running,
+.asc-ai-boiler-sync-status--restore-done,
+.asc-ai-boiler-sync-status--restore-error {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 12px 16px;
+	border-radius: 2px;
+	border: 1px solid #2271b1;
+	border-left-width: 4px;
+	background: #f0f6fc;
+}
+
+.asc-ai-boiler-sync-status--backup-done,
+.asc-ai-boiler-sync-status--restore-done {
+	background: #edfaef;
+	border-color: #68de7c;
+	border-left-color: #00a32a;
+}
+
+.asc-ai-boiler-sync-status--backup-error,
+.asc-ai-boiler-sync-status--restore-error {
+	background: #fcf0f1;
+	border-color: #f0b0b5;
+	border-left-color: #d63638;
+}
+
+.asc-ai-boiler-sync-status--backup-running #asc-ai-boiler-sync-progress,
+.asc-ai-boiler-sync-status--backup-done #asc-ai-boiler-sync-progress,
+.asc-ai-boiler-sync-status--backup-error #asc-ai-boiler-sync-progress,
+.asc-ai-boiler-sync-status--restore-running #asc-ai-boiler-sync-progress,
+.asc-ai-boiler-sync-status--restore-done #asc-ai-boiler-sync-progress,
+.asc-ai-boiler-sync-status--restore-error #asc-ai-boiler-sync-progress {
+	font-size: 15px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.asc-ai-boiler-settings-page__sync-form {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin: 0;
+}
+
+.asc-ai-boiler-settings-page__sync-form .description {
+	margin: 0;
+}
+
+.asc-ai-boiler-settings-page__sync-form > p {
+	margin: 0;
+}
+
+.asc-ai-boiler-settings-page__sync-form label {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.asc-ai-boiler-settings-page__sync-form label input[type="checkbox"] {
+	flex-shrink: 0;
+	margin: 0;
+}
+
+.asc-ai-boiler-settings-page__sync-form .asc-ai-boiler-settings-page__sync-restore-confirm {
+	display: inline-flex;
+	align-items: flex-start;
+	gap: 8px;
+	max-width: 100%;
+}
+
+.asc-ai-boiler-settings-page__sync-restore-confirm-text {
+	flex: 0 1 auto;
+	min-width: 0;
+}
+
+.asc-ai-boiler-sync-restore-block.asc-ai-boiler-settings-page__sync-form,
+.asc-ai-boiler-sync-backup-block.asc-ai-boiler-settings-page__sync-form {
+	align-items: flex-start;
+}
+
+.asc-ai-boiler-sync-restore-block.asc-ai-boiler-settings-page__sync-form {
+	gap: 8px;
+}
+
+.asc-ai-boiler-sync-actions.asc-ai-boiler-settings-page__sync-form {
+	align-items: flex-start;
+}
+
+.asc-ai-boiler-settings-page__sync .asc-ai-boiler-settings-page__sync-form .button {
+	width: auto;
+}
+
+/* Override .wp-admin p label input[type="checkbox"] (WP core) — higher specificity than one class + p label. */
+.wp-admin .asc-ai-boiler-settings-page .asc-ai-boiler-settings-page__sync-form p label input[type="checkbox"] {
+	margin-top: 0;
+}
+
+.asc-ai-boiler-settings-page .notice ul.asc-ai-boiler-settings-page__sync-msg-list {
+	list-style: disc;
+	margin: 8px 0 0 20px;
+	padding: 0;
+}

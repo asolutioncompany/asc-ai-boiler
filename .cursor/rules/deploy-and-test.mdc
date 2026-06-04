@@ -1,0 +1,50 @@
+---
+description: After repo updates, always run deploy-boiler.sh (deploy + restore) on boiler/ape
+alwaysApply: true
+---
+
+# Deploy and Test — User in the Loop
+
+This plugin manages website design deployment. The human verifies in the browser; the agent implements repo changes and **always runs deploy + restore** after each update that touches deployable plugin files.
+
+## Agent scope
+
+- Change files under this repository workspace only.
+- **After completing an update** (same turn, before finishing your reply), run the **Approved command** below unless the change is docs-only (e.g. README, `.md` rules with no runtime effect) or the user says not to deploy.
+- **Always use the full script** (deploy and restore). Never use `--deploy-only`.
+- Report deploy/restore outcome briefly. Do not claim the site looks correct until the user confirms in the browser.
+
+## Approved command
+
+```bash
+/media/keith/Data/work/asc-ai-boiler/scripts/deploy-boiler.sh
+```
+
+Requires `required_permissions: ["all"]` (rsync via `deploy-plugin`, `sudo`, writes under `/var/www/...`, `wp` as `www-data`).
+
+What it does:
+
+1. **Deploy** — `~/utility-scripts/deploy-plugin` syncs this repo to `/var/www/boiler/ape/wp-content/plugins/asc-ai-boiler` (ownership `www-data`, excludes `.git`, `node_modules`, `.cursor`).
+2. **Restore** — `sudo -u www-data wp eval` calls `\ASC\AI_BOILER\Admin\ContentSync::restore_from_files( true )` (same as wp-admin **Backup / Restore → Restore from plugin files**). Always runs after deploy.
+
+Do **not** use the wrong PHP namespace (`AscAiBoiler\...`); the class is `ASC\AI_BOILER\Admin\ContentSync`.
+
+## Do not do
+
+- Any deploy/restore step **other than** `scripts/deploy-boiler.sh` (full run, no flags).
+- `scripts/deploy-boiler.sh --deploy-only` (agent must not skip restore).
+- Copy, sync, or symlink by hand (e.g. `sudo cp`) outside the approved script.
+- Use browser automation or MCP browser tools to load the live/local site to “verify” design.
+- Run other WordPress CLI (`wp ...`) against the install.
+- Deploy or restore to a **different** host, path, or environment than `boiler/ape` unless the user gives new paths and updates this rule and `scripts/deploy-boiler.sh`.
+- Skip deploy after a substantive update unless the user says not to deploy this time.
+
+## After each update
+
+1. **What changed** (files and intent).
+2. **Deploy result** — restore summary (`ok: yes/no`, `updated` count, or errors).
+3. **What to check** in the browser (specific pages or admin screens).
+
+## Framing
+
+The agent ships changes to local `boiler/ape` automatically (deploy + restore every time); the user stays in control of visual verification.

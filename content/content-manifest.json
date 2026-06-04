@@ -1,0 +1,313 @@
+{
+	"types": {
+		"pages": [
+			{
+				"post_type": "page",
+				"title": "Home",
+				"slug": "home",
+				"filename": "home.html",
+				"date_gmt": "2026-06-03T12:00:00+00:00"
+			},
+			{
+				"post_type": "page",
+				"title": "About Us",
+				"slug": "about-us",
+				"filename": "about-us.html",
+				"date_gmt": "2026-06-03T12:00:00+00:00"
+			},
+			{
+				"post_type": "page",
+				"title": "Our Services",
+				"slug": "our-services",
+				"filename": "our-services.html",
+				"date_gmt": "2026-06-03T12:00:00+00:00"
+			},
+			{
+				"post_type": "page",
+				"title": "Featured Work",
+				"slug": "featured-work",
+				"filename": "featured-work.html",
+				"date_gmt": "2026-06-03T12:00:00+00:00"
+			},
+			{
+				"post_type": "page",
+				"title": "Contact Us",
+				"slug": "contact-us",
+				"filename": "contact-us.html",
+				"date_gmt": "2026-06-03T12:00:00+00:00"
+			},
+			{
+				"post_type": "page",
+				"title": "Blog",
+				"slug": "blog",
+				"filename": "blog.html",
+				"date_gmt": "2026-06-03T12:00:00+00:00"
+			}
+		],
+		"partials": [
+			{
+				"post_type": "asc_boiler_partial",
+				"title": "Header",
+				"slug": "header",
+				"filename": "header.html",
+				"partial_key": "header",
+				"date_gmt": "2026-06-03T12:00:00+00:00"
+			},
+			{
+				"post_type": "asc_boiler_partial",
+				"title": "Footer",
+				"slug": "footer",
+				"filename": "footer.html",
+				"partial_key": "footer",
+				"date_gmt": "2026-06-03T12:00:00+00:00"
+			},
+			{
+				"post_type": "asc_boiler_partial",
+				"title": "Contact Call to Action",
+				"slug": "contact-call-to-action",
+				"filename": "contact-call-to-action.html",
+				"partial_key": "contact_call_to_action",
+				"date_gmt": "2026-06-03T12:00:00+00:00"
+			},
+			{
+				"post_type": "asc_boiler_partial",
+				"title": "Agency Boiler",
+				"slug": "agency-boiler",
+				"filename": "agency-boiler.html",
+				"partial_key": "agency_boiler",
+				"date_gmt": "2026-06-03T12:00:00+00:00"
+			},
+			{
+				"post_type": "asc_boiler_partial",
+				"title": "Blog Boiler",
+				"slug": "blog-boiler",
+				"filename": "blog-boiler.html",
+				"partial_key": "blog_boiler",
+				"date_gmt": "2026-06-03T12:00:00+00:00"
+			}
+		],
+		"posts": [
+			{
+				"post_type": "post",
+				"title": "How AI-Assisted WordPress Development Can Improve SEO",
+				"slug": "ai-assisted-wordpress-development-improves-seo",
+				"filename": "ai-assisted-wordpress-development-improves-seo.html",
+				"date_gmt": "2026-06-01T12:00:00+00:00"
+			},
+			{
+				"post_type": "post",
+				"title": "How AI-Assisted WordPress Development Can Improve Design",
+				"slug": "ai-assisted-wordpress-development-improves-design",
+				"filename": "ai-assisted-wordpress-development-improves-design.html",
+				"date_gmt": "2026-06-02T12:00:00+00:00"
+			},
+			{
+				"post_type": "post",
+				"title": "How AI-Assisted WordPress Development Can Improve Performance and Security",
+				"slug": "ai-assisted-wordpress-development-improves-performance-and-security",
+				"filename": "ai-assisted-wordpress-development-improves-performance-and-security.html",
+				"date_gmt": "2026-06-03T12:00:00+00:00"
+			}
+		],
+		"services": [
+			{
+				"post_type": "example_service",
+				"title": "WordPress Design",
+				"slug": "wordpress-design",
+				"filename": "wordpress-design.html",
+				"date_gmt": "2026-05-28T12:00:00+00:00"
+			},
+			{
+				"post_type": "example_service",
+				"title": "WordPress Hosting",
+				"slug": "hosting",
+				"filename": "hosting.html",
+				"date_gmt": "2026-05-29T12:00:00+00:00"
+			},
+			{
+				"post_type": "example_service",
+				"title": "WordPress Maintenance",
+				"slug": "maintenance",
+				"filename": "maintenance.html",
+				"date_gmt": "2026-05-30T12:00:00+00:00"
+			}
+		],
+		"projects": [
+			{
+				"post_type": "example_project",
+				"title": "Pool Service Company",
+				"slug": "pool-service-company",
+				"filename": "pool-service-company.html",
+				"date_gmt": "2026-06-01T12:00:00+00:00"
+			},
+			{
+				"post_type": "example_project",
+				"title": "Landscaping Company",
+				"slug": "landscaping-company",
+				"filename": "landscaping-company.html",
+				"date_gmt": "2026-06-02T12:00:00+00:00"
+			},
+			{
+				"post_type": "example_project",
+				"title": "Dog Groomer",
+				"slug": "dog-groomer",
+				"filename": "dog-groomer.html",
+				"date_gmt": "2026-06-03T12:00:00+00:00"
+			}
+		]
+	},
+	"media": [
+		{
+			"filename": "hero.jpg",
+			"title": "Hero image",
+			"alt": "Fast WordPress Design hero showing a modern website on laptop and phone",
+			"mime": "image/jpeg"
+		},
+		{
+			"filename": "icons/service-design.png",
+			"title": "WordPress design icon",
+			"alt": "Icon for WordPress design service",
+			"mime": "image/png"
+		},
+		{
+			"filename": "icons/service-design-list.png",
+			"title": "WordPress design icon (list)",
+			"alt": "Icon for WordPress design service",
+			"mime": "image/png"
+		},
+		{
+			"filename": "icons/service-hosting.png",
+			"title": "Hosting icon",
+			"alt": "Cyan line-art icon for WordPress hosting with servers and cloud",
+			"mime": "image/png"
+		},
+		{
+			"filename": "icons/service-hosting-list.png",
+			"title": "Hosting icon (list)",
+			"alt": "Cyan line-art icon for WordPress hosting with servers and cloud",
+			"mime": "image/png"
+		},
+		{
+			"filename": "icons/service-maintenance.png",
+			"title": "Maintenance icon",
+			"alt": "Icon for WordPress maintenance service",
+			"mime": "image/png"
+		},
+		{
+			"filename": "icons/service-maintenance-list.png",
+			"title": "Maintenance icon (list)",
+			"alt": "Icon for WordPress maintenance service",
+			"mime": "image/png"
+		},
+		{
+			"filename": "stock/blog-default.jpg",
+			"title": "Default blog image",
+			"alt": "Default featured image for blog posts",
+			"mime": "image/jpeg"
+		},
+		{
+			"filename": "stock/blog-design.jpg",
+			"title": "Blog: design improvements",
+			"alt": "WordPress website design style guide and layout mockup with cyan accents on a laptop",
+			"mime": "image/jpeg"
+		},
+		{
+			"filename": "stock/blog-performance.jpg",
+			"title": "Blog: performance and security",
+			"alt": "Website performance and security concept",
+			"mime": "image/jpeg"
+		},
+		{
+			"filename": "stock/blog-seo.jpg",
+			"title": "Blog: SEO improvements",
+			"alt": "SEO analytics dashboard for a WordPress site",
+			"mime": "image/jpeg"
+		},
+		{
+			"filename": "stock/project-dog-groomer.jpg",
+			"title": "Dog groomer project",
+			"alt": "Dog being groomed in a pet salon",
+			"mime": "image/jpeg"
+		},
+		{
+			"filename": "stock/project-landscaping.jpg",
+			"title": "Landscaping project",
+			"alt": "Manicured lawn and garden landscaping",
+			"mime": "image/jpeg"
+		},
+		{
+			"filename": "stock/project-pool-service.jpg",
+			"title": "Pool service project",
+			"alt": "Sparkling swimming pool with maintenance equipment",
+			"mime": "image/jpeg"
+		},
+		{
+			"filename": "stock/projects-default.jpg",
+			"title": "Default projects image",
+			"alt": "Default featured image for portfolio projects",
+			"mime": "image/jpeg"
+		},
+		{
+			"filename": "stock/services-default.jpg",
+			"title": "Default services image",
+			"alt": "Default featured image for services",
+			"mime": "image/jpeg"
+		}
+	],
+	"media_bindings": [
+		{
+			"media_filename": "stock/blog-default.jpg",
+			"target": "setting",
+			"option": "example_site_settings",
+			"key": "image_blog_default_id"
+		},
+		{
+			"media_filename": "stock/services-default.jpg",
+			"target": "setting",
+			"option": "example_site_settings",
+			"key": "image_services_default_id"
+		},
+		{
+			"media_filename": "stock/projects-default.jpg",
+			"target": "setting",
+			"option": "example_site_settings",
+			"key": "image_projects_default_id"
+		},
+		{
+			"media_filename": "stock/blog-seo.jpg",
+			"target": "featured",
+			"post_type": "post",
+			"slug": "ai-assisted-wordpress-development-improves-seo"
+		},
+		{
+			"media_filename": "stock/blog-design.jpg",
+			"target": "featured",
+			"post_type": "post",
+			"slug": "ai-assisted-wordpress-development-improves-design"
+		},
+		{
+			"media_filename": "stock/blog-performance.jpg",
+			"target": "featured",
+			"post_type": "post",
+			"slug": "ai-assisted-wordpress-development-improves-performance-and-security"
+		},
+		{
+			"media_filename": "stock/project-pool-service.jpg",
+			"target": "featured",
+			"post_type": "example_project",
+			"slug": "pool-service-company"
+		},
+		{
+			"media_filename": "stock/project-landscaping.jpg",
+			"target": "featured",
+			"post_type": "example_project",
+			"slug": "landscaping-company"
+		},
+		{
+			"media_filename": "stock/project-dog-groomer.jpg",
+			"target": "featured",
+			"post_type": "example_project",
+			"slug": "dog-groomer"
+		}
+	]
+}

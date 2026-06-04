@@ -1,0 +1,41 @@
+---
+description: Core project style principles (see STYLE_GUIDE.md)
+alwaysApply: true
+---
+
+# Project Style Guide
+
+Follow `STYLE_GUIDE.md` for this project. These are guidelines, not rigid rules—prefer clarity and maintainability.
+
+## Goals
+
+- Explicit over implicit
+- Readable and maintainable
+- Consistent patterns across similar code
+- Logic before presentation (prepare data, then render HTML)
+
+## Key Preferences
+
+| Do | Avoid |
+|----|-------|
+| `??` for simple default values | Ternary operators (`? :`) |
+| Explicit `if` for conditional logic | Conditional assignment (`$x = condition === value`) |
+| `switch` for multiple branches | Nested ternaries |
+| Tabs for indentation | Spaces for indentation or column alignment |
+| Pre-compute variables before HTML | Complex expressions inline in templates |
+| Descriptive names (`$is_manual`, `$should_sync_excerpt`) | Abbreviated or opaque names (`$manual`, `$sync`) |
+
+## Markup (HTML, CSS, JS)
+
+- Do not add animations, transitions, drop shadows, or gradients unless specified
+- Do not introduce new fonts, colors, borders, or border-radius—use project-provided UI tokens
+- Keep vertical spacing consistent between sections and between paragraph-level items
+- Prefer `px` for CSS sizing; use media queries when spacing changes by viewport
+
+## Architecture
+
+- **Boiler** (`includes/Admin/`, `includes/Core/`): generic partial CPT, content sync, backup/restore, classic editor, and theme shell. Must not import Example* classes.
+- **Example product** (`includes/ExampleAdmin/`, `includes/ExampleCore/`, `includes/ExampleFront/`): sample site layer. Hooks into boiler via filters in `ExampleCore\BoilerIntegration` and `ExampleCore\ExampleThemeShell`.
+- Example → boiler is OK (filters, `PartialStore`, `Core::get_instance()`). Boiler → Example is not.
+
+When editing PHP, apply `.cursor/rules/php-style.mdc`. When editing HTML, CSS, or JS, apply `.cursor/rules/markup-style.mdc`.
