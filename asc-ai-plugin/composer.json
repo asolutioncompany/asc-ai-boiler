@@ -1,0 +1,13 @@
+{
+	"name": "asolution-company/asc-ai-plugin",
+	"description": "WordPress plugin: aS.c AI boilerplate framework (Core + Admin layers).",
+	"type": "wordpress-plugin",
+	"require": {
+		"php": ">=8.1"
+	},
+	"autoload": {
+		"psr-4": {
+			"ASC\\AI_BOILER\\": "includes/"
+		}
+	}
+}
