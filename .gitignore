@@ -1,3 +1,6 @@
+# Claude Code
+.claude/
+
 # Git merge/rebase artifacts
 *.orig
 *.rej

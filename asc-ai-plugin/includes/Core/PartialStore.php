@@ -66,7 +66,7 @@ final class PartialStore {
 	}
 
 	/**
-	 * Create an empty published shell post with meta when none exists (static restore / sync).
+	 * Create an empty published shell post with meta when none exists (static import / sync).
 	 *
 	 * @param string $partial_key Logical partial key.
 	 * @param string $title Post title.

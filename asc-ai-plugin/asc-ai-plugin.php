@@ -20,7 +20,7 @@ declare( strict_types = 1 );
  * Requires PHP: 8.1
  * Author: Keith Gardner, aSolution.company
  * Author URI: https://asolution.company
- * Text Domain: asc-ai-boiler
+ * Text Domain: asc-ai-plugin
  * Domain Path: /languages
  */
 
@@ -32,8 +32,8 @@ if ( ! defined( 'WPINC' ) ) {
 
 define( 'ASC_AI_PLUGIN_FILE', __FILE__ );
 
-if ( ! defined( 'ASC_AI_BOILER_TEXT_DOMAIN' ) ) {
-	define( 'ASC_AI_BOILER_TEXT_DOMAIN', 'asc-ai-boiler' );
+if ( ! defined( 'ASC_AI_PLUGIN_DOMAIN' ) ) {
+	define( 'ASC_AI_PLUGIN_DOMAIN', 'asc-ai-plugin' );
 }
 
 if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {

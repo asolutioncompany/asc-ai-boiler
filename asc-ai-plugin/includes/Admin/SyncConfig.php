@@ -1,6 +1,6 @@
 <?php
 /**
- * Boiler static sync (backup / restore): batch size and persisted sync options.
+ * Boiler static sync (export / import): batch size and persisted sync options.
  *
  * Option keys use the `asc_ai_boiler_` prefix.
  *
@@ -12,7 +12,7 @@ declare( strict_types = 1 );
 namespace ASC\AI_BOILER\Admin;
 
 /**
- * Sync configuration for {@see ContentSync} and the Backup / Restore admin UI.
+ * Sync configuration for {@see ContentSync} and the Import / Export admin UI.
  */
 final class SyncConfig {
 
@@ -29,80 +29,84 @@ final class SyncConfig {
 
 	public const CONTENT_TYPE_POSTS = 'posts';
 
+	public const CONTENT_DIR_EXCERPTS = 'excerpts';
+
+	public const CONTENT_DIR_META_DESCRIPTIONS = 'meta-descriptions';
+
 	/**
-	 * How many published posts (backup) or plugin content files (restore) to process per AJAX batch.
+	 * How many published posts (export) or plugin content files (import) to process per AJAX batch.
 	 *
 	 * @var int
 	 */
 	public const CONTENT_SYNC_BATCH_SIZE = 100;
 
 	/**
-	 * When true ("1"), backup removes plugin HTML files that have no matching published content.
+	 * When true ("1"), export removes plugin HTML files that have no matching published content.
 	 *
 	 * @var string
 	 */
-	public const OPTION_BACKUP_CLEANUP = 'asc_ai_boiler_backup_cleanup';
+	public const OPTION_EXPORT_CLEANUP = 'asc_ai_boiler_export_cleanup';
 
 	/**
-	 * When true ("1"), restore cleanup removes published WordPress posts whose expected plugin HTML
+	 * When true ("1"), import cleanup removes published WordPress posts whose expected plugin HTML
 	 * file is missing (content was removed on disk). Uses trash when the post type supports it.
 	 *
 	 * @var string
 	 */
-	public const OPTION_RESTORE_CLEANUP = 'asc_ai_boiler_restore_cleanup';
+	public const OPTION_IMPORT_CLEANUP = 'asc_ai_boiler_import_cleanup';
 
 	/**
-	 * Developer mode for static content sync. When true ("1"), the restore confirmation checkbox is pre-checked
-	 * on the Backup / Restore screen (local/staging convenience). When false, the checkbox is off by default.
+	 * Developer mode for static content sync. When true ("1"), the import confirmation checkbox is pre-checked
+	 * on the Import / Export screen (local/staging convenience). When false, the checkbox is off by default.
 	 *
 	 * @var string
 	 */
 	public const OPTION_DEVELOPMENT_MODE = 'asc_ai_boiler_development_mode';
 
 	/**
-	 * Backup: delete plugin HTML files with no matching published WordPress content.
+	 * Export: delete plugin HTML files with no matching published WordPress content.
 	 *
 	 * @return bool
 	 */
-	public static function is_backup_cleanup(): bool {
-		return self::is_enabled( self::OPTION_BACKUP_CLEANUP, true );
+	public static function is_export_cleanup(): bool {
+		return self::is_enabled( self::OPTION_EXPORT_CLEANUP, true );
 	}
 
 	/**
-	 * @param bool $enabled Whether to delete orphan plugin files after backup.
+	 * @param bool $enabled Whether to delete orphan plugin files after export.
 	 *
 	 * @return void
 	 */
-	public static function set_backup_cleanup( bool $enabled ): void {
+	public static function set_export_cleanup( bool $enabled ): void {
 		update_option(
-			self::OPTION_BACKUP_CLEANUP,
+			self::OPTION_EXPORT_CLEANUP,
 			$enabled ? '1' : '0'
 		);
 	}
 
 	/**
-	 * Whether restore cleanup is enabled (remove published synced posts whose plugin HTML file is missing).
+	 * Whether import cleanup is enabled (remove published synced posts whose plugin HTML file is missing).
 	 *
 	 * @return bool
 	 */
-	public static function is_restore_cleanup(): bool {
-		return self::is_enabled( self::OPTION_RESTORE_CLEANUP, false );
+	public static function is_import_cleanup(): bool {
+		return self::is_enabled( self::OPTION_IMPORT_CLEANUP, false );
 	}
 
 	/**
-	 * @param bool $enabled Whether restore runs WordPress cleanup for missing plugin files.
+	 * @param bool $enabled Whether import runs WordPress cleanup for missing plugin files.
 	 *
 	 * @return void
 	 */
-	public static function set_restore_cleanup( bool $enabled ): void {
+	public static function set_import_cleanup( bool $enabled ): void {
 		update_option(
-			self::OPTION_RESTORE_CLEANUP,
+			self::OPTION_IMPORT_CLEANUP,
 			$enabled ? '1' : '0'
 		);
 	}
 
 	/**
-	 * Whether developer mode is on: pre-check the restore confirmation checkbox on the sync screen.
+	 * Whether developer mode is on: pre-check the import confirmation checkbox on the sync screen.
 	 *
 	 * @return bool
 	 */
@@ -116,7 +120,7 @@ final class SyncConfig {
 	}
 
 	/**
-	 * @param bool $enabled Whether to pre-check restore confirmation.
+	 * @param bool $enabled Whether to pre-check import confirmation.
 	 *
 	 * @return void
 	 */
@@ -134,8 +138,8 @@ final class SyncConfig {
 	 * @return void
 	 */
 	public static function delete_all_sync_options(): void {
-		delete_option( self::OPTION_BACKUP_CLEANUP );
-		delete_option( self::OPTION_RESTORE_CLEANUP );
+		delete_option( self::OPTION_EXPORT_CLEANUP );
+		delete_option( self::OPTION_IMPORT_CLEANUP );
 		delete_option( self::OPTION_DEVELOPMENT_MODE );
 	}
 

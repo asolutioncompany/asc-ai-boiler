@@ -22,11 +22,11 @@ declare( strict_types = 1 );
  * Requires PHP: 8.1
  * Author: Keith Gardner, aSolution.company
  * Author URI: https://asolution.company
- * Text Domain: asc-ai-boiler
+ * Text Domain: asc-ai-example
  * Domain Path: /languages
  */
 
-namespace ASC\AI_BOILER;
+namespace ASC\AI_EXAMPLE;
 
 if ( ! defined( 'WPINC' ) ) {
 	exit;
@@ -34,38 +34,39 @@ if ( ! defined( 'WPINC' ) ) {
 
 define( 'ASC_AI_EXAMPLE_PLUGIN_FILE', __FILE__ );
 
-if ( ! defined( 'ASC_AI_BOILER_TEXT_DOMAIN' ) ) {
-	define( 'ASC_AI_BOILER_TEXT_DOMAIN', 'asc-ai-boiler' );
+if ( ! defined( 'ASC_AI_EXAMPLE_TEXT_DOMAIN' ) ) {
+	define( 'ASC_AI_EXAMPLE_TEXT_DOMAIN', 'asc-ai-example' );
 }
 
-if ( ! defined( 'ASC_AI_EXAMPLE_TEST_PAGING' ) ) {
-	if ( defined( 'ASC_AI_BOILER_TEST_PAGING' ) ) {
-		define( 'ASC_AI_EXAMPLE_TEST_PAGING', (bool) ASC_AI_BOILER_TEST_PAGING );
-	} else {
-		define( 'ASC_AI_EXAMPLE_TEST_PAGING', false );
-	}
+// Disable to limit data mining that can impact performance
+if ( ! defined( 'ASC_AI_EXAMPLE_SEARCH_ENABLED' ) ) {
+	define( 'ASC_AI_EXAMPLE_SEARCH_ENABLED', true );
 }
-if ( ! defined( 'ASC_AI_EXAMPLE_TEST_VIEW_ALL' ) ) {
-	if ( defined( 'ASC_AI_BOILER_TEST_VIEW_ALL' ) ) {
-		define( 'ASC_AI_EXAMPLE_TEST_VIEW_ALL', (bool) ASC_AI_BOILER_TEST_VIEW_ALL );
-	} else {
-		define( 'ASC_AI_EXAMPLE_TEST_VIEW_ALL', false );
-	}
+
+// Disable to limit data mining that can impact performance
+if ( ! defined( 'ASC_AI_EXAMPLE_ARCHIVE_ENABLED' ) ) {
+	define( 'ASC_AI_EXAMPLE_ARCHIVE_ENABLED', true );
 }
-if ( ! defined( 'ASC_AI_EXAMPLE_TEST_PAGING_POST_NUM' ) ) {
-	if ( defined( 'ASC_AI_BOILER_TEST_PAGING_POST_NUM' ) ) {
-		define( 'ASC_AI_EXAMPLE_TEST_PAGING_POST_NUM', (int) ASC_AI_BOILER_TEST_PAGING_POST_NUM );
-	} else {
-		define( 'ASC_AI_EXAMPLE_TEST_PAGING_POST_NUM', 3 );
-	}
+
+// Card grid excerpt source: 'none' | 'excerpt' | 'meta_description' | 'content'
+// 'excerpt'          — WordPress post excerpt (post_excerpt field)
+// 'meta_description' — SEO meta description (meta key set by asc_ai_boiler_meta_description_meta_key filter)
+// 'content'          — post body text, truncated by ASC_AI_EXAMPLE_CARD_WORD_LIMIT or ASC_AI_EXAMPLE_CARD_CHAR_LIMIT
+// 'none'             — no excerpt shown on cards (default)
+if ( ! defined( 'ASC_AI_EXAMPLE_CARD_EXCERPT_SOURCE' ) ) {
+	define( 'ASC_AI_EXAMPLE_CARD_EXCERPT_SOURCE', 'none' );
 }
-if ( ! defined( 'ASC_AI_EXAMPLE_TEST_VIEW_ALL_NUM' ) ) {
-	if ( defined( 'ASC_AI_BOILER_TEST_VIEW_ALL_NUM' ) ) {
-		define( 'ASC_AI_EXAMPLE_TEST_VIEW_ALL_NUM', (int) ASC_AI_BOILER_TEST_VIEW_ALL_NUM );
-	} else {
-		define( 'ASC_AI_EXAMPLE_TEST_VIEW_ALL_NUM', 2 );
-	}
+
+// Word limit for card excerpt when source is 'content' (0 = no limit; takes priority over char limit)
+if ( ! defined( 'ASC_AI_EXAMPLE_CARD_WORD_LIMIT' ) ) {
+	define( 'ASC_AI_EXAMPLE_CARD_WORD_LIMIT', 0 );
 }
+
+// Character limit for card excerpt when source is 'content' and word limit is 0 (0 = no limit)
+if ( ! defined( 'ASC_AI_EXAMPLE_CARD_CHAR_LIMIT' ) ) {
+	define( 'ASC_AI_EXAMPLE_CARD_CHAR_LIMIT', 0 );
+}
+
 
 if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 	require_once __DIR__ . '/vendor/autoload.php';
@@ -74,8 +75,8 @@ if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 register_activation_hook(
 	__FILE__,
 	static function (): void {
-		if ( class_exists( ExampleCore\Core::class ) ) {
-			ExampleCore\Core::activate();
+		if ( class_exists( Core\Core::class ) ) {
+			Core\Core::activate();
 		}
 	}
 );
@@ -83,8 +84,8 @@ register_activation_hook(
 register_deactivation_hook(
 	__FILE__,
 	static function (): void {
-		if ( class_exists( ExampleCore\Core::class ) ) {
-			ExampleCore\Core::deactivate();
+		if ( class_exists( Core\Core::class ) ) {
+			Core\Core::deactivate();
 		}
 	}
 );
@@ -92,11 +93,16 @@ register_deactivation_hook(
 register_uninstall_hook( __FILE__, __NAMESPACE__ . '\\asc_ai_example_uninstall' );
 
 function asc_ai_example_uninstall(): void {
-	if ( class_exists( ExampleCore\Core::class ) ) {
-		ExampleCore\Core::uninstall();
+	if ( class_exists( Core\Core::class ) ) {
+		Core\Core::uninstall();
 	}
 }
 
-if ( class_exists( ExampleCore\Core::class ) ) {
-	ExampleCore\Core::get_instance();
-}
+add_action(
+	'plugins_loaded',
+	static function (): void {
+		if ( class_exists( Core\Core::class ) ) {
+			Core\Core::get_instance();
+		}
+	}
+);

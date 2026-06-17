@@ -6,5 +6,5 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'ASC\\AI_BOILER\\' => array($baseDir . '/includes'),
+    'ASC\\AI_EXAMPLE\\' => array($baseDir . '/includes'),
 );

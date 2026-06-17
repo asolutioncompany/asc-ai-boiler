@@ -2,8 +2,8 @@
 /**
  * Plugin-managed media under content/media/ synced with the WordPress media library.
  *
- * Files on disk are canonical for deploy; restore imports them as attachments and applies
- * manifest bindings (settings keys, featured images). Backup exports bound attachments back
+ * Files on disk are canonical for deploy; import loads them as attachments and applies
+ * manifest bindings (settings keys, featured images). Export writes bound attachments back
  * to content/media/ and refreshes manifest media rows.
  *
  * @package asc-ai-boiler
@@ -24,12 +24,31 @@ final class ContentMediaSync {
 	public const MEDIA_RELATIVE_DIR = 'content/media/';
 
 	/**
+	 * Relative directory for static assets served directly (SVGs, fonts, icons) — never imported into the WP media library.
+	 */
+	public const MEDIA_OTHER_RELATIVE_DIR = 'content/other-media/';
+
+	/**
+	 * Filter: override the absolute path to content/other-media/ (trailing slash).
+	 *
+	 * @var string
+	 */
+	public const FILTER_OTHER_MEDIA_DIR = 'asc_ai_boiler_other_media_dir';
+
+	/**
+	 * Filter: override the public base URL of content/other-media/ (trailing slash).
+	 *
+	 * @var string
+	 */
+	public const FILTER_OTHER_MEDIA_URL = 'asc_ai_boiler_other_media_url';
+
+	/**
 	 * Attachment meta: plugin-relative path under {@see MEDIA_RELATIVE_DIR} (e.g. stock/blog-default.jpg).
 	 */
 	public const META_MEDIA_PATH = '_asc_ai_boiler_media_path';
 
 	/**
-	 * Filter: manifest media binding rows used on restore and backup.
+	 * Filter: manifest media binding rows used on import and export.
 	 *
 	 * Each row: array{
 	 *   media_filename: string,
@@ -81,9 +100,37 @@ final class ContentMediaSync {
 	}
 
 	/**
-	 * @param string $relative_path Path under content/media/ (e.g. hero.jpg or stock/blog-default.jpg).
+	 * Resolve a relative media path to a public URL, preferring the WordPress media library.
+	 *
+	 * Looks up the attachment stored with META_MEDIA_PATH matching $relative_path. If found,
+	 * returns the attachment URL (enabling WebP and CDN delivery). Falls back to the direct
+	 * plugin file URL so pages render even before an import has been run.
+	 *
+	 * @param string $relative_path Path under content/media/ (e.g. hero.jpg).
 	 *
 	 * @return string Public URL.
+	 */
+	public static function get_attachment_url_for_path( string $relative_path ): string {
+		$relative_path = self::normalize_relative_path( $relative_path );
+		if ( '' === $relative_path ) {
+			return '';
+		}
+
+		$attachment_id = self::find_attachment_id_by_media_path( $relative_path );
+		if ( $attachment_id > 0 ) {
+			$url = wp_get_attachment_url( $attachment_id );
+			if ( is_string( $url ) && '' !== $url ) {
+				return esc_url( $url );
+			}
+		}
+
+		return self::get_media_url( $relative_path );
+	}
+
+	/**
+	 * @param string $relative_path Path under content/media/ (e.g. hero.jpg or blog-default.jpg).
+	 *
+	 * @return string Public URL (direct plugin file, no media library lookup).
 	 */
 	public static function get_media_url( string $relative_path ): string {
 		$relative_path = self::normalize_relative_path( $relative_path );
@@ -102,6 +149,44 @@ final class ContentMediaSync {
 	 */
 	public static function ensure_media_directory_exists(): void {
 		$root = self::get_media_directory();
+		if ( ! is_dir( $root ) ) {
+			wp_mkdir_p( $root );
+		}
+		self::ensure_other_media_directory_exists();
+	}
+
+	/**
+	 * Absolute path to content/other-media/ (trailing slash). Filtered by {@see FILTER_OTHER_MEDIA_DIR}.
+	 *
+	 * @return string
+	 */
+	public static function get_other_media_directory(): string {
+		$default = Core::get_instance()->get_plugin_path() . self::MEDIA_OTHER_RELATIVE_DIR;
+		return trailingslashit( (string) apply_filters( self::FILTER_OTHER_MEDIA_DIR, $default ) );
+	}
+
+	/**
+	 * Public URL for a file under content/other-media/. Files are served directly — not imported into WordPress.
+	 *
+	 * @param string $relative_path Path relative to content/other-media/ (e.g. `moon.svg`).
+	 *
+	 * @return string Escaped public URL.
+	 */
+	public static function get_other_media_url( string $relative_path ): string {
+		$relative_path = self::normalize_relative_path( $relative_path );
+		if ( '' === $relative_path ) {
+			return '';
+		}
+		$default = Core::get_instance()->get_plugin_url() . self::MEDIA_OTHER_RELATIVE_DIR;
+		$base = trailingslashit( (string) apply_filters( self::FILTER_OTHER_MEDIA_URL, $default ) );
+		return esc_url( $base . $relative_path );
+	}
+
+	/**
+	 * @return void
+	 */
+	public static function ensure_other_media_directory_exists(): void {
+		$root = self::get_other_media_directory();
 		if ( ! is_dir( $root ) ) {
 			wp_mkdir_p( $root );
 		}
@@ -260,7 +345,7 @@ final class ContentMediaSync {
 	 *
 	 * @return array{updated:int, processed:int}
 	 */
-	public static function restore_from_plugin_files( array &$messages ): array {
+	public static function import_from_plugin_files( array &$messages ): array {
 		self::ensure_media_directory_exists();
 
 		require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -295,13 +380,13 @@ final class ContentMediaSync {
 	 *
 	 * @return list<array<string, mixed>>
 	 */
-	public static function backup_to_plugin_files( array &$messages ): array {
+	public static function export_to_plugin_files( array &$messages ): array {
 		self::ensure_media_directory_exists();
 
 		$rows_by_path = array();
 		$exported = 0;
 
-		foreach ( self::collect_attachment_ids_for_backup() as $attachment_id ) {
+		foreach ( self::collect_attachment_ids_for_export() as $attachment_id ) {
 			$relative_path = trim( (string) get_post_meta( $attachment_id, self::META_MEDIA_PATH, true ) );
 			if ( '' === $relative_path ) {
 				continue;
@@ -318,10 +403,10 @@ final class ContentMediaSync {
 			$messages[] = sprintf(
 				/* translators: %d: number of media files */
 				_n(
-					'Backed up %d media file to content/media/.',
-					'Backed up %d media files to content/media/.',
+					'Exported %d media file to content/media/.',
+					'Exported %d media files to content/media/.',
 					$exported,
-					\ASC_AI_BOILER_TEXT_DOMAIN
+					\ASC_AI_PLUGIN_DOMAIN
 				),
 				$exported
 			);
@@ -333,7 +418,7 @@ final class ContentMediaSync {
 	}
 
 	/**
-	 * Build manifest `media` rows from on-disk files (after backup export).
+	 * Build manifest `media` rows from on-disk files (after export).
 	 *
 	 * @return list<array<string, mixed>>
 	 */
@@ -371,7 +456,7 @@ final class ContentMediaSync {
 	/**
 	 * @return list<array<string, mixed>>
 	 */
-	public static function build_manifest_media_bindings_for_backup(): array {
+	public static function build_manifest_media_bindings_for_export(): array {
 		$bindings = self::load_manifest_media_bindings();
 		if ( array() !== $bindings ) {
 			return $bindings;
@@ -436,7 +521,7 @@ final class ContentMediaSync {
 		if ( $changed ) {
 			$messages[] = sprintf(
 				/* translators: %s: relative media path */
-				__( 'Restored media %s.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+				__( 'Imported media %s.', \ASC_AI_PLUGIN_DOMAIN ),
 				self::MEDIA_RELATIVE_DIR . $relative_path
 			);
 		}
@@ -490,6 +575,58 @@ final class ContentMediaSync {
 	 *
 	 * @return int Attachment ID or 0.
 	 */
+	/**
+	 * Compare content/media/ files against WordPress attachments and return rows in the same
+	 * shape as {@see \ASC\AI_BOILER\Admin\ContentSync::run_detect_content_differences()} differences.
+	 *
+	 * @return list<array{relative_path:string, issues:list<string>, suggestion:string, suggestion_note:string, file_modified_gmt:string, wp_modified_gmt:string}>
+	 */
+	public static function detect_differences(): array {
+		$differences = array();
+		$manifest_rows = self::index_manifest_media_rows( self::load_manifest_media_rows() );
+
+		foreach ( self::list_media_files() as $relative_path ) {
+			$absolute      = self::resolve_media_file_path( $relative_path );
+			$display_path  = self::MEDIA_RELATIVE_DIR . $relative_path;
+			$file_mtime    = ( '' !== $absolute && is_file( $absolute ) ) ? filemtime( $absolute ) : false;
+			$file_iso      = false !== $file_mtime ? gmdate( 'c', (int) $file_mtime ) : '';
+			$attachment_id = self::find_attachment_id_by_media_path( $relative_path );
+
+			if ( $attachment_id <= 0 ) {
+				$differences[] = array(
+					'relative_path'    => $display_path,
+					'issues'           => array( __( 'Media file on disk has no matching attachment in the WordPress media library.', \ASC_AI_PLUGIN_DOMAIN ) ),
+					'suggestion'       => 'import',
+					'suggestion_note'  => __( 'Suggested: Import from plugin files to add this media file to WordPress.', \ASC_AI_PLUGIN_DOMAIN ),
+					'file_modified_gmt' => $file_iso,
+					'wp_modified_gmt'  => '',
+				);
+				continue;
+			}
+
+			$disk_hash    = ( '' !== $absolute && is_readable( $absolute ) ) ? md5_file( $absolute ) : false;
+			$attached     = get_attached_file( $attachment_id );
+			$attach_hash  = ( is_string( $attached ) && is_readable( $attached ) ) ? md5_file( $attached ) : false;
+
+			if ( false !== $disk_hash && false !== $attach_hash && $disk_hash !== $attach_hash ) {
+				$wp_post    = get_post( $attachment_id );
+				$wp_ts      = $wp_post ? (int) get_post_modified_time( 'U', true, $wp_post ) : 0;
+				$wp_iso     = $wp_ts > 0 ? gmdate( 'c', $wp_ts ) : '';
+
+				$differences[] = array(
+					'relative_path'    => $display_path,
+					'issues'           => array( __( 'Media file on disk differs from the WordPress attachment (MD5 mismatch).', \ASC_AI_PLUGIN_DOMAIN ) ),
+					'suggestion'       => 'import',
+					'suggestion_note'  => __( 'Suggested: Import from plugin files to update this media attachment in WordPress.', \ASC_AI_PLUGIN_DOMAIN ),
+					'file_modified_gmt' => $file_iso,
+					'wp_modified_gmt'  => $wp_iso,
+				);
+			}
+		}
+
+		return $differences;
+	}
+
 	public static function find_attachment_id_by_media_path( string $relative_path ): int {
 		$relative_path = self::normalize_relative_path( $relative_path );
 		if ( '' === $relative_path ) {
@@ -535,7 +672,7 @@ final class ContentMediaSync {
 			return '';
 		}
 
-		return self::get_media_url( $relative_path );
+		return self::get_attachment_url_for_path( $relative_path );
 	}
 
 	/**
@@ -550,7 +687,7 @@ final class ContentMediaSync {
 			return '';
 		}
 
-		return self::get_media_url( $relative_path );
+		return self::get_attachment_url_for_path( $relative_path );
 	}
 
 	/**
@@ -596,7 +733,7 @@ final class ContentMediaSync {
 	/**
 	 * @return list<int>
 	 */
-	private static function collect_attachment_ids_for_backup(): array {
+	private static function collect_attachment_ids_for_export(): array {
 		$ids = array();
 
 		foreach ( self::load_manifest_media_bindings() as $binding ) {
@@ -668,7 +805,7 @@ final class ContentMediaSync {
 		if ( ! is_array( $upload ) || ! empty( $upload['error'] ) ) {
 			$messages[] = sprintf(
 				/* translators: %s: relative media path */
-				__( 'Failed to import media %s.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+				__( 'Failed to import media %s.', \ASC_AI_PLUGIN_DOMAIN ),
 				self::MEDIA_RELATIVE_DIR . $relative_path
 			);
 			return 0;
@@ -679,7 +816,7 @@ final class ContentMediaSync {
 		if ( '' === $mime ) {
 			$messages[] = sprintf(
 				/* translators: %s: relative media path */
-				__( 'Skipped media %s: unknown MIME type.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+				__( 'Skipped media %s: unknown MIME type.', \ASC_AI_PLUGIN_DOMAIN ),
 				self::MEDIA_RELATIVE_DIR . $relative_path
 			);
 			return 0;
@@ -698,7 +835,7 @@ final class ContentMediaSync {
 		if ( is_wp_error( $attachment_id ) || ! is_int( $attachment_id ) || $attachment_id <= 0 ) {
 			$messages[] = sprintf(
 				/* translators: %s: relative media path */
-				__( 'Failed to import media %s.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+				__( 'Failed to import media %s.', \ASC_AI_PLUGIN_DOMAIN ),
 				self::MEDIA_RELATIVE_DIR . $relative_path
 			);
 			return 0;
@@ -736,7 +873,7 @@ final class ContentMediaSync {
 		if ( ! copy( $absolute_source, $destination ) ) {
 			$messages[] = sprintf(
 				/* translators: %s: attachment title */
-				__( 'Failed to replace attachment file for %s.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+				__( 'Failed to replace attachment file for %s.', \ASC_AI_PLUGIN_DOMAIN ),
 				get_the_title( $attachment_id )
 			);
 			return false;
@@ -786,7 +923,7 @@ final class ContentMediaSync {
 		if ( ! copy( $source, $absolute ) ) {
 			$messages[] = sprintf(
 				/* translators: %s: relative media path */
-				__( 'Failed to write media %s.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+				__( 'Failed to write media %s.', \ASC_AI_PLUGIN_DOMAIN ),
 				self::MEDIA_RELATIVE_DIR . $relative_path
 			);
 			return false;
@@ -849,7 +986,7 @@ final class ContentMediaSync {
 
 		$messages[] = sprintf(
 			/* translators: 1: option key, 2: media path */
-			__( 'Linked media binding %1$s → %2$s.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+			__( 'Linked media binding %1$s → %2$s.', \ASC_AI_PLUGIN_DOMAIN ),
 			$key,
 			(string) ( $binding['media_filename'] ?? '' )
 		);
@@ -885,7 +1022,7 @@ final class ContentMediaSync {
 
 		$messages[] = sprintf(
 			/* translators: 1: post slug, 2: media path */
-			__( 'Set featured image for %1$s from %2$s.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+			__( 'Set featured image for %1$s from %2$s.', \ASC_AI_PLUGIN_DOMAIN ),
 			$slug,
 			(string) ( $binding['media_filename'] ?? '' )
 		);

@@ -1,11 +1,10 @@
 <?php
 /**
- * Thin boiler core: text domain, plugin paths, lifecycle hooks, classic editor, theme shell, and admin bootstrap.
+ * Thin boiler core: text domain, plugin paths, lifecycle hooks, theme shell, and admin bootstrap.
  *
  * Public front-end layout uses {@see ThemeShell} (minimal PHP template plus header/footer filters). Product
- * layers supply partial markup via those filters. {@see ClassicEditor} disables the block editor for all post
- * types unless a filter opts a type back in. In the dashboard, {@see \ASC\AI_BOILER\Admin\Admin} owns Backup /
- * Restore and partial CPT admin helpers. The partial CPT is registered via {@see RegisterPartials}.
+ * layers supply partial markup via those filters. In the dashboard, {@see \ASC\AI_BOILER\Admin\Admin} owns Import /
+ * Export and partial CPT admin helpers. The partial CPT is registered via {@see RegisterPartials}.
  *
  * @package asc-ai-boiler
  */
@@ -28,7 +27,6 @@ class Core {
 	private function __construct() {
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 		add_action( 'init', array( RegisterPartials::class, 'register' ), 5 );
-		ClassicEditor::register();
 		ThemeShell::register();
 		if ( is_admin() ) {
 			new BoilerAdmin();
@@ -52,7 +50,7 @@ class Core {
 
 	public function load_textdomain(): void {
 		load_plugin_textdomain(
-			\ASC_AI_BOILER_TEXT_DOMAIN,
+			\ASC_AI_PLUGIN_DOMAIN,
 			false,
 			dirname( plugin_basename( \ASC_AI_PLUGIN_FILE ) ) . '/languages'
 		);

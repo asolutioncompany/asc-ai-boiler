@@ -306,9 +306,9 @@ final class ThemeShell {
 	 */
 	private static function render_default_404(): void {
 		echo '<section class="asc-ai-boiler-shell-content">';
-		echo '<h1 class="asc-ai-boiler-shell-title">' . esc_html__( 'Page not found', \ASC_AI_BOILER_TEXT_DOMAIN ) . '</h1>';
-		echo '<p>' . esc_html__( 'The page you requested could not be found.', \ASC_AI_BOILER_TEXT_DOMAIN ) . '</p>';
-		echo '<p><a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html__( 'Return home', \ASC_AI_BOILER_TEXT_DOMAIN ) . '</a></p>';
+		echo '<h1 class="asc-ai-boiler-shell-title">' . esc_html__( 'Page not found', \ASC_AI_PLUGIN_DOMAIN ) . '</h1>';
+		echo '<p>' . esc_html__( 'The page you requested could not be found.', \ASC_AI_PLUGIN_DOMAIN ) . '</p>';
+		echo '<p><a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html__( 'Return home', \ASC_AI_PLUGIN_DOMAIN ) . '</a></p>';
 		echo '</section>';
 	}
 
@@ -320,13 +320,13 @@ final class ThemeShell {
 		echo '<h1 class="asc-ai-boiler-shell-title">';
 		printf(
 			/* translators: %s: search query */
-			esc_html__( 'Search results for: %s', \ASC_AI_BOILER_TEXT_DOMAIN ),
+			esc_html__( 'Search results for: %s', \ASC_AI_PLUGIN_DOMAIN ),
 			esc_html( get_search_query() )
 		);
 		echo '</h1>';
 
 		if ( ! have_posts() ) {
-			echo '<p>' . esc_html__( 'No results found.', \ASC_AI_BOILER_TEXT_DOMAIN ) . '</p>';
+			echo '<p>' . esc_html__( 'No results found.', \ASC_AI_PLUGIN_DOMAIN ) . '</p>';
 			echo '</section>';
 			return;
 		}
@@ -348,14 +348,14 @@ final class ThemeShell {
 		echo '<section class="asc-ai-boiler-shell-content">';
 		echo '<h1 class="asc-ai-boiler-shell-title">';
 		if ( is_home() && ! is_front_page() ) {
-			echo esc_html__( 'Blog', \ASC_AI_BOILER_TEXT_DOMAIN );
+			echo esc_html__( 'Blog', \ASC_AI_PLUGIN_DOMAIN );
 		} else {
 			echo esc_html( get_the_archive_title() );
 		}
 		echo '</h1>';
 
 		if ( ! have_posts() ) {
-			echo '<p>' . esc_html__( 'No posts found.', \ASC_AI_BOILER_TEXT_DOMAIN ) . '</p>';
+			echo '<p>' . esc_html__( 'No posts found.', \ASC_AI_PLUGIN_DOMAIN ) . '</p>';
 			echo '</section>';
 			return;
 		}

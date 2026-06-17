@@ -1,4 +1,4 @@
-/*! Sync / Backup–Restore admin (boiler) */
+/*! Sync / Import–Export admin (boiler) */
 .asc-ai-boiler-settings-page__hub-back {
 	margin-bottom: 24px;
 }
@@ -101,11 +101,11 @@
 	border-left-width: 4px;
 }
 
-.asc-ai-boiler-diff-item--suggest-backup {
+.asc-ai-boiler-diff-item--suggest-export {
 	border-left-color: #00a32a;
 }
 
-.asc-ai-boiler-diff-item--suggest-restore {
+.asc-ai-boiler-diff-item--suggest-import {
 	border-left-color: #2271b1;
 }
 
@@ -140,12 +140,12 @@
 	display: none;
 }
 
-.asc-ai-boiler-sync-status--backup-running,
-.asc-ai-boiler-sync-status--backup-done,
-.asc-ai-boiler-sync-status--backup-error,
-.asc-ai-boiler-sync-status--restore-running,
-.asc-ai-boiler-sync-status--restore-done,
-.asc-ai-boiler-sync-status--restore-error {
+.asc-ai-boiler-sync-status--export-running,
+.asc-ai-boiler-sync-status--export-done,
+.asc-ai-boiler-sync-status--export-error,
+.asc-ai-boiler-sync-status--import-running,
+.asc-ai-boiler-sync-status--import-done,
+.asc-ai-boiler-sync-status--import-error {
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
@@ -156,26 +156,26 @@
 	background: #f0f6fc;
 }
 
-.asc-ai-boiler-sync-status--backup-done,
-.asc-ai-boiler-sync-status--restore-done {
+.asc-ai-boiler-sync-status--export-done,
+.asc-ai-boiler-sync-status--import-done {
 	background: #edfaef;
 	border-color: #68de7c;
 	border-left-color: #00a32a;
 }
 
-.asc-ai-boiler-sync-status--backup-error,
-.asc-ai-boiler-sync-status--restore-error {
+.asc-ai-boiler-sync-status--export-error,
+.asc-ai-boiler-sync-status--import-error {
 	background: #fcf0f1;
 	border-color: #f0b0b5;
 	border-left-color: #d63638;
 }
 
-.asc-ai-boiler-sync-status--backup-running #asc-ai-boiler-sync-progress,
-.asc-ai-boiler-sync-status--backup-done #asc-ai-boiler-sync-progress,
-.asc-ai-boiler-sync-status--backup-error #asc-ai-boiler-sync-progress,
-.asc-ai-boiler-sync-status--restore-running #asc-ai-boiler-sync-progress,
-.asc-ai-boiler-sync-status--restore-done #asc-ai-boiler-sync-progress,
-.asc-ai-boiler-sync-status--restore-error #asc-ai-boiler-sync-progress {
+.asc-ai-boiler-sync-status--export-running #asc-ai-boiler-sync-progress,
+.asc-ai-boiler-sync-status--export-done #asc-ai-boiler-sync-progress,
+.asc-ai-boiler-sync-status--export-error #asc-ai-boiler-sync-progress,
+.asc-ai-boiler-sync-status--import-running #asc-ai-boiler-sync-progress,
+.asc-ai-boiler-sync-status--import-done #asc-ai-boiler-sync-progress,
+.asc-ai-boiler-sync-status--import-error #asc-ai-boiler-sync-progress {
 	font-size: 15px;
 	font-weight: 600;
 	color: #1d2327;
@@ -207,24 +207,24 @@
 	margin: 0;
 }
 
-.asc-ai-boiler-settings-page__sync-form .asc-ai-boiler-settings-page__sync-restore-confirm {
+.asc-ai-boiler-settings-page__sync-form .asc-ai-boiler-settings-page__sync-import-confirm {
 	display: inline-flex;
 	align-items: flex-start;
 	gap: 8px;
 	max-width: 100%;
 }
 
-.asc-ai-boiler-settings-page__sync-restore-confirm-text {
+.asc-ai-boiler-settings-page__sync-import-confirm-text {
 	flex: 0 1 auto;
 	min-width: 0;
 }
 
-.asc-ai-boiler-sync-restore-block.asc-ai-boiler-settings-page__sync-form,
-.asc-ai-boiler-sync-backup-block.asc-ai-boiler-settings-page__sync-form {
+.asc-ai-boiler-sync-import-block.asc-ai-boiler-settings-page__sync-form,
+.asc-ai-boiler-sync-export-block.asc-ai-boiler-settings-page__sync-form {
 	align-items: flex-start;
 }
 
-.asc-ai-boiler-sync-restore-block.asc-ai-boiler-settings-page__sync-form {
+.asc-ai-boiler-sync-import-block.asc-ai-boiler-settings-page__sync-form {
 	gap: 8px;
 }
 

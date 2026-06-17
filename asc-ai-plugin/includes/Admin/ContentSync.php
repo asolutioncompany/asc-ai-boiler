@@ -2,18 +2,18 @@
 /**
  * Static content sync (plugin HTML and content-manifest.json vs WordPress).
  *
- * Pairs every WordPress entity of each supported type (pages, posts, partials, and custom post types) with a file under `content/<type>/`. Restore applies on-disk HTML to
+ * Pairs every WordPress entity of each supported type (pages, posts, partials, and custom post types) with a file under `content/<type>/`. Import applies on-disk HTML to
  * WordPress when normalized file body differs from normalized database body (UTF-8 BOM ignored,
  * CRLF vs LF ignored, leading/trailing document whitespace ignored). Tags and categories from content-manifest.json replace
  * WordPress terms for each listed taxonomy when a manifest row matches the file. Publication time (`date_gmt`)
  * from the manifest is applied when it differs, even if the file body already matches WordPress. Rows may omit
- * `date_gmt`; restore then stamps the current GMT time (unless the post was already published before that restore).
- * When restore finishes, content-manifest.json is regenerated from WordPress (same canonical form as backup) so
+ * `date_gmt`; import then stamps the current GMT time (unless the post was already published before that import).
+ * When import finishes, content-manifest.json is regenerated from WordPress (same canonical export form) so
  * manifest metadata matches the database. Manifest rows omit WordPress `post_id` and last-modified times so the
- * same files port across environments; restore does not set modified times from the manifest. Restore also rewrites
- * each scanned plugin HTML file on disk to canonical backup form when raw bytes differ (BOM, CRLF vs LF, outer trim).
- * Restore imports content/media/ into the WordPress media library and applies manifest media bindings. Optional restore cleanup
- * can remove published posts whose expected plugin file was removed from disk. Backup writes every
+ * same files port across environments; import does not set modified times from the manifest. Import also rewrites
+ * each scanned plugin HTML file on disk to canonical export form when raw bytes differ (BOM, CRLF vs LF, outer trim).
+ * Import brings content/media/ into the WordPress media library and applies manifest media bindings. Optional import cleanup
+ * can remove published posts whose expected plugin file was removed from disk. Export writes every
  * published entity to plugin files, exports bound media to content/media/, regenerates content-manifest.json from the database (including
  * tags, categories, and publication date), and optionally deletes plugin HTML that has no matching published content. The sync
  * admin screen runs file sync through AJAX in batches of {@see SyncConfig::CONTENT_SYNC_BATCH_SIZE}.
@@ -38,7 +38,7 @@ use WP_Term;
 final class ContentSync {
 
 /**
-	 * Filter: extend the list of `content/<key>/` subdirectory keys participating in backup/restore.
+	 * Filter: extend the list of `content/<key>/` subdirectory keys participating in export/import.
 	 *
 	 * Callback receives `list<string>` (partials, pages, posts) and must return `list<string>` (append-only is typical).
 	 */
@@ -57,6 +57,19 @@ final class ContentSync {
 	 * Callback receives the default URL and must return a string.
 	 */
 	public const FILTER_CONTENT_URL = 'asc_ai_boiler_content_url';
+
+	/**
+	 * Filter: override the post meta key used to read and write the SEO meta description during export/import.
+	 *
+	 * Callback receives the default key string and must return a non-empty string.
+	 * Default: `_yoast_wpseo_metadesc` (Yoast SEO). Override for other plugins:
+	 * - All in One SEO: `_aioseo_description`
+	 * - Rank Math: `rank_math_description`
+	 * - SEOPress: `_seopress_titles_desc`
+	 */
+	public const FILTER_META_DESCRIPTION_META_KEY = 'asc_ai_boiler_meta_description_meta_key';
+
+	private const META_DESCRIPTION_META_KEY_DEFAULT = '_yoast_wpseo_metadesc';
 
 	/**
 	 * JSON manifest at the content root (titles, slugs, filenames, dates).
@@ -183,7 +196,7 @@ final class ContentSync {
 	}
 
 	/**
-	 * Normalize markup read from disk: no BOM, Unix line endings (matches restore/compare expectations).
+	 * Normalize markup read from disk: no BOM, Unix line endings (matches import/compare expectations).
 	 */
 	public static function normalize_content_markup_from_disk( string $markup ): string {
 		$markup = self::strip_utf8_bom( $markup );
@@ -192,7 +205,7 @@ final class ContentSync {
 	}
 
 	/**
-	 * Canonical HTML for plugin backup files: no BOM, Unix newlines, trim outer whitespace.
+	 * Canonical HTML for plugin export files: no BOM, Unix newlines, trim outer whitespace.
 	 *
 	 * Pass post content unslashed or raw file body; {@see write_content_markup()} applies this before writing.
 	 */
@@ -216,6 +229,13 @@ final class ContentSync {
 			$type_dir = self::get_content_type_directory( $type );
 			if ( ! is_dir( $type_dir ) ) {
 				wp_mkdir_p( $type_dir );
+			}
+		}
+
+		foreach ( array( SyncConfig::CONTENT_DIR_EXCERPTS, SyncConfig::CONTENT_DIR_META_DESCRIPTIONS ) as $companion_dir ) {
+			$dir = self::get_companion_text_directory( $companion_dir );
+			if ( ! is_dir( $dir ) ) {
+				wp_mkdir_p( $dir );
 			}
 		}
 
@@ -389,7 +409,7 @@ final class ContentSync {
 	}
 
 	/**
-	 * Partial restore filenames: every row in content-manifest.json `types.partials` (authoritative).
+	 * Partial import filenames: every row in content-manifest.json `types.partials` (authoritative).
 	 *
 	 * @return list<string>
 	 */
@@ -506,9 +526,9 @@ final class ContentSync {
 		return true;
 	}
 
-	public const AJAX_ACTION_RESTORE_BATCH = 'asc_ai_boiler_restore_batch';
+	public const AJAX_ACTION_IMPORT_BATCH = 'asc_ai_boiler_import_batch';
 
-	public const AJAX_ACTION_BACKUP_BATCH = 'asc_ai_boiler_backup_batch';
+	public const AJAX_ACTION_EXPORT_BATCH = 'asc_ai_boiler_export_batch';
 
 	public const AJAX_ACTION_DETECT_DIFFERENCES = 'asc_ai_boiler_detect_differences';
 
@@ -710,7 +730,7 @@ final class ContentSync {
 	 *
 	 * @return list<array{type:string, filename:string}>
 	 */
-	private static function collect_restore_file_jobs(): array {
+	private static function collect_import_file_jobs(): array {
 		$jobs = array();
 		foreach ( ContentSyncProfile::sync_types() as $type_key => $_unused ) {
 			if ( SyncConfig::CONTENT_TYPE_PARTIALS === $type_key ) {
@@ -749,7 +769,7 @@ final class ContentSync {
 	 *   messages:list<string>
 	 * }
 	 */
-	public static function run_restore_batch( int $offset, bool $confirmed ): array {
+	public static function run_import_batch( int $offset, bool $confirmed ): array {
 		if ( ! $confirmed ) {
 			return array(
 				'ok' => false,
@@ -758,11 +778,11 @@ final class ContentSync {
 				'updated_in_batch' => 0,
 				'processed_in_batch' => 0,
 				'total_jobs' => 0,
-				'messages' => array( __( 'Restore was not confirmed.', \ASC_AI_BOILER_TEXT_DOMAIN ) ),
+				'messages' => array( __( 'Import was not confirmed.', \ASC_AI_PLUGIN_DOMAIN ) ),
 			);
 		}
 
-		$jobs = self::collect_restore_file_jobs();
+		$jobs = self::collect_import_file_jobs();
 		$total_jobs = count( $jobs );
 		$offset = max( 0, $offset );
 
@@ -774,8 +794,8 @@ final class ContentSync {
 		if ( $offset >= $total_jobs ) {
 			$messages = array();
 			if ( $offset > 0 && $confirmed ) {
-				self::maybe_run_restore_cleanup( $confirmed, $messages );
-				self::maybe_restore_plugin_media( $messages );
+				self::maybe_run_import_cleanup( $confirmed, $messages );
+				self::maybe_import_plugin_media( $messages );
 				self::maybe_normalize_content_manifest_from_wordpress( $messages );
 			}
 
@@ -800,7 +820,7 @@ final class ContentSync {
 			$job = $jobs[ $i ];
 			$type_key = (string) $job['type'];
 			$filename = (string) $job['filename'];
-			if ( self::restore_one_file( $type_key, $filename, $messages ) ) {
+			if ( self::import_one_file( $type_key, $filename, $messages ) ) {
 				$updated_in_batch++;
 			}
 			$processed_in_batch++;
@@ -810,8 +830,8 @@ final class ContentSync {
 
 		$done = $next_offset >= $total_jobs;
 		if ( $done && $confirmed && $total_jobs > 0 ) {
-			self::maybe_run_restore_cleanup( $confirmed, $messages );
-			self::maybe_restore_plugin_media( $messages );
+			self::maybe_run_import_cleanup( $confirmed, $messages );
+			self::maybe_import_plugin_media( $messages );
 			self::maybe_normalize_content_manifest_from_wordpress( $messages );
 		}
 
@@ -828,22 +848,22 @@ final class ContentSync {
 
 	/**
 	 * Import plugin files into WordPress. Updates post bodies when on-disk markup differs. Rewrites each scanned
-	 * plugin HTML file on disk to canonical backup form when raw bytes differ. Replaces tags, categories, and
+	 * plugin HTML file on disk to canonical export form when raw bytes differ. Replaces tags, categories, and
 	 * manifest publication time when a manifest row applies (rows without `date_gmt` stamp “now” except for posts
-	 * already published before the restore). When restore finishes, regenerates content-manifest.json from WordPress.
-	 * Optional restore cleanup can remove posts with no on-disk file (see settings).
+	 * already published before the import). When import finishes, regenerates content-manifest.json from WordPress.
+	 * Optional import cleanup can remove posts with no on-disk file (see settings).
 	 *
-	 * Uses the same batch size as the Backup / Restore admin AJAX restore action.
+	 * Uses the same batch size as the Import / Export admin AJAX import action.
 	 *
 	 * @param bool $confirmed User confirmed replace.
 	 *
 	 * @return array{ok:bool, messages:list<string>, updated:int}
 	 */
-	public static function restore_from_files( bool $confirmed ): array {
+	public static function import_from_files( bool $confirmed ): array {
 		if ( ! $confirmed ) {
 			return array(
 				'ok' => false,
-				'messages' => array( __( 'Restore was not confirmed.', \ASC_AI_BOILER_TEXT_DOMAIN ) ),
+				'messages' => array( __( 'Import was not confirmed.', \ASC_AI_PLUGIN_DOMAIN ) ),
 				'updated' => 0,
 			);
 		}
@@ -855,7 +875,7 @@ final class ContentSync {
 		$done = false;
 
 		while ( ! $done ) {
-			$batch = self::run_restore_batch( $offset, true );
+			$batch = self::run_import_batch( $offset, true );
 			if ( ! $batch['ok'] ) {
 				return array(
 					'ok' => false,
@@ -929,14 +949,14 @@ final class ContentSync {
 		if ( is_wp_error( $result ) ) {
 			$messages[] = sprintf(
 				/* translators: 1: relative path, 2: error message */
-				__( 'Failed to update title or slug for %1$s: %2$s', \ASC_AI_BOILER_TEXT_DOMAIN ),
+				__( 'Failed to update title or slug for %1$s: %2$s', \ASC_AI_PLUGIN_DOMAIN ),
 				$relative_path,
 				(string) $result->get_error_message()
 			);
 			return false;
 		}
 
-		$line = __( 'Updated title or slug from backup for %s.', \ASC_AI_BOILER_TEXT_DOMAIN );
+		$line = __( 'Updated title or slug from export for %s.', \ASC_AI_PLUGIN_DOMAIN );
 		$messages[] = sprintf( $line, $relative_path );
 
 		return true;
@@ -1116,7 +1136,7 @@ final class ContentSync {
 	 *
 	 * @return bool True when a post was created or updated.
 	 */
-	private static function restore_one_partial_from_manifest( string $filename, array &$messages ): bool {
+	private static function import_one_partial_from_manifest( string $filename, array &$messages ): bool {
 		$type_key = SyncConfig::CONTENT_TYPE_PARTIALS;
 		$relative_path = self::relative_content_type_file_path( $type_key, $filename );
 		$manifest_entry = self::get_manifest_entry_for_file( $type_key, $filename, null );
@@ -1150,7 +1170,7 @@ final class ContentSync {
 			$changed = true;
 			$messages[] = sprintf(
 				/* translators: %s: relative plugin path */
-				__( 'Created partial for %s.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+				__( 'Created partial for %s.', \ASC_AI_PLUGIN_DOMAIN ),
 				$relative_path
 			);
 		}
@@ -1159,7 +1179,7 @@ final class ContentSync {
 			$changed = true;
 			$messages[] = sprintf(
 				/* translators: %s: relative plugin path */
-				__( 'Set partial key for %s.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+				__( 'Set partial key for %s.', \ASC_AI_PLUGIN_DOMAIN ),
 				$relative_path
 			);
 		}
@@ -1188,7 +1208,7 @@ final class ContentSync {
 			if ( is_wp_error( $result ) ) {
 				$messages[] = sprintf(
 					/* translators: 1: relative path, 2: error */
-					__( 'Failed to update %1$s: %2$s', \ASC_AI_BOILER_TEXT_DOMAIN ),
+					__( 'Failed to update %1$s: %2$s', \ASC_AI_PLUGIN_DOMAIN ),
 					$relative_path,
 					$result->get_error_message()
 				);
@@ -1198,7 +1218,7 @@ final class ContentSync {
 			$changed = true;
 			$messages[] = sprintf(
 				/* translators: %s: relative plugin path */
-				__( 'Restored %s.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+				__( 'Imported %s.', \ASC_AI_PLUGIN_DOMAIN ),
 				$relative_path
 			);
 		}
@@ -1280,9 +1300,9 @@ final class ContentSync {
 	 *
 	 * @return bool True when WordPress post content, taxonomies, publication time, title, or slug were updated.
 	 */
-	private static function restore_one_file( string $type_key, string $filename, array &$messages ): bool {
+	private static function import_one_file( string $type_key, string $filename, array &$messages ): bool {
 		if ( SyncConfig::CONTENT_TYPE_PARTIALS === $type_key ) {
-			return self::restore_one_partial_from_manifest( $filename, $messages );
+			return self::import_one_partial_from_manifest( $filename, $messages );
 		}
 
 		$relative_path = ContentSync::relative_content_type_file_path( $type_key, $filename );
@@ -1321,7 +1341,7 @@ final class ContentSync {
 			}
 			$messages[] = sprintf(
 				/* translators: %s: relative plugin path */
-				__( 'Set shell partial key for %s.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+				__( 'Set shell partial key for %s.', \ASC_AI_PLUGIN_DOMAIN ),
 				$relative_path
 			);
 		}
@@ -1355,7 +1375,7 @@ final class ContentSync {
 			if ( is_wp_error( $result ) ) {
 				$messages[] = sprintf(
 					/* translators: 1: relative path, 2: error */
-					__( 'Failed to update %1$s: %2$s', \ASC_AI_BOILER_TEXT_DOMAIN ),
+					__( 'Failed to update %1$s: %2$s', \ASC_AI_PLUGIN_DOMAIN ),
 					$relative_path,
 					$result->get_error_message()
 				);
@@ -1363,8 +1383,8 @@ final class ContentSync {
 			}
 
 			$content_changed = true;
-			$restored_line = __( 'Restored %s.', \ASC_AI_BOILER_TEXT_DOMAIN );
-			$messages[] = sprintf( $restored_line, $relative_path );
+			$imported_line = __( 'Imported %s.', \ASC_AI_PLUGIN_DOMAIN );
+			$messages[] = sprintf( $imported_line, $relative_path );
 		}
 
 		if ( $content_changed ) {
@@ -1416,29 +1436,35 @@ final class ContentSync {
 		}
 
 		if ( $taxonomy_changed && ! $content_changed ) {
-			$tax_line = __( 'Updated tags/categories from backup for %s.', \ASC_AI_BOILER_TEXT_DOMAIN );
+			$tax_line = __( 'Updated tags/categories from export for %s.', \ASC_AI_PLUGIN_DOMAIN );
 			$messages[] = sprintf( $tax_line, $relative_path );
 		}
 
 		if ( $timestamps_changed && ! $content_changed ) {
-			$time_line = __( 'Updated publication time from backup for %s.', \ASC_AI_BOILER_TEXT_DOMAIN );
+			$time_line = __( 'Updated publication time from export for %s.', \ASC_AI_PLUGIN_DOMAIN );
 			$messages[] = sprintf( $time_line, $relative_path );
 		}
 
 		if ( ! $existed_before && ! $content_changed && ! $title_slug_changed && ! $taxonomy_changed && ! $timestamps_changed ) {
 			$messages[] = sprintf(
 				/* translators: %s: relative plugin path */
-				__( 'Created %s in WordPress from plugin files.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+				__( 'Created %s in WordPress from plugin files.', \ASC_AI_PLUGIN_DOMAIN ),
 				$relative_path
 			);
 		}
 
 		$file_normalized = self::maybe_normalize_plugin_file_on_disk( $type_key, $filename, $markup, $messages );
 
+		$companion_changed = false;
+		if ( SyncConfig::CONTENT_TYPE_PARTIALS !== $type_key ) {
+			$companion_changed = self::import_companion_files_for_post( $post_id, $filename, $relative_path, $messages );
+		}
+
 		return $content_changed || $title_slug_changed || $taxonomy_changed || $timestamps_changed
 			|| ! $existed_before
 			|| $shell_meta_repaired
-			|| $file_normalized;
+			|| $file_normalized
+			|| $companion_changed;
 	}
 
 	/**
@@ -1466,8 +1492,8 @@ final class ContentSync {
 	}
 
 	/**
-	 * Read-only: compare plugin HTML, backup manifest metadata (same slice as backup “manifest refresh”), publication date,
-	 * and whether on-disk HTML needs whitespace normalization to match backup canonical form.
+	 * Read-only: compare plugin HTML, export manifest metadata (same slice as export “manifest refresh”), publication date,
+	 * and whether on-disk HTML needs whitespace normalization to match export canonical form.
 	 *
 	 * @return array{
 	 *   in_sync: bool,
@@ -1504,13 +1530,13 @@ final class ContentSync {
 				'issues' => array(
 					sprintf(
 						/* translators: 1: post title, 2: relative plugin path */
-						__( 'Published WordPress content "%1$s" has no matching plugin file on disk (%2$s).', \ASC_AI_BOILER_TEXT_DOMAIN ),
+						__( 'Published WordPress content "%1$s" has no matching plugin file on disk (%2$s).', \ASC_AI_PLUGIN_DOMAIN ),
 						get_the_title( $post ),
 						$relative_path
 					),
 				),
-				'suggestion' => 'backup',
-				'suggestion_note' => __( 'Suggested: Backup to plugin files to write the missing HTML.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+				'suggestion' => 'export',
+				'suggestion_note' => __( 'Suggested: Export to plugin files to write the missing HTML.', \ASC_AI_PLUGIN_DOMAIN ),
 				'file_modified_gmt' => '',
 				'wp_modified_gmt' => $wp_iso,
 			);
@@ -1529,16 +1555,16 @@ final class ContentSync {
 			$differences[] = array(
 				'relative_path' => $relative_path,
 				'issues' => array(
-					__( 'Plugin backup file exists; no matching published WordPress content for this file.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+					__( 'Plugin export file exists; no matching published WordPress content for this file.', \ASC_AI_PLUGIN_DOMAIN ),
 				),
-				'suggestion' => 'restore',
-				'suggestion_note' => __( 'Suggested: Restore from plugin files (or publish matching content in WordPress).', \ASC_AI_BOILER_TEXT_DOMAIN ),
+				'suggestion' => 'import',
+				'suggestion_note' => __( 'Suggested: Import from plugin files (or publish matching content in WordPress).', \ASC_AI_PLUGIN_DOMAIN ),
 				'file_modified_gmt' => $file_iso,
 				'wp_modified_gmt' => '',
 			);
 		}
 
-		foreach ( self::collect_restore_file_jobs() as $job ) {
+		foreach ( self::collect_import_file_jobs() as $job ) {
 			$type_key = (string) $job['type'];
 			$filename = (string) $job['filename'];
 			$relative_path = ContentSync::relative_content_type_file_path( $type_key, $filename );
@@ -1562,15 +1588,12 @@ final class ContentSync {
 			$issues = array();
 
 			if ( $body_differs ) {
-				$issues[] = __( 'Post body HTML differs from the plugin file (normalized comparison).', \ASC_AI_BOILER_TEXT_DOMAIN );
-			}
-
-			if ( ! $body_differs && self::plugin_file_needs_whitespace_normalization( $absolute, (string) $post->post_content ) ) {
-				$issues[] = __( 'Whitespace needs to be normalized.', \ASC_AI_BOILER_TEXT_DOMAIN );
+				$issues[] = __( 'Post body HTML differs from the plugin file (normalized comparison).', \ASC_AI_PLUGIN_DOMAIN );
 			}
 
 			$manifest_entry = self::get_manifest_entry_for_file( $type_key, $filename, $post );
 			$issues = array_merge( $issues, self::describe_paired_manifest_drift_for_detect( $type_key, $post, $manifest_entry ) );
+			$issues = array_merge( $issues, self::describe_companion_file_drift_for_detect( $type_key, $post, $filename ) );
 
 			if ( array() === $issues ) {
 				continue;
@@ -1580,31 +1603,31 @@ final class ContentSync {
 			$wp_iso = '';
 
 			if ( ! $body_differs ) {
-				$manifest_metadata_drift = self::backup_manifest_row_differs_from_post( $type_key, $filename, $post );
+				$manifest_metadata_drift = self::export_manifest_row_differs_from_post( $type_key, $filename, $post );
 				$file_whitespace_drift = self::plugin_file_needs_whitespace_normalization( $absolute, (string) $post->post_content );
 				if ( $file_whitespace_drift || $manifest_metadata_drift ) {
-					$suggestion = 'restore';
+					$suggestion = 'import';
 					if ( $file_whitespace_drift && $manifest_metadata_drift ) {
 						$suggestion_note = __(
-							'Suggested: Restore from plugin files — normalizes plugin HTML and content-manifest.json on disk.',
-							\ASC_AI_BOILER_TEXT_DOMAIN
+							'Suggested: Import from plugin files — normalizes plugin HTML and content-manifest.json on disk.',
+							\ASC_AI_PLUGIN_DOMAIN
 						);
 					} elseif ( $file_whitespace_drift ) {
 						$suggestion_note = __(
-							'Suggested: Restore from plugin files — rewrites plugin HTML to canonical backup form on disk.',
-							\ASC_AI_BOILER_TEXT_DOMAIN
+							'Suggested: Import from plugin files — rewrites plugin HTML to canonical export form on disk.',
+							\ASC_AI_PLUGIN_DOMAIN
 						);
 					} else {
 						$suggestion_note = __(
-							'Suggested: Restore from plugin files — rewrites content-manifest.json to canonical backup form on disk.',
-							\ASC_AI_BOILER_TEXT_DOMAIN
+							'Suggested: Import from plugin files — rewrites content-manifest.json to canonical export form on disk.',
+							\ASC_AI_PLUGIN_DOMAIN
 						);
 					}
 				} else {
-					$suggestion = 'backup';
+					$suggestion = 'export';
 					$suggestion_note = __(
-						'Suggested: Backup to plugin files — updates content-manifest.json. Plugin HTML already matches WordPress.',
-						\ASC_AI_BOILER_TEXT_DOMAIN
+						'Suggested: Export to plugin files — updates content-manifest.json. Plugin HTML already matches WordPress.',
+						\ASC_AI_PLUGIN_DOMAIN
 					);
 				}
 			} else {
@@ -1616,25 +1639,25 @@ final class ContentSync {
 
 				$suggestion = 'unclear';
 				if ( $file_ts > $wp_ts ) {
-					$suggestion = 'restore';
+					$suggestion = 'import';
 					$suggestion_note = sprintf(
 						/* translators: 1: file modified (ISO 8601), 2: WordPress modified (ISO 8601) */
-						__( 'Suggested: Restore from plugin files — the backup file is newer (%1$s) than WordPress (%2$s).', \ASC_AI_BOILER_TEXT_DOMAIN ),
+						__( 'Suggested: Import from plugin files — the export file is newer (%1$s) than WordPress (%2$s).', \ASC_AI_PLUGIN_DOMAIN ),
 						$file_iso,
 						$wp_iso
 					);
 				} elseif ( $wp_ts > $file_ts ) {
-					$suggestion = 'backup';
+					$suggestion = 'export';
 					$suggestion_note = sprintf(
 						/* translators: 1: WordPress modified (ISO 8601), 2: file modified (ISO 8601) */
-						__( 'Suggested: Backup to plugin files — WordPress is newer (%1$s) than the backup file (%2$s).', \ASC_AI_BOILER_TEXT_DOMAIN ),
+						__( 'Suggested: Export to plugin files — WordPress is newer (%1$s) than the export file (%2$s).', \ASC_AI_PLUGIN_DOMAIN ),
 						$wp_iso,
 						$file_iso
 					);
 				} else {
 					$suggestion_note = sprintf(
 						/* translators: %s: ISO 8601 datetime (both sides match) */
-						__( 'Post body or manifest fields differ, but last modified times match (%s). Review and choose backup or restore.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+						__( 'Post body or manifest fields differ, but last modified times match (%s). Review and choose export or import.', \ASC_AI_PLUGIN_DOMAIN ),
 						$file_iso
 					);
 				}
@@ -1648,6 +1671,10 @@ final class ContentSync {
 				'file_modified_gmt' => $file_iso,
 				'wp_modified_gmt' => $wp_iso,
 			);
+		}
+
+		foreach ( ContentMediaSync::detect_differences() as $media_diff ) {
+			$differences[] = $media_diff;
 		}
 
 		usort(
@@ -1665,7 +1692,7 @@ final class ContentSync {
 	}
 
 	/**
-	 * Manifest drift for a paired file/post: publication date plus the same metadata slice backup uses for “manifest refresh” ({@see self::manifest_row_metadata_snapshot_for_compare()}).
+	 * Manifest drift for a paired file/post: publication date plus the same metadata slice export uses for “manifest refresh” ({@see self::manifest_row_metadata_snapshot_for_compare()}).
 	 *
 	 * Keeps Detect aligned with skip-write manifest updates (e.g. seeded partials where `post_name` need not match the `.html` basename).
 	 *
@@ -1686,7 +1713,7 @@ final class ContentSync {
 
 		$lines = self::describe_publication_drift_for_detect( $post, $manifest_entry );
 
-		$desired = self::build_backup_manifest_row_from_post( $type_key, $post );
+		$desired = self::build_export_manifest_row_from_post( $type_key, $post );
 		if ( null === $desired ) {
 			return $lines;
 		}
@@ -1695,7 +1722,7 @@ final class ContentSync {
 			!== self::manifest_row_metadata_snapshot_for_compare( $manifest_entry ) ) {
 			$lines[] = __(
 				'content-manifest.json metadata for this file does not match WordPress (title, slug, filename, categories, or tags).',
-				\ASC_AI_BOILER_TEXT_DOMAIN
+				\ASC_AI_PLUGIN_DOMAIN
 			);
 		}
 
@@ -1725,7 +1752,7 @@ final class ContentSync {
 			return array();
 		}
 
-		return array( __( 'Publication date (GMT) differs between WordPress and the backup manifest.', \ASC_AI_BOILER_TEXT_DOMAIN ) );
+		return array( __( 'Publication date (GMT) differs between WordPress and the export manifest.', \ASC_AI_PLUGIN_DOMAIN ) );
 	}
 
 	/**
@@ -1745,7 +1772,7 @@ final class ContentSync {
 	 *   messages: list<string>
 	 * }
 	 */
-	private static function run_backup_batch( int $type_index, int $post_offset ): array {
+	private static function run_export_batch( int $type_index, int $post_offset ): array {
 		$type_entries = ContentSyncProfile::sync_types();
 		$type_keys = array_keys( $type_entries );
 		$num_types = count( $type_keys );
@@ -1801,14 +1828,19 @@ final class ContentSync {
 						++$updated_in_batch;
 					}
 
-					if ( self::backup_manifest_row_differs_from_post( $type_key, $filename, $post ) ) {
+					if ( self::export_manifest_row_differs_from_post( $type_key, $filename, $post ) ) {
 						++$manifest_metadata_refreshed_in_batch;
 						$messages[] = sprintf(
 							/* translators: %s: relative plugin path */
-							__( 'Manifest metadata will refresh for %s (HTML already matched on disk).', \ASC_AI_BOILER_TEXT_DOMAIN ),
+							__( 'Manifest metadata will refresh for %s (HTML already matched on disk).', \ASC_AI_PLUGIN_DOMAIN ),
 							$relative_path
 						);
 					}
+
+					if ( SyncConfig::CONTENT_TYPE_PARTIALS !== $type_key ) {
+						self::export_companion_files_for_post( $post, $filename );
+					}
+
 					$remaining--;
 					continue;
 				}
@@ -1816,15 +1848,20 @@ final class ContentSync {
 				$saved = ContentSync::write_content_markup( $type_key, $filename, $markup );
 				if ( $saved ) {
 					++$updated_in_batch;
-					$exported_line = __( 'Backed up %s.', \ASC_AI_BOILER_TEXT_DOMAIN );
+					$exported_line = __( 'Exported %s.', \ASC_AI_PLUGIN_DOMAIN );
 					$messages[] = sprintf( $exported_line, $relative_path );
 				} else {
 					$messages[] = sprintf(
 						/* translators: %s: relative path */
-						__( 'Failed to write %s. Check file permissions.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+						__( 'Failed to write %s. Check file permissions.', \ASC_AI_PLUGIN_DOMAIN ),
 						$relative_path
 					);
 				}
+
+				if ( SyncConfig::CONTENT_TYPE_PARTIALS !== $type_key ) {
+					self::export_companion_files_for_post( $post, $filename );
+				}
+
 				$remaining--;
 			}
 
@@ -1836,11 +1873,11 @@ final class ContentSync {
 
 		$done = $ti >= $num_types;
 		if ( $done && $num_types > 0 ) {
-			if ( SyncConfig::is_backup_cleanup() ) {
+			if ( SyncConfig::is_export_cleanup() ) {
 				self::delete_orphan_plugin_files( $messages );
 			}
-			self::maybe_backup_plugin_media( $messages );
-			self::write_content_backup_manifest( $messages );
+			self::maybe_export_plugin_media( $messages );
+			self::write_content_export_manifest( $messages );
 		}
 
 		return array(
@@ -1858,11 +1895,11 @@ final class ContentSync {
 	 * Export all published WordPress content to plugin files, rewrite content-manifest.json from the
 	 * database, and delete plugin HTML with no matching published content.
 	 *
-	 * Uses the same batch stepping as the Backup / Restore admin AJAX backup action.
+	 * Uses the same batch stepping as the Import / Export admin AJAX export action.
 	 *
 	 * @return array{ok:bool, messages:list<string>, updated:int, manifest_metadata_refreshed:int}
 	 */
-	public static function backup_to_files(): array {
+	public static function export_to_files(): array {
 		$messages = array();
 		$updated = 0;
 		$manifest_metadata_refreshed = 0;
@@ -1871,7 +1908,7 @@ final class ContentSync {
 		$done = false;
 
 		while ( ! $done ) {
-			$batch = self::run_backup_batch( $type_index, $post_offset );
+			$batch = self::run_export_batch( $type_index, $post_offset );
 			if ( ! $batch['ok'] ) {
 				return array(
 					'ok' => false,
@@ -2059,7 +2096,7 @@ final class ContentSync {
 					if ( $term_id <= 0 ) {
 						$messages[] = sprintf(
 							/* translators: 1: taxonomy, 2: term slug, 3: relative path, 4: error message */
-							__( 'Could not add %1$s term "%2$s" for %3$s: %4$s', \ASC_AI_BOILER_TEXT_DOMAIN ),
+							__( 'Could not add %1$s term "%2$s" for %3$s: %4$s', \ASC_AI_PLUGIN_DOMAIN ),
 							$taxonomy,
 							$slug,
 							$relative_path,
@@ -2085,7 +2122,7 @@ final class ContentSync {
 		if ( is_wp_error( $existing ) ) {
 			$messages[] = sprintf(
 				/* translators: 1: taxonomy, 2: relative path, 3: error message */
-				__( 'Could not read %1$s on %2$s: %3$s', \ASC_AI_BOILER_TEXT_DOMAIN ),
+				__( 'Could not read %1$s on %2$s: %3$s', \ASC_AI_PLUGIN_DOMAIN ),
 				$taxonomy,
 				$relative_path,
 				$existing->get_error_message()
@@ -2105,7 +2142,7 @@ final class ContentSync {
 		if ( is_wp_error( $replace_result ) ) {
 			$messages[] = sprintf(
 				/* translators: 1: taxonomy, 2: relative path, 3: error message */
-				__( 'Could not set %1$s on %2$s: %3$s', \ASC_AI_BOILER_TEXT_DOMAIN ),
+				__( 'Could not set %1$s on %2$s: %3$s', \ASC_AI_PLUGIN_DOMAIN ),
 				$taxonomy,
 				$relative_path,
 				$replace_result->get_error_message()
@@ -2117,14 +2154,14 @@ final class ContentSync {
 	}
 
 	/**
-	 * One manifest types[] row as written during backup (portable across installs: no post_id or modified_gmt).
+	 * One manifest types[] row as written during export (portable across installs: no post_id or modified_gmt).
 	 *
 	 * @param string $type_key Type key (pages, partials, etc.).
 	 * @param WP_Post $post Published post.
 	 *
 	 * @return array<string, mixed>|null Null when no on-disk filename.
 	 */
-	private static function build_backup_manifest_row_from_post( string $type_key, WP_Post $post ): ?array {
+	private static function build_export_manifest_row_from_post( string $type_key, WP_Post $post ): ?array {
 		$fresh = get_post( (int) $post->ID );
 		if ( $fresh instanceof WP_Post ) {
 			$post = $fresh;
@@ -2249,7 +2286,7 @@ final class ContentSync {
 	}
 
 	/**
-	 * True when the on-disk manifest row for this file does not match post fields that backup would
+	 * True when the on-disk manifest row for this file does not match post fields that export would
 	 * rewrite aside from publication/modified timestamps on disk (ignored for this comparison; see {@see self::describe_publication_drift_for_detect()}).
 	 *
 	 * @param string $type_key Type key.
@@ -2258,8 +2295,8 @@ final class ContentSync {
 	 *
 	 * @return bool
 	 */
-	private static function backup_manifest_row_differs_from_post( string $type_key, string $filename, WP_Post $post ): bool {
-		$desired = self::build_backup_manifest_row_from_post( $type_key, $post );
+	private static function export_manifest_row_differs_from_post( string $type_key, string $filename, WP_Post $post ): bool {
+		$desired = self::build_export_manifest_row_from_post( $type_key, $post );
 		if ( null === $desired ) {
 			return false;
 		}
@@ -2279,19 +2316,19 @@ final class ContentSync {
 	/**
 	 * Rows omit `post_id` and `modified_gmt` so manifests are portable across WordPress installs.
 	 *
-	 * Called when a backup run completes ({@see self::run_backup_batch()}) and when a restore run finishes
+	 * Called when an export run completes ({@see self::run_export_batch()}) and when an import run finishes
 	 * ({@see self::maybe_normalize_content_manifest_from_wordpress()}).
 	 *
 	 * @return bool True when the file was written successfully.
 	 */
-	private static function write_content_backup_manifest( array &$messages ): bool {
+	private static function write_content_export_manifest( array &$messages ): bool {
 		ContentSync::ensure_content_directories_exist();
 
 		$types_out = array();
 		foreach ( ContentSyncProfile::sync_types() as $type_key => $type_config ) {
 			$entries_by_filename = array();
 			foreach ( self::query_posts_for_type( $type_config['post_type'] ) as $post ) {
-				$row = self::build_backup_manifest_row_from_post( $type_key, $post );
+				$row = self::build_export_manifest_row_from_post( $type_key, $post );
 				if ( null === $row ) {
 					continue;
 				}
@@ -2314,7 +2351,7 @@ final class ContentSync {
 			'exported_at' => gmdate( 'c' ),
 			'types' => $types_out,
 			'media' => ContentMediaSync::build_manifest_media_rows_for_manifest(),
-			'media_bindings' => ContentMediaSync::build_manifest_media_bindings_for_backup(),
+			'media_bindings' => ContentMediaSync::build_manifest_media_bindings_for_export(),
 		);
 
 		$flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
@@ -2515,7 +2552,7 @@ final class ContentSync {
 	/**
 	 * Find a manifest row for a content type key and HTML filename.
 	 *
-	 * When $for_post is set, prefers the row whose metadata snapshot matches what backup would write for that post
+	 * When $for_post is set, prefers the row whose metadata snapshot matches what export would write for that post
 	 * (avoids stale duplicates). Otherwise returns the last matching row in file order.
 	 *
 	 * @param string $type_key Content type key (e.g. pages).
@@ -2532,7 +2569,7 @@ final class ContentSync {
 		}
 
 		if ( $for_post instanceof WP_Post ) {
-			$desired = self::build_backup_manifest_row_from_post( $type_key, $for_post );
+			$desired = self::build_export_manifest_row_from_post( $type_key, $for_post );
 			if ( null !== $desired ) {
 				$want = self::manifest_row_metadata_snapshot_for_compare( $desired );
 				foreach ( $candidates as $entry ) {
@@ -2591,7 +2628,7 @@ final class ContentSync {
 	 * Fields to pass to wp_update_post so publication time matches the manifest (`post_id` ignored).
 	 *
 	 * When `date_gmt` is missing, empty, or not parseable, uses the current GMT time except for posts that were
-	 * already published (`post_status` publish) before this restore (`$existed_before` true), so backup rows that
+	 * already published (`post_status` publish) before this import (`$existed_before` true), so export rows that
 	 * omit the field do not wipe an existing publication date.
 	 *
 	 * @param WP_Post $post Post before update.
@@ -2661,7 +2698,7 @@ final class ContentSync {
 
 		$result = wp_update_post( $update, true );
 		if ( is_wp_error( $result ) ) {
-			$err = __( 'Could not set publication time from backup for %1$s: %2$s', \ASC_AI_BOILER_TEXT_DOMAIN );
+			$err = __( 'Could not set publication time from export for %1$s: %2$s', \ASC_AI_PLUGIN_DOMAIN );
 			$messages[] = sprintf(
 				$err,
 				$relative_path,
@@ -2697,12 +2734,12 @@ final class ContentSync {
 	 *
 	 * @return void
 	 */
-	private static function maybe_run_restore_cleanup( bool $confirmed, array &$messages ): void {
+	private static function maybe_run_import_cleanup( bool $confirmed, array &$messages ): void {
 		if ( ! $confirmed ) {
 			return;
 		}
 
-		if ( ! SyncConfig::is_restore_cleanup() ) {
+		if ( ! SyncConfig::is_import_cleanup() ) {
 			return;
 		}
 
@@ -2710,25 +2747,25 @@ final class ContentSync {
 	}
 
 	/**
-	 * Regenerate content-manifest.json from WordPress after restore (canonical backup form).
+	 * Regenerate content-manifest.json from WordPress after import (canonical export form).
 	 *
 	 * @param list<string> $messages Log lines.
 	 *
 	 * @return bool True when the manifest file was written.
 	 */
 	private static function maybe_normalize_content_manifest_from_wordpress( array &$messages ): bool {
-		if ( ! self::write_content_backup_manifest( $messages ) ) {
+		if ( ! self::write_content_export_manifest( $messages ) ) {
 			$messages[] = __(
 				'Failed to normalize content-manifest.json. Check file permissions.',
-				\ASC_AI_BOILER_TEXT_DOMAIN
+				\ASC_AI_PLUGIN_DOMAIN
 			);
 
 			return false;
 		}
 
 		$messages[] = __(
-			'Normalized content-manifest.json to canonical backup form from WordPress.',
-			\ASC_AI_BOILER_TEXT_DOMAIN
+			'Normalized content-manifest.json to canonical export form from WordPress.',
+			\ASC_AI_PLUGIN_DOMAIN
 		);
 
 		return true;
@@ -2741,8 +2778,8 @@ final class ContentSync {
 	 *
 	 * @return void
 	 */
-	private static function maybe_restore_plugin_media( array &$messages ): void {
-		$result = ContentMediaSync::restore_from_plugin_files( $messages );
+	private static function maybe_import_plugin_media( array &$messages ): void {
+		$result = ContentMediaSync::import_from_plugin_files( $messages );
 		if ( 0 === $result['processed'] ) {
 			return;
 		}
@@ -2750,7 +2787,7 @@ final class ContentSync {
 		if ( 0 === $result['updated'] ) {
 			$messages[] = __(
 				'Plugin media files already match the WordPress media library.',
-				\ASC_AI_BOILER_TEXT_DOMAIN
+				\ASC_AI_PLUGIN_DOMAIN
 			);
 		}
 	}
@@ -2762,8 +2799,8 @@ final class ContentSync {
 	 *
 	 * @return void
 	 */
-	private static function maybe_backup_plugin_media( array &$messages ): void {
-		ContentMediaSync::backup_to_plugin_files( $messages );
+	private static function maybe_export_plugin_media( array &$messages ): void {
+		ContentMediaSync::export_to_plugin_files( $messages );
 	}
 
 	/**
@@ -2824,7 +2861,7 @@ final class ContentSync {
 			if ( ! current_user_can( 'delete_post', $post_id ) ) {
 				$messages[] = sprintf(
 					/* translators: 1: post title, 2: relative path */
-					__( 'Skipped removing post "%1$s" (missing file %2$s): insufficient permission.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+					__( 'Skipped removing post "%1$s" (missing file %2$s): insufficient permission.', \ASC_AI_PLUGIN_DOMAIN ),
 					$title,
 					$relative_path
 				);
@@ -2834,7 +2871,7 @@ final class ContentSync {
 			$result = wp_delete_post( $post_id, false );
 			if ( false !== $result ) {
 				++$removed;
-				$removed_line = __( 'Removed WordPress post "%1$s" (missing backup file %2$s, ID %3$d).', \ASC_AI_BOILER_TEXT_DOMAIN );
+				$removed_line = __( 'Removed WordPress post "%1$s" (missing export file %2$s, ID %3$d).', \ASC_AI_PLUGIN_DOMAIN );
 				$messages[] = sprintf(
 					$removed_line,
 					$title,
@@ -2844,7 +2881,7 @@ final class ContentSync {
 			} else {
 				$messages[] = sprintf(
 					/* translators: 1: post title, 2: relative path */
-					__( 'Could not remove post "%1$s" (missing file %2$s).', \ASC_AI_BOILER_TEXT_DOMAIN ),
+					__( 'Could not remove post "%1$s" (missing file %2$s).', \ASC_AI_PLUGIN_DOMAIN ),
 					$title,
 					$relative_path
 				);
@@ -2875,12 +2912,15 @@ final class ContentSync {
 
 			if ( ContentSync::delete_content_file( $type_key, $filename ) ) {
 				++$deleted;
-				$line = __( 'Deleted orphan content file %s.', \ASC_AI_BOILER_TEXT_DOMAIN );
+				$line = __( 'Deleted orphan content file %s.', \ASC_AI_PLUGIN_DOMAIN );
 				$messages[] = sprintf( $line, $relative_path );
 			} else {
-				$fail_line = __( 'Could not delete orphan content file %s.', \ASC_AI_BOILER_TEXT_DOMAIN );
+				$fail_line = __( 'Could not delete orphan content file %s.', \ASC_AI_PLUGIN_DOMAIN );
 				$messages[] = sprintf( $fail_line, $relative_path );
 			}
+
+			self::delete_companion_text_file( SyncConfig::CONTENT_DIR_EXCERPTS, $filename );
+			self::delete_companion_text_file( SyncConfig::CONTENT_DIR_META_DESCRIPTIONS, $filename );
 		}
 
 		return $deleted;
@@ -2897,7 +2937,7 @@ final class ContentSync {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error(
 				array(
-					'message' => __( 'You do not have permission to detect differences.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+					'message' => __( 'You do not have permission to detect differences.', \ASC_AI_PLUGIN_DOMAIN ),
 				),
 				403
 			);
@@ -2908,17 +2948,17 @@ final class ContentSync {
 	}
 
 	/**
-	 * AJAX: run one import batch (see {@see self::run_restore_batch()}).
+	 * AJAX: run one import batch (see {@see self::run_import_batch()}).
 	 *
 	 * @return void
 	 */
-	public static function handle_ajax_restore_batch(): void {
+	public static function handle_ajax_import_batch(): void {
 		check_ajax_referer( self::nonce_action() );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error(
 				array(
-					'message' => __( 'You do not have permission to run restore.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+					'message' => __( 'You do not have permission to run import.', \ASC_AI_PLUGIN_DOMAIN ),
 				),
 				403
 			);
@@ -2930,9 +2970,9 @@ final class ContentSync {
 			$confirmed = true;
 		}
 
-		$result = self::run_restore_batch( $offset, $confirmed );
+		$result = self::run_import_batch( $offset, $confirmed );
 		if ( ! $result['ok'] ) {
-			$fallback = __( 'Restore failed.', \ASC_AI_BOILER_TEXT_DOMAIN );
+			$fallback = __( 'Import failed.', \ASC_AI_PLUGIN_DOMAIN );
 			$msg = $result['messages'][0] ?? $fallback;
 			wp_send_json_error( array( 'message' => $msg ) );
 		}
@@ -2941,17 +2981,17 @@ final class ContentSync {
 	}
 
 	/**
-	 * AJAX: run one export batch (see {@see self::run_backup_batch()}).
+	 * AJAX: run one export batch (see {@see self::run_export_batch()}).
 	 *
 	 * @return void
 	 */
-	public static function handle_ajax_backup_batch(): void {
+	public static function handle_ajax_export_batch(): void {
 		check_ajax_referer( self::nonce_action() );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error(
 				array(
-					'message' => __( 'You do not have permission to run backup.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+					'message' => __( 'You do not have permission to run export.', \ASC_AI_PLUGIN_DOMAIN ),
 				),
 				403
 			);
@@ -2960,9 +3000,9 @@ final class ContentSync {
 		$type_index = isset( $_POST['type_index'] ) ? absint( (string) wp_unslash( $_POST['type_index'] ) ) : 0;
 		$post_offset = isset( $_POST['post_offset'] ) ? absint( (string) wp_unslash( $_POST['post_offset'] ) ) : 0;
 
-		$result = self::run_backup_batch( $type_index, $post_offset );
+		$result = self::run_export_batch( $type_index, $post_offset );
 		if ( ! $result['ok'] ) {
-			$batch_fail = __( 'Backup batch failed.', \ASC_AI_BOILER_TEXT_DOMAIN );
+			$batch_fail = __( 'Export batch failed.', \ASC_AI_PLUGIN_DOMAIN );
 			wp_send_json_error( array( 'message' => $batch_fail ) );
 		}
 
@@ -3371,7 +3411,7 @@ final class ContentSync {
 	}
 
 	/**
-	 * True when the on-disk file is not byte-identical to the canonical backup form (line endings, BOM, outer trim)
+	 * True when the on-disk file is not byte-identical to the canonical export form (line endings, BOM, outer trim)
 	 * while still matching WordPress after normalized comparison.
 	 *
 	 * @param string $absolute Absolute path to the plugin HTML file.
@@ -3391,7 +3431,7 @@ final class ContentSync {
 	}
 
 	/**
-	 * Rewrite on-disk plugin HTML to canonical backup form when raw bytes differ (BOM, CRLF, outer trim).
+	 * Rewrite on-disk plugin HTML to canonical export form when raw bytes differ (BOM, CRLF, outer trim).
 	 *
 	 * @param string $type_key Content type key.
 	 * @param string $filename HTML basename.
@@ -3421,7 +3461,7 @@ final class ContentSync {
 		if ( ! self::write_content_markup( $type_key, $filename, $markup_source ) ) {
 			$messages[] = sprintf(
 				/* translators: %s: relative path */
-				__( 'Failed to normalize %s. Check file permissions.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+				__( 'Failed to normalize %s. Check file permissions.', \ASC_AI_PLUGIN_DOMAIN ),
 				$relative_path
 			);
 
@@ -3430,7 +3470,7 @@ final class ContentSync {
 
 		$messages[] = sprintf(
 			/* translators: %s: relative plugin path */
-			__( 'Normalized plugin file %s to canonical backup form.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+			__( 'Normalized plugin file %s to canonical export form.', \ASC_AI_PLUGIN_DOMAIN ),
 			$relative_path
 		);
 
@@ -3458,5 +3498,288 @@ final class ContentSync {
 	 */
 	private static function markup_is_in_sync( string $file_markup, string $db_markup ): bool {
 		return self::normalize_markup_for_sync_compare( $file_markup ) === self::normalize_markup_for_sync_compare( wp_unslash( $db_markup ) );
+	}
+
+	// -------------------------------------------------------------------------
+	// Companion text files (excerpts, meta-descriptions)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Absolute path to a companion text subdirectory (trailing slash).
+	 *
+	 * @param string $dir_name Subdirectory name (e.g. `excerpts`).
+	 *
+	 * @return string
+	 */
+	private static function get_companion_text_directory( string $dir_name ): string {
+		return self::get_content_directory() . $dir_name . '/';
+	}
+
+	/**
+	 * Derive the `.txt` basename for a companion file from the HTML basename.
+	 *
+	 * @param string $html_filename HTML basename (e.g. `my-post.html`).
+	 *
+	 * @return string `.txt` basename, or empty when the HTML filename is invalid.
+	 */
+	private static function companion_text_basename( string $html_filename ): string {
+		if ( '.html' !== substr( $html_filename, -5 ) ) {
+			return '';
+		}
+		return substr( $html_filename, 0, -5 ) . '.txt';
+	}
+
+	/**
+	 * Read a companion text file. Returns `null` when the file does not exist or is unreadable.
+	 *
+	 * @param string $dir_name Companion subdirectory name.
+	 * @param string $html_filename HTML basename of the paired content file.
+	 *
+	 * @return string|null Raw file contents, or null when missing.
+	 */
+	private static function read_companion_text_file( string $dir_name, string $html_filename ): ?string {
+		$basename = self::companion_text_basename( $html_filename );
+		if ( '' === $basename ) {
+			return null;
+		}
+		$path = self::get_companion_text_directory( $dir_name ) . $basename;
+		if ( ! is_file( $path ) ) {
+			return null;
+		}
+		$raw = file_get_contents( $path );
+		if ( false === $raw ) {
+			return null;
+		}
+		return $raw;
+	}
+
+	/**
+	 * Write a companion text file atomically. Creates the subdirectory if needed.
+	 *
+	 * An empty `$text` writes an empty file (explicit "no value" signal for import).
+	 *
+	 * @param string $dir_name Companion subdirectory name.
+	 * @param string $html_filename HTML basename of the paired content file.
+	 * @param string $text Plain-text content to store.
+	 *
+	 * @return bool True on success.
+	 */
+	private static function write_companion_text_file( string $dir_name, string $html_filename, string $text ): bool {
+		$basename = self::companion_text_basename( $html_filename );
+		if ( '' === $basename ) {
+			return false;
+		}
+		$dir = self::get_companion_text_directory( $dir_name );
+		if ( ! is_dir( $dir ) ) {
+			wp_mkdir_p( $dir );
+		}
+		$dir_norm = wp_normalize_path( $dir );
+		$target = wp_normalize_path( $dir . $basename );
+		if ( 0 !== strpos( $target, $dir_norm ) ) {
+			return false;
+		}
+		return self::write_file_atomically( $target, $text );
+	}
+
+	/**
+	 * Delete a companion text file when it exists.
+	 *
+	 * @param string $dir_name Companion subdirectory name.
+	 * @param string $html_filename HTML basename of the paired content file.
+	 *
+	 * @return bool True when the file was present and removed.
+	 */
+	private static function delete_companion_text_file( string $dir_name, string $html_filename ): bool {
+		$basename = self::companion_text_basename( $html_filename );
+		if ( '' === $basename ) {
+			return false;
+		}
+		$dir = self::get_companion_text_directory( $dir_name );
+		$dir_norm = wp_normalize_path( $dir );
+		$target = wp_normalize_path( $dir . $basename );
+		if ( 0 !== strpos( $target, $dir_norm ) ) {
+			return false;
+		}
+		if ( ! file_exists( $target ) || ! is_file( $target ) ) {
+			return false;
+		}
+		return unlink( $target );
+	}
+
+	/**
+	 * Active SEO meta key for reading/writing meta descriptions. Filtered by {@see FILTER_META_DESCRIPTION_META_KEY}.
+	 *
+	 * @return string
+	 */
+	private static function get_active_meta_description_meta_key(): string {
+		$key = (string) apply_filters( self::FILTER_META_DESCRIPTION_META_KEY, self::META_DESCRIPTION_META_KEY_DEFAULT );
+		$key = trim( $key );
+		if ( '' === $key ) {
+			return self::META_DESCRIPTION_META_KEY_DEFAULT;
+		}
+		return $key;
+	}
+
+	/**
+	 * Read the SEO meta description for a post via the active meta key.
+	 *
+	 * @param int $post_id Post ID.
+	 *
+	 * @return string
+	 */
+	private static function get_post_meta_description( int $post_id ): string {
+		return (string) get_post_meta( $post_id, self::get_active_meta_description_meta_key(), true );
+	}
+
+	/**
+	 * Write the SEO meta description for a post via the active meta key.
+	 * Deletes the meta entry when `$value` is empty.
+	 *
+	 * @param int $post_id Post ID.
+	 * @param string $value Meta description value.
+	 *
+	 * @return void
+	 */
+	private static function set_post_meta_description( int $post_id, string $value ): void {
+		$meta_key = self::get_active_meta_description_meta_key();
+		if ( '' === $value ) {
+			delete_post_meta( $post_id, $meta_key );
+		} else {
+			update_post_meta( $post_id, $meta_key, $value );
+		}
+	}
+
+	/**
+	 * Write excerpt and meta description companion files for a post during export.
+	 * Skipped for partials (which have no excerpt or SEO meta description).
+	 *
+	 * @param WP_Post $post Post to back up.
+	 * @param string $html_filename HTML basename of the content file.
+	 *
+	 * @return void
+	 */
+	private static function export_companion_files_for_post( WP_Post $post, string $html_filename ): void {
+		$excerpt = trim( (string) $post->post_excerpt );
+		self::write_companion_text_file( SyncConfig::CONTENT_DIR_EXCERPTS, $html_filename, $excerpt );
+
+		$meta_description = trim( self::get_post_meta_description( (int) $post->ID ) );
+		self::write_companion_text_file( SyncConfig::CONTENT_DIR_META_DESCRIPTIONS, $html_filename, $meta_description );
+	}
+
+	/**
+	 * Apply excerpt and meta description from companion files to a post during import.
+	 * Skipped for partials (caller should guard with type_key check).
+	 *
+	 * A missing companion file means "skip that field." An existing file (even empty) is applied.
+	 *
+	 * @param int $post_id Post ID to update.
+	 * @param string $html_filename HTML basename of the paired content file.
+	 * @param string $relative_path Plugin-relative path for log lines.
+	 * @param list<string> $messages Messages accumulator.
+	 *
+	 * @return bool True when any field was updated in the database.
+	 */
+	private static function import_companion_files_for_post(
+		int $post_id,
+		string $html_filename,
+		string $relative_path,
+		array &$messages
+	): bool {
+		$post = get_post( $post_id );
+		if ( ! $post instanceof WP_Post ) {
+			return false;
+		}
+
+		$changed = false;
+
+		$excerpt_raw = self::read_companion_text_file( SyncConfig::CONTENT_DIR_EXCERPTS, $html_filename );
+		if ( null !== $excerpt_raw ) {
+			$file_excerpt = trim( $excerpt_raw );
+			$current_excerpt = trim( (string) $post->post_excerpt );
+			if ( $file_excerpt !== $current_excerpt ) {
+				$result = wp_update_post(
+					array(
+						'ID' => $post_id,
+						'post_excerpt' => wp_slash( $file_excerpt ),
+					),
+					true
+				);
+				if ( ! is_wp_error( $result ) ) {
+					$changed = true;
+					$messages[] = sprintf(
+						/* translators: %s: relative plugin path */
+						__( 'Imported excerpt for %s.', \ASC_AI_PLUGIN_DOMAIN ),
+						$relative_path
+					);
+				} else {
+					$messages[] = sprintf(
+						/* translators: 1: relative path, 2: error message */
+						__( 'Failed to import excerpt for %1$s: %2$s', \ASC_AI_PLUGIN_DOMAIN ),
+						$relative_path,
+						$result->get_error_message()
+					);
+				}
+			}
+		}
+
+		$meta_desc_raw = self::read_companion_text_file( SyncConfig::CONTENT_DIR_META_DESCRIPTIONS, $html_filename );
+		if ( null !== $meta_desc_raw ) {
+			$file_meta_desc = trim( $meta_desc_raw );
+			$current_meta_desc = trim( self::get_post_meta_description( $post_id ) );
+			if ( $file_meta_desc !== $current_meta_desc ) {
+				self::set_post_meta_description( $post_id, $file_meta_desc );
+				$changed = true;
+				$messages[] = sprintf(
+					/* translators: %s: relative plugin path */
+					__( 'Imported meta description for %s.', \ASC_AI_PLUGIN_DOMAIN ),
+					$relative_path
+				);
+			}
+		}
+
+		return $changed;
+	}
+
+	/**
+	 * Describe companion file drift (excerpt, meta description) for detect-differences.
+	 * Returns an empty array for partials or when companion files are absent.
+	 *
+	 * @param string $type_key Content type key.
+	 * @param WP_Post $post Post.
+	 * @param string $html_filename HTML basename.
+	 *
+	 * @return list<string>
+	 */
+	private static function describe_companion_file_drift_for_detect(
+		string $type_key,
+		WP_Post $post,
+		string $html_filename
+	): array {
+		if ( SyncConfig::CONTENT_TYPE_PARTIALS === $type_key ) {
+			return array();
+		}
+
+		$issues = array();
+		$post_id = (int) $post->ID;
+
+		$excerpt_raw = self::read_companion_text_file( SyncConfig::CONTENT_DIR_EXCERPTS, $html_filename );
+		if ( null !== $excerpt_raw ) {
+			$file_excerpt = trim( $excerpt_raw );
+			$post_excerpt = trim( (string) $post->post_excerpt );
+			if ( $file_excerpt !== $post_excerpt ) {
+				$issues[] = __( 'Excerpt file differs from WordPress post excerpt.', \ASC_AI_PLUGIN_DOMAIN );
+			}
+		}
+
+		$meta_desc_raw = self::read_companion_text_file( SyncConfig::CONTENT_DIR_META_DESCRIPTIONS, $html_filename );
+		if ( null !== $meta_desc_raw ) {
+			$file_meta_desc = trim( $meta_desc_raw );
+			$current_meta_desc = trim( self::get_post_meta_description( $post_id ) );
+			if ( $file_meta_desc !== $current_meta_desc ) {
+				$issues[] = __( 'Meta description file differs from WordPress meta description.', \ASC_AI_PLUGIN_DOMAIN );
+			}
+		}
+
+		return $issues;
 	}
 }

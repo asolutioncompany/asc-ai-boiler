@@ -209,11 +209,11 @@ final class ContentSyncProfile {
 	private static function label_for_type_key( string $type_key ): string {
 		switch ( $type_key ) {
 			case SyncConfig::CONTENT_TYPE_PARTIALS:
-				return __( 'Partials', \ASC_AI_BOILER_TEXT_DOMAIN );
+				return __( 'Partials', \ASC_AI_PLUGIN_DOMAIN );
 			case SyncConfig::CONTENT_TYPE_PAGES:
-				return __( 'Pages', \ASC_AI_BOILER_TEXT_DOMAIN );
+				return __( 'Pages', \ASC_AI_PLUGIN_DOMAIN );
 			case SyncConfig::CONTENT_TYPE_POSTS:
-				return __( 'Posts', \ASC_AI_BOILER_TEXT_DOMAIN );
+				return __( 'Posts', \ASC_AI_PLUGIN_DOMAIN );
 			default:
 				break;
 		}

@@ -9,12 +9,12 @@ class ComposerStaticInit219f1e48997d7584a429ba37bea38051
     public static $prefixLengthsPsr4 = array (
         'A' => 
         array (
-            'ASC\\AI_BOILER\\' => 14,
+            'ASC\\AI_EXAMPLE\\' => 15,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'ASC\\AI_BOILER\\' => 
+        'ASC\\AI_EXAMPLE\\' => 
         array (
             0 => __DIR__ . '/../..' . '/includes',
         ),

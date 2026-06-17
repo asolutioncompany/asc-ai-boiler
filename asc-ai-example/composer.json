@@ -1,13 +1,13 @@
 {
 	"name": "asolution-company/asc-ai-example",
-	"description": "WordPress plugin: aS.c AI example site layer (ExampleCore + ExampleAdmin + ExampleFront).",
+	"description": "WordPress plugin: aS.c AI example site layer (Core + Admin + Front).",
 	"type": "wordpress-plugin",
 	"require": {
 		"php": ">=8.1"
 	},
 	"autoload": {
 		"psr-4": {
-			"ASC\\AI_BOILER\\": "includes/"
+			"ASC\\AI_EXAMPLE\\": "includes/"
 		}
 	}
 }

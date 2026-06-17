@@ -35,26 +35,26 @@
 		var $progress = $('#asc-ai-boiler-sync-progress');
 		var $messages = $('#asc-ai-boiler-sync-messages');
 		var $status = $('#asc-ai-boiler-sync-status');
-		var $restoreBtn = $('#asc-ai-boiler-restore-submit');
-		var $backupBtn = $('#asc-ai-boiler-backup-submit');
+		var $importBtn = $('#asc-ai-boiler-import-submit');
+		var $exportBtn = $('#asc-ai-boiler-export-submit');
 		var $detectBtn = $('#asc-ai-boiler-detect-difference');
 		var $diffBox = $('#asc-ai-boiler-diff-highlight');
-		var $confirm = $('#asc-ai-boiler-restore-confirm');
+		var $confirm = $('#asc-ai-boiler-import-confirm');
 		var $syncBlock = $('#asc-ai-boiler-sync-block');
-		var restoreAutoConfirm = false;
-		if (sync.restore_auto_confirm) {
-			restoreAutoConfirm = true;
+		var importAutoConfirm = false;
+		if (sync.import_auto_confirm) {
+			importAutoConfirm = true;
 		}
-		if ($syncBlock.length && $syncBlock.attr('data-asc-ai-boiler-restore-auto-confirm') === '1') {
-			restoreAutoConfirm = true;
+		if ($syncBlock.length && $syncBlock.attr('data-asc-ai-boiler-import-auto-confirm') === '1') {
+			importAutoConfirm = true;
 		}
-		if (restoreAutoConfirm && $confirm.length) {
+		if (importAutoConfirm && $confirm.length) {
 			$confirm.prop('checked', true);
 		}
 
 		function setRunning(running) {
-			$restoreBtn.prop('disabled', running);
-			$backupBtn.prop('disabled', running);
+			$importBtn.prop('disabled', running);
+			$exportBtn.prop('disabled', running);
 			$detectBtn.prop('disabled', running);
 		}
 
@@ -77,7 +77,7 @@
 			list.forEach(function (row) {
 				var $item = $('<div class="asc-ai-boiler-diff-item"></div>');
 				var suggestKey = String(row.suggestion || 'unclear').toLowerCase();
-				if (suggestKey !== 'backup' && suggestKey !== 'restore' && suggestKey !== 'unclear') {
+				if (suggestKey !== 'export' && suggestKey !== 'import' && suggestKey !== 'unclear') {
 					suggestKey = 'unclear';
 				}
 				$item.addClass('asc-ai-boiler-diff-item--suggest-' + suggestKey);
@@ -113,13 +113,13 @@
 
 		function clearSyncStatusHighlight() {
 			$status.removeClass(
-				'asc-ai-boiler-sync-status--backup-running asc-ai-boiler-sync-status--backup-done asc-ai-boiler-sync-status--backup-error '
-					+ 'asc-ai-boiler-sync-status--restore-running asc-ai-boiler-sync-status--restore-done asc-ai-boiler-sync-status--restore-error'
+				'asc-ai-boiler-sync-status--export-running asc-ai-boiler-sync-status--export-done asc-ai-boiler-sync-status--export-error '
+					+ 'asc-ai-boiler-sync-status--import-running asc-ai-boiler-sync-status--import-done asc-ai-boiler-sync-status--import-error'
 			);
 		}
 
-		function restoreFailure(msg) {
-			$status.removeClass('asc-ai-boiler-sync-status--restore-running').addClass('asc-ai-boiler-sync-status--restore-error');
+		function importFailure(msg) {
+			$status.removeClass('asc-ai-boiler-sync-status--import-running').addClass('asc-ai-boiler-sync-status--import-error');
 			$progress.text(sprintf(str.failure, msg));
 			setRunning(false);
 		}
@@ -159,32 +159,32 @@
 			});
 		});
 
-		$restoreBtn.on('click', function () {
-			if ($restoreBtn.prop('disabled')) {
+		$importBtn.on('click', function () {
+			if ($importBtn.prop('disabled')) {
 				return;
 			}
-			if (!restoreAutoConfirm && (!$confirm.length || !$confirm.is(':checked'))) {
+			if (!importAutoConfirm && (!$confirm.length || !$confirm.is(':checked'))) {
 				window.alert(str.confirm_required);
 				return;
 			}
 
 			clearSyncStatusHighlight();
-			$status.addClass('asc-ai-boiler-sync-status--restore-running');
+			$status.addClass('asc-ai-boiler-sync-status--import-running');
 			$messages.empty();
-			$progress.text(str.restore_starting || 'Restore starting…');
+			$progress.text(str.import_starting || 'Import starting…');
 			setRunning(true);
 			var offset = 0;
 			var totalUpdated = 0;
 
 			function runBatch() {
 				$.post(ajaxUrl, {
-					action: sync.restore_action,
+					action: sync.import_action,
 					_ajax_nonce: sync.nonce,
 					offset: offset,
 					confirmed: '1'
 				}).done(function (res) {
 					if (!res || !res.success || !res.data) {
-						$status.removeClass('asc-ai-boiler-sync-status--restore-running').addClass('asc-ai-boiler-sync-status--restore-error');
+						$status.removeClass('asc-ai-boiler-sync-status--import-running').addClass('asc-ai-boiler-sync-status--import-error');
 						$progress.text(sprintf(str.failure, 'invalid response'));
 						setRunning(false);
 						return;
@@ -195,10 +195,10 @@
 					offset = d.next_offset;
 					var totalJobs = d.total_jobs || 0;
 					var processed = Math.min(offset, totalJobs);
-					$progress.text(sprintf(str.restore_progress, String(processed), String(totalJobs)));
+					$progress.text(sprintf(str.import_progress, String(processed), String(totalJobs)));
 					if (d.done) {
-						$status.removeClass('asc-ai-boiler-sync-status--restore-running').addClass('asc-ai-boiler-sync-status--restore-done');
-						$progress.text(sprintf(str.restore_complete, String(totalUpdated), String(totalJobs)));
+						$status.removeClass('asc-ai-boiler-sync-status--import-running').addClass('asc-ai-boiler-sync-status--import-done');
+						$progress.text(sprintf(str.import_complete, String(totalUpdated), String(totalJobs)));
 						setRunning(false);
 						return;
 					}
@@ -208,21 +208,21 @@
 					if (xhr && xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
 						msg = xhr.responseJSON.data.message;
 					}
-					restoreFailure(msg);
+					importFailure(msg);
 				});
 			}
 
 			runBatch();
 		});
 
-		$backupBtn.on('click', function () {
-			if ($backupBtn.prop('disabled')) {
+		$exportBtn.on('click', function () {
+			if ($exportBtn.prop('disabled')) {
 				return;
 			}
 			clearSyncStatusHighlight();
-			$status.addClass('asc-ai-boiler-sync-status--backup-running');
+			$status.addClass('asc-ai-boiler-sync-status--export-running');
 			$messages.empty();
-			$progress.text(str.backup_starting || 'Backup starting…');
+			$progress.text(str.export_starting || 'Export starting…');
 			setRunning(true);
 			var typeIndex = 0;
 			var postOffset = 0;
@@ -231,13 +231,13 @@
 
 			function runBatch() {
 				$.post(ajaxUrl, {
-					action: sync.backup_action,
+					action: sync.export_action,
 					_ajax_nonce: sync.nonce,
 					type_index: typeIndex,
 					post_offset: postOffset
 				}).done(function (res) {
 					if (!res || !res.success || !res.data) {
-						$status.removeClass('asc-ai-boiler-sync-status--backup-running').addClass('asc-ai-boiler-sync-status--backup-error');
+						$status.removeClass('asc-ai-boiler-sync-status--export-running').addClass('asc-ai-boiler-sync-status--export-error');
 						$progress.text(sprintf(str.failure, 'invalid response'));
 						setRunning(false);
 						return;
@@ -251,20 +251,20 @@
 					typeIndex = d.type_index;
 					postOffset = d.post_offset;
 					if (d.done) {
-						$status.removeClass('asc-ai-boiler-sync-status--backup-running').addClass('asc-ai-boiler-sync-status--backup-done');
-						if (runningMeta > 0 && str.backup_complete_with_meta) {
+						$status.removeClass('asc-ai-boiler-sync-status--export-running').addClass('asc-ai-boiler-sync-status--export-done');
+						if (runningMeta > 0 && str.export_complete_with_meta) {
 							$progress.text(
-								sprintf(str.backup_complete_with_meta, String(runningFiles), String(runningMeta))
+								sprintf(str.export_complete_with_meta, String(runningFiles), String(runningMeta))
 							);
 						} else {
-							$progress.text(sprintf(str.backup_complete, String(runningFiles)));
+							$progress.text(sprintf(str.export_complete, String(runningFiles)));
 						}
 						setRunning(false);
 						return;
 					}
 					$progress.text(
 						sprintf(
-							str.backup_progress,
+							str.export_progress,
 							String(batchFiles),
 							String(batchMeta),
 							String(runningFiles),
@@ -277,7 +277,7 @@
 					if (xhr && xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
 						msg = xhr.responseJSON.data.message;
 					}
-					$status.removeClass('asc-ai-boiler-sync-status--backup-running').addClass('asc-ai-boiler-sync-status--backup-error');
+					$status.removeClass('asc-ai-boiler-sync-status--export-running').addClass('asc-ai-boiler-sync-status--export-error');
 					$progress.text(sprintf(str.failure, msg));
 					setRunning(false);
 				});

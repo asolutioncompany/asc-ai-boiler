@@ -57,6 +57,27 @@ Activation/deactivation hooks run `Core` lifecycle methods.
 
 These filters let `asc-ai-example` redirect all content paths to its own directory.
 
+### Other-media directory
+
+`content/other-media/` holds static assets (SVGs, fonts, icon sets) that are served directly via URL and **never imported into the WordPress media library**. WordPress blocks SVG uploads by default; files that don't need to be WP attachments belong here.
+
+- `ContentMediaSync::get_other_media_url( string $relative_path ): string` — public URL helper
+- `ContentMediaSync::FILTER_OTHER_MEDIA_DIR` — override the absolute path (trailing slash)
+- `ContentMediaSync::FILTER_OTHER_MEDIA_URL` — override the public base URL (trailing slash)
+- `BoilerIntegration` wires both filters to point to the example plugin's own `content/other-media/`
+
+### SEO meta description filter
+
+`ContentSync::FILTER_META_DESCRIPTION_META_KEY`  override the post meta key used to read/write SEO meta descriptions during backup/restore.
+Default: `_yoast_wpseo_metadesc` (Yoast SEO). Other common values: `_aioseo_description`, `rank_math_description`, `_seopress_titles_desc`.
+
+### Companion content directories
+
+`content/excerpts/`          one `<slug>.txt` per post — stores `post_excerpt` for backup/restore
+`content/meta-descriptions/` one `<slug>.txt` per post — stores SEO meta description for backup/restore
+
+Companion files are written during backup, applied during restore, and checked during detect-differences. Partials are excluded. An empty companion file signals "clear the field on restore." Missing companion file means "skip the field."
+
 ### Assets
 
 `assets/admin/admin.css`   admin styles
@@ -126,10 +147,13 @@ ExampleMediaBindings maps media files to posts for attachment during sync.
 
 ### Constants (defined in asc-ai-example.php)
 
-`ASC_AI_EXAMPLE_TEST_PAGING`          bool  forces paginated archive for testing
-`ASC_AI_EXAMPLE_TEST_VIEW_ALL`        bool  forces "view all" archive for testing
-`ASC_AI_EXAMPLE_TEST_PAGING_POST_NUM` int   posts per page in test paging mode (default: 3)
-`ASC_AI_EXAMPLE_TEST_VIEW_ALL_NUM`    int   posts shown in view-all mode (default: 2)
+`ASC_AI_EXAMPLE_TEST_PAGING`          bool    forces paginated archive for testing
+`ASC_AI_EXAMPLE_TEST_VIEW_ALL`        bool    forces "view all" archive for testing
+`ASC_AI_EXAMPLE_TEST_PAGING_POST_NUM` int     posts per page in test paging mode (default: 3)
+`ASC_AI_EXAMPLE_TEST_VIEW_ALL_NUM`    int     posts shown in view-all mode (default: 2)
+`ASC_AI_EXAMPLE_CARD_EXCERPT_SOURCE`  string  card grid excerpt source: 'none' (default) | 'excerpt' | 'meta_description' | 'content'
+`ASC_AI_EXAMPLE_CARD_WORD_LIMIT`      int     word limit for 'content' source (0 = no limit, default; takes priority over char limit)
+`ASC_AI_EXAMPLE_CARD_CHAR_LIMIT`      int     character limit for 'content' source when word limit is 0 (0 = no limit, default)
 
 ### Assets
 

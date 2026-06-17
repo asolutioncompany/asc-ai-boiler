@@ -38,16 +38,16 @@ final class RegisterPartials {
 	 */
 	public static function register(): void {
 		$labels = array(
-			'name' => __( 'Partials', \ASC_AI_BOILER_TEXT_DOMAIN ),
-			'singular_name' => __( 'Partial', \ASC_AI_BOILER_TEXT_DOMAIN ),
-			'add_new' => __( 'Add New', \ASC_AI_BOILER_TEXT_DOMAIN ),
-			'add_new_item' => __( 'Add New Partial', \ASC_AI_BOILER_TEXT_DOMAIN ),
-			'edit_item' => __( 'Edit Partial', \ASC_AI_BOILER_TEXT_DOMAIN ),
-			'new_item' => __( 'New Partial', \ASC_AI_BOILER_TEXT_DOMAIN ),
-			'view_item' => __( 'View Partial', \ASC_AI_BOILER_TEXT_DOMAIN ),
-			'search_items' => __( 'Search Partials', \ASC_AI_BOILER_TEXT_DOMAIN ),
-			'not_found' => __( 'No partials found.', \ASC_AI_BOILER_TEXT_DOMAIN ),
-			'not_found_in_trash' => __( 'No partials found in Trash.', \ASC_AI_BOILER_TEXT_DOMAIN ),
+			'name' => __( 'Partials', \ASC_AI_PLUGIN_DOMAIN ),
+			'singular_name' => __( 'Partial', \ASC_AI_PLUGIN_DOMAIN ),
+			'add_new' => __( 'Add New', \ASC_AI_PLUGIN_DOMAIN ),
+			'add_new_item' => __( 'Add New Partial', \ASC_AI_PLUGIN_DOMAIN ),
+			'edit_item' => __( 'Edit Partial', \ASC_AI_PLUGIN_DOMAIN ),
+			'new_item' => __( 'New Partial', \ASC_AI_PLUGIN_DOMAIN ),
+			'view_item' => __( 'View Partial', \ASC_AI_PLUGIN_DOMAIN ),
+			'search_items' => __( 'Search Partials', \ASC_AI_PLUGIN_DOMAIN ),
+			'not_found' => __( 'No partials found.', \ASC_AI_PLUGIN_DOMAIN ),
+			'not_found_in_trash' => __( 'No partials found in Trash.', \ASC_AI_PLUGIN_DOMAIN ),
 		);
 
 		$menu_parent = apply_filters( self::FILTER_ADMIN_MENU_PARENT, true );
@@ -107,7 +107,7 @@ final class RegisterPartials {
 		}
 
 		$obj = get_post_type_object( self::POST_TYPE );
-		$menu_title = __( 'Partials', \ASC_AI_BOILER_TEXT_DOMAIN );
+		$menu_title = __( 'Partials', \ASC_AI_PLUGIN_DOMAIN );
 		if ( $obj instanceof \WP_Post_Type && isset( $obj->labels->name ) ) {
 			$menu_title = $obj->labels->name;
 		}
@@ -137,8 +137,8 @@ final class RegisterPartials {
 			$post_type = sanitize_key( (string) wp_unslash( $_GET['post_type'] ) );
 			if ( self::POST_TYPE === $post_type ) {
 				wp_die(
-					esc_html__( 'You do not have permission to access this page.', \ASC_AI_BOILER_TEXT_DOMAIN ),
-					esc_html__( 'Forbidden', \ASC_AI_BOILER_TEXT_DOMAIN ),
+					esc_html__( 'You do not have permission to access this page.', \ASC_AI_PLUGIN_DOMAIN ),
+					esc_html__( 'Forbidden', \ASC_AI_PLUGIN_DOMAIN ),
 					403
 				);
 			}
@@ -148,8 +148,8 @@ final class RegisterPartials {
 			$post_type = sanitize_key( (string) wp_unslash( $_GET['post_type'] ) );
 			if ( self::POST_TYPE === $post_type ) {
 				wp_die(
-					esc_html__( 'You do not have permission to access this page.', \ASC_AI_BOILER_TEXT_DOMAIN ),
-					esc_html__( 'Forbidden', \ASC_AI_BOILER_TEXT_DOMAIN ),
+					esc_html__( 'You do not have permission to access this page.', \ASC_AI_PLUGIN_DOMAIN ),
+					esc_html__( 'Forbidden', \ASC_AI_PLUGIN_DOMAIN ),
 					403
 				);
 			}
@@ -159,8 +159,8 @@ final class RegisterPartials {
 			$post_id = absint( wp_unslash( $_GET['post'] ) );
 			if ( $post_id > 0 && self::POST_TYPE === get_post_type( $post_id ) ) {
 				wp_die(
-					esc_html__( 'You do not have permission to access this page.', \ASC_AI_BOILER_TEXT_DOMAIN ),
-					esc_html__( 'Forbidden', \ASC_AI_BOILER_TEXT_DOMAIN ),
+					esc_html__( 'You do not have permission to access this page.', \ASC_AI_PLUGIN_DOMAIN ),
+					esc_html__( 'Forbidden', \ASC_AI_PLUGIN_DOMAIN ),
 					403
 				);
 			}
