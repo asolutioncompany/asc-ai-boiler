@@ -245,15 +245,31 @@
 	}
 
 	function initThemeToggle() {
+		var COOKIE_NAME = 'asc_cookie';
+		var LIGHT = 'asc-light';
+		var DARK = 'asc-dark';
+
 		var lightBtns = document.querySelectorAll('.example-theme-toggle-btn--light');
 		var darkBtns = document.querySelectorAll('.example-theme-toggle-btn--dark');
 		if (!lightBtns.length || !darkBtns.length) {
 			return;
 		}
 
+		function getCookie(name) {
+			var match = document.cookie.match('(?:^|; )' + name + '=([^;]*)');
+			return match ? decodeURIComponent(match[1]) : null;
+		}
+
+		function setCookie(name, value) {
+			var expires = new Date();
+			expires.setFullYear(expires.getFullYear() + 1);
+			document.cookie = name + '=' + encodeURIComponent(value) + '; path=/; expires=' + expires.toUTCString() + '; SameSite=Lax';
+		}
+
 		function applyTheme(theme) {
-			var isLight = theme === 'light';
-			document.documentElement.classList.toggle('example-light-mode', isLight);
+			var isLight = theme === LIGHT;
+			document.body.classList.toggle('asc-site-light', isLight);
+			document.body.classList.toggle('asc-site-dark', !isLight);
 			Array.prototype.forEach.call(lightBtns, function (btn) {
 				btn.setAttribute('aria-pressed', isLight ? 'true' : 'false');
 			});
@@ -262,20 +278,24 @@
 			});
 		}
 
-		var saved = localStorage.getItem('example-theme') || 'dark';
-		applyTheme(saved);
+		var current = getCookie(COOKIE_NAME);
+		if (current !== LIGHT && current !== DARK) {
+			setCookie(COOKIE_NAME, LIGHT); // Default to light mode for this website
+			current = LIGHT;
+		}
+		applyTheme(current);
 
 		Array.prototype.forEach.call(lightBtns, function (btn) {
 			btn.addEventListener('click', function () {
-				localStorage.setItem('example-theme', 'light');
-				applyTheme('light');
+				setCookie(COOKIE_NAME, LIGHT);
+				applyTheme(LIGHT);
 			});
 		});
 
 		Array.prototype.forEach.call(darkBtns, function (btn) {
 			btn.addEventListener('click', function () {
-				localStorage.setItem('example-theme', 'dark');
-				applyTheme('dark');
+				setCookie(COOKIE_NAME, DARK);
+				applyTheme(DARK);
 			});
 		});
 	}
@@ -314,8 +334,5 @@
 		initSkipLinkFocus();
 		initThemeToggle();
 		initScrollTop();
-
-		var ajax_url = example_site_front.ajax_url;
-		var ajax_nonce = example_site_front.ajax_nonce;
 	});
 })(jQuery);

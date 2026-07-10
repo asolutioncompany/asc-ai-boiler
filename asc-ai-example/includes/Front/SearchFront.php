@@ -103,9 +103,13 @@ class SearchFront {
 		$heading = '<h1 class="example-page-title">' . $heading_text . '</h1>';
 
 		if ( ! have_posts() ) {
-			return '<section class="example-page-content">'
+			return '<section class="example-full-content">'
 				. $heading
-				. '<p>' . esc_html__( 'No results found.', \ASC_AI_EXAMPLE_TEXT_DOMAIN ) . '</p>'
+				. '<div class="example-section example-card-section example-archive-listing-card-section">'
+				. '<div class="example-card-section-content">'
+				. '<p class="example-archive-empty">' . esc_html__( 'No results found.', \ASC_AI_EXAMPLE_TEXT_DOMAIN ) . '</p>'
+				. '</div>'
+				. '</div>'
 				. '</section>';
 		}
 
@@ -117,9 +121,13 @@ class SearchFront {
 		$heading = '<h1 class="example-page-title">' . $title . '</h1>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_the_archive_title() returns sanitized HTML.
 
 		if ( ! have_posts() ) {
-			return '<section class="example-page-content">'
+			return '<section class="example-full-content">'
 				. $heading
-				. '<p>' . esc_html__( 'No posts found.', \ASC_AI_EXAMPLE_TEXT_DOMAIN ) . '</p>'
+				. '<div class="example-section example-card-section example-archive-listing-card-section">'
+				. '<div class="example-card-section-content">'
+				. '<p class="example-archive-empty">' . esc_html__( 'No posts found.', \ASC_AI_EXAMPLE_TEXT_DOMAIN ) . '</p>'
+				. '</div>'
+				. '</div>'
 				. '</section>';
 		}
 
@@ -135,8 +143,10 @@ class SearchFront {
 
 		ob_start();
 
-		echo '<section class="example-page-content">';
+		echo '<section class="example-full-content">';
 		echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- heading is pre-escaped above.
+		echo '<div class="example-section example-card-section example-archive-listing-card-section">';
+		echo '<div class="example-card-section-content">';
 		echo '<div class="example-card-grid">';
 
 		while ( have_posts() ) {
@@ -150,6 +160,8 @@ class SearchFront {
 			echo ArchivePagination::render( $paged, $max_pages, $base_url ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 
+		echo '</div>';
+		echo '</div>';
 		echo '</section>';
 		wp_reset_postdata();
 

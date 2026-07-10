@@ -33,6 +33,10 @@ final class SyncConfig {
 
 	public const CONTENT_DIR_META_DESCRIPTIONS = 'meta-descriptions';
 
+	public const CONTENT_DIR_SOCIAL_DESCRIPTIONS = 'social-descriptions';
+
+	public const CONTENT_DIR_X_DESCRIPTIONS = 'x-descriptions';
+
 	/**
 	 * How many published posts (export) or plugin content files (import) to process per AJAX batch.
 	 *
@@ -62,6 +66,13 @@ final class SyncConfig {
 	 * @var string
 	 */
 	public const OPTION_DEVELOPMENT_MODE = 'asc_ai_boiler_development_mode';
+
+	/**
+	 * When true ("1"), Yoast SEO social and metadata integrations are synced.
+	 *
+	 * @var string
+	 */
+	public const OPTION_YOAST_SYNC = 'asc_ai_boiler_yoast_sync';
 
 	/**
 	 * Export: delete plugin HTML files with no matching published WordPress content.
@@ -133,6 +144,27 @@ final class SyncConfig {
 	}
 
 	/**
+	 * Whether Yoast SEO sync is enabled.
+	 *
+	 * @return bool
+	 */
+	public static function is_yoast_sync(): bool {
+		return self::is_enabled( self::OPTION_YOAST_SYNC, true );
+	}
+
+	/**
+	 * @param bool $enabled Whether to enable Yoast SEO sync.
+	 *
+	 * @return void
+	 */
+	public static function set_yoast_sync( bool $enabled ): void {
+		update_option(
+			self::OPTION_YOAST_SYNC,
+			$enabled ? '1' : '0'
+		);
+	}
+
+	/**
 	 * Remove all sync options. For uninstall.
 	 *
 	 * @return void
@@ -141,6 +173,7 @@ final class SyncConfig {
 		delete_option( self::OPTION_EXPORT_CLEANUP );
 		delete_option( self::OPTION_IMPORT_CLEANUP );
 		delete_option( self::OPTION_DEVELOPMENT_MODE );
+		delete_option( self::OPTION_YOAST_SYNC );
 	}
 
 	/**

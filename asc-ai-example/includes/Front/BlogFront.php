@@ -159,8 +159,10 @@ class BlogFront {
 			$media_markup = '<img src="' . esc_url( Front::media_url_for_post( $post_id, CoreSettings::SETTING_IMAGE_BLOG_DEFAULT ) ) . '" alt="' . esc_attr( CoreSettings::get_image_alt( CoreSettings::SETTING_IMAGE_BLOG_DEFAULT, (string) get_the_title( $post_id ) ) ) . '" width="1440" height="1080">';
 		}
 
+		$tag_markup = Front::get_pill_markup( $post_id );
 		$boiler_markup = Front::get_boiler_section_markup( PartialCatalog::KEY_BLOG_BOILER );
-		$heading_markup = '<h1 class="example-post-entry-title">' . esc_html( get_the_title( $post_id ) ) . '</h1>';
+		$heading_markup = $tag_markup
+			. '<h1 class="example-post-entry-title">' . esc_html( get_the_title( $post_id ) ) . '</h1>';
 		$meta_markup = '<p class="example-post-entry-date">' . esc_html( $date ) . '</p>';
 		$main_markup = $content
 			. $this->render_view_all_row(
@@ -230,10 +232,13 @@ class BlogFront {
 			}
 		}
 
+		$tags_markup = Front::get_pill_markup( $post_id );
+
 		return '<article class="example-card example-blog-card">'
 			. '<div class="example-card-body">'
 			. '<a class="example-card-media" href="' . esc_url( $permalink ) . '" tabindex="-1">' . $media_markup . '</a>'
 			. '<div class="example-card-content example-card--light">'
+			. $tags_markup
 			. '<h3 class="example-card-title"><a href="' . esc_url( $permalink ) . '" tabindex="-1">' . esc_html( $title ) . '</a></h3>'
 			. $date_markup
 			. $excerpt_markup

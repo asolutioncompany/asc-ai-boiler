@@ -15,7 +15,7 @@ namespace ASC\AI_EXAMPLE\Front;
 use ASC\AI_BOILER\Core\PartialStore;
 use ASC\AI_EXAMPLE\Core\PartialCatalog;
 
-use ASC\AI_BOILER\Core\ContentMediaSync;
+use ASC\AI_BOILER\Core\Media;
 
 /**
  * Site Front Class
@@ -28,7 +28,7 @@ class SiteFront {
 	 * @return string
 	 */
 	public function render_hero_image_shortcode(): string {
-		$url = ContentMediaSync::get_attachment_url_for_path( 'hero.jpg' );
+		$url = Media::get_attachment_url_for_path( 'hero.jpg' );
 		if ( '' === $url ) {
 			return '';
 		}
@@ -54,6 +54,15 @@ class SiteFront {
 		$raw = PartialStore::get_raw_markup( PartialCatalog::KEY_HEADER );
 		if ( '' === trim( $raw ) ) {
 			return '';
+		}
+
+		// Adjust theme toggle aria-pressed attributes based on current cookie to prevent flickering.
+		$cookie = (string) ( $_COOKIE['asc_cookie'] ?? $_COOKIE['asc-cookie'] ?? '' );
+		$is_dark = ( 'asc-dark' === $cookie ); // Default is light mode
+		if ( ! $is_dark ) {
+			// In light mode, light-button is pressed (true) and dark-button is unpressed (false).
+			$raw = str_replace( 'aria-label="Light mode" aria-pressed="false"', 'aria-label="Light mode" aria-pressed="true"', $raw );
+			$raw = str_replace( 'aria-label="Dark mode" aria-pressed="true"', 'aria-label="Dark mode" aria-pressed="false"', $raw );
 		}
 
 		return do_shortcode( $raw );

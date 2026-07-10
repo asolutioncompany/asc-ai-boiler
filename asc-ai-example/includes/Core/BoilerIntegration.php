@@ -10,7 +10,7 @@ declare( strict_types = 1 );
 namespace ASC\AI_EXAMPLE\Core;
 
 use ASC\AI_BOILER\Admin\ContentSync;
-use ASC\AI_BOILER\Core\ContentMediaSync;
+use ASC\AI_BOILER\Core\Media;
 
 /**
  * Example product integration with aS.c AI Boiler core APIs.
@@ -29,10 +29,10 @@ final class BoilerIntegration {
 		add_filter( ContentSync::FILTER_SYNC_CONTENT_TYPE_KEYS, array( self::class, 'append_sync_content_type_keys' ), 10, 1 );
 		add_filter( ContentSync::FILTER_CONTENT_DIR, array( self::class, 'filter_content_dir' ) );
 		add_filter( ContentSync::FILTER_CONTENT_URL, array( self::class, 'filter_content_url' ) );
-		add_filter( ContentMediaSync::FILTER_MEDIA_DIR, array( self::class, 'filter_media_dir' ) );
-		add_filter( ContentMediaSync::FILTER_MEDIA_URL, array( self::class, 'filter_media_url' ) );
-		add_filter( ContentMediaSync::FILTER_OTHER_MEDIA_DIR, array( self::class, 'filter_other_media_dir' ) );
-		add_filter( ContentMediaSync::FILTER_OTHER_MEDIA_URL, array( self::class, 'filter_other_media_url' ) );
+		add_filter( Media::FILTER_MEDIA_DIR, array( self::class, 'filter_media_dir' ) );
+		add_filter( Media::FILTER_MEDIA_URL, array( self::class, 'filter_media_url' ) );
+		add_filter( Media::FILTER_OTHER_MEDIA_DIR, array( self::class, 'filter_other_media_dir' ) );
+		add_filter( Media::FILTER_OTHER_MEDIA_URL, array( self::class, 'filter_other_media_url' ) );
 	}
 
 	public static function filter_content_dir( string $default ): string {

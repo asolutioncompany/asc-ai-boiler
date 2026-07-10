@@ -10,7 +10,7 @@ declare( strict_types = 1 );
 
 namespace ASC\AI_EXAMPLE\Core;
 
-use ASC\AI_BOILER\Core\ContentMediaSync;
+use ASC\AI_BOILER\Core\Media;
 
 /**
  * Shared settings for admin and front rendering.
@@ -187,7 +187,7 @@ class CoreSettings {
 	 * @return string Relative path under content/media/, or empty string.
 	 */
 	public static function get_fallback_media_path( string $key ): string {
-		$path = apply_filters( ContentMediaSync::FILTER_SETTING_MEDIA_PATH, '', $key );
+		$path = apply_filters( Media::FILTER_SETTING_MEDIA_PATH, '', $key );
 		if ( ! is_string( $path ) ) {
 			return '';
 		}
@@ -213,7 +213,7 @@ class CoreSettings {
 
 		$fallback_path = self::get_fallback_media_path( $key );
 		if ( '' !== $fallback_path ) {
-			return ContentMediaSync::get_attachment_url_for_path( $fallback_path );
+			return Media::get_attachment_url_for_path( $fallback_path );
 		}
 
 		return '';

@@ -9,7 +9,7 @@ declare( strict_types = 1 );
 
 namespace ASC\AI_EXAMPLE\Core;
 
-use ASC\AI_BOILER\Core\ContentMediaSync;
+use ASC\AI_BOILER\Core\Media;
 
 /**
  * Maps example content to plugin media under content/media/.
@@ -20,9 +20,9 @@ final class MediaBindings {
 	 * @return void
 	 */
 	public static function register(): void {
-		add_filter( ContentMediaSync::FILTER_MEDIA_BINDINGS, array( self::class, 'filter_media_bindings' ) );
-		add_filter( ContentMediaSync::FILTER_SETTING_MEDIA_PATH, array( self::class, 'filter_setting_media_path' ), 10, 2 );
-		add_filter( ContentMediaSync::FILTER_POST_MEDIA_PATH, array( self::class, 'filter_post_media_path' ), 10, 3 );
+		add_filter( Media::FILTER_MEDIA_BINDINGS, array( self::class, 'filter_media_bindings' ) );
+		add_filter( Media::FILTER_SETTING_MEDIA_PATH, array( self::class, 'filter_setting_media_path' ), 10, 2 );
+		add_filter( Media::FILTER_POST_MEDIA_PATH, array( self::class, 'filter_post_media_path' ), 10, 3 );
 	}
 
 	/**

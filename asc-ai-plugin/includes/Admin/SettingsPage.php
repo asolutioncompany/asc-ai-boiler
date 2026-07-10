@@ -67,6 +67,13 @@ class SettingsPage {
 	private const POST_DEVELOPMENT_MODE = 'asc_ai_boiler_development_mode';
 
 	/**
+	 * POST field: Yoast SEO integration sync.
+	 *
+	 * @var string
+	 */
+	private const POST_YOAST_SYNC = 'asc_ai_boiler_yoast_sync';
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -141,6 +148,7 @@ class SettingsPage {
 		SyncConfig::set_export_cleanup( isset( $_POST[ self::POST_EXPORT_CLEANUP ] ) );
 		SyncConfig::set_import_cleanup( isset( $_POST[ self::POST_IMPORT_CLEANUP ] ) );
 		SyncConfig::set_development_mode( isset( $_POST[ self::POST_DEVELOPMENT_MODE ] ) );
+		SyncConfig::set_yoast_sync( isset( $_POST[ self::POST_YOAST_SYNC ] ) );
 
 		$redirect_url = add_query_arg(
 			array(
@@ -166,6 +174,7 @@ class SettingsPage {
 		$export_delete_orphans = SyncConfig::is_export_cleanup();
 		$import_cleanup = SyncConfig::is_import_cleanup();
 		$import_dev_mode = SyncConfig::is_development_mode();
+		$yoast_sync = SyncConfig::is_yoast_sync();
 		$auto_confirm_attr = $import_dev_mode ? '1' : '0';
 
 		?>
@@ -232,6 +241,22 @@ class SettingsPage {
 								<p class="description"><?php esc_html_e( 'Use for one-click import from new plugin files by having the confirmation checkbox always checked.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
 							</td>
 						</tr>
+						<tr>
+							<th scope="row"><?php esc_html_e( 'Yoast SEO settings', \ASC_AI_PLUGIN_DOMAIN ); ?></th>
+							<td>
+								<label for="asc-ai-boiler-yoast-sync">
+									<input
+										type="checkbox"
+										name="<?php echo esc_attr( self::POST_YOAST_SYNC ); ?>"
+										id="asc-ai-boiler-yoast-sync"
+										value="1"
+										<?php checked( $yoast_sync ); ?>
+									>
+									<?php esc_html_e( 'Import/Export Yoast settings on sync.', \ASC_AI_PLUGIN_DOMAIN ); ?>
+								</label>
+								<p class="description"><?php esc_html_e( 'If unchecked, Yoast SEO fields are ignored and not updated or exported.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+							</td>
+						</tr>
 					</tbody>
 				</table>
 				<?php submit_button( __( 'Save Import / Export settings', \ASC_AI_PLUGIN_DOMAIN ) ); ?>
@@ -244,10 +269,10 @@ class SettingsPage {
 					<?php esc_html_e( 'Synchronize WordPress published content with plugin content files under the content directory.', \ASC_AI_PLUGIN_DOMAIN ); ?>
 				</p>
 				<p class="description">
-					<?php esc_html_e( 'Export writes all published pages, posts, partials, and custom post types from the WordPress database to the plugin content files, including publication and modification dates, page/post title, page/post slug, tags, categories, excerpts, meta descriptions, and WordPress media library files. Whether orphaned plugin files are removed afterward depends on the export cleanup setting above.', \ASC_AI_PLUGIN_DOMAIN ); ?>
+					<?php esc_html_e( 'Export writes all published pages, posts, partials, and custom post types from the WordPress database to the plugin content files, including publication and modification dates, page/post title, page/post slug, tags, categories, excerpts, meta descriptions, Yoast SEO settings (focus keyphrases, social titles, and social descriptions), and WordPress media library files. Whether orphaned plugin files are removed afterward depends on the export cleanup setting above.', \ASC_AI_PLUGIN_DOMAIN ); ?>
 				</p>
 				<p class="description">
-					<?php esc_html_e( 'Import updates all published pages, posts, partials, and custom post types from the plugin content files to the WordPress database, using the manifest for publication time, page/post title, page/post slug, tags, categories, excerpts, meta descriptions, and WordPress media library files when applicable. Last modified time in WordPress is not taken from the manifest. When import finishes, plugin HTML and content-manifest.json on disk are rewritten to canonical export form from WordPress. Whether orphaned published WordPress content is removed from the WordPress database afterward depends on the import cleanup setting above.', \ASC_AI_PLUGIN_DOMAIN ); ?>
+					<?php esc_html_e( 'Import updates all published pages, posts, partials, and custom post types from the plugin content files to the WordPress database, using the manifest for publication time, page/post title, page/post slug, tags, categories, excerpts, meta descriptions, Yoast SEO settings (focus keyphrases, social titles, and social descriptions), and WordPress media library files when applicable. Last modified time in WordPress is not taken from the manifest. When import finishes, plugin HTML and content-manifest.json on disk are rewritten to canonical export form from WordPress. Whether orphaned published WordPress content is removed from the WordPress database afterward depends on the import cleanup setting above.', \ASC_AI_PLUGIN_DOMAIN ); ?>
 				</p>
 				<p class="description">
 					<?php
@@ -261,7 +286,7 @@ class SettingsPage {
 					?>
 				</p>
 				<p class="description">
-					<?php esc_html_e( 'Import brings plugin HTML and content/media/ into WordPress (including the media library, default images, and featured images via manifest bindings). Other post metadata (for example Yoast SEO fields) is not synced. Configure that data separately on each WordPress instance when needed.', \ASC_AI_PLUGIN_DOMAIN ); ?>
+					<?php esc_html_e( 'Import brings plugin HTML and content/media/ into WordPress (including the media library, default images, and featured images via manifest bindings), along with Yoast SEO integration fields (when enabled). Other post metadata (for example custom fields from advanced plugins) is not synced. Configure that data separately on each WordPress instance when needed.', \ASC_AI_PLUGIN_DOMAIN ); ?>
 				</p>
 				<div class="asc-ai-boiler-diff-highlight" id="asc-ai-boiler-diff-highlight" aria-live="polite"></div>
 				<p class="asc-ai-boiler-settings-page__sync-detect-wrap">

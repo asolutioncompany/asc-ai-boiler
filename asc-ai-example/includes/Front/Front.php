@@ -12,7 +12,7 @@ declare( strict_types = 1 );
 
 namespace ASC\AI_EXAMPLE\Front;
 
-use ASC\AI_BOILER\Core\ContentMediaSync;
+use ASC\AI_BOILER\Core\Media;
 use ASC\AI_BOILER\Core\PartialStore;
 use ASC\AI_BOILER\Core\ThemeShell;
 use ASC\AI_EXAMPLE\Core\ArchiveConfig;
@@ -44,8 +44,10 @@ class Front {
 	 */
 	private function init(): void {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_front_assets' ), 100 );
+		add_action( 'wp_head', array( $this, 'render_favicon' ) );
 		add_action( 'wp_footer', array( $this, 'render_scroll_top' ) );
 		add_filter( 'excerpt_length', array( $this, 'get_front_excerpt_length' ), 999 );
+		add_filter( 'body_class', array( $this, 'filter_body_class' ) );
 		$site_front = new SiteFront();
 		$call_to_action = new CallToAction();
 		$blog_front = new BlogFront();
@@ -110,6 +112,32 @@ class Front {
 	}
 
 	/**
+	 * Add asc-site-dark or asc-site-light to the body class list based on the theme cookie.
+	 *
+	 * Hooked to 'body_class'. PHP reads the cookie set by the client so the correct
+	 * class is present in the cached HTML, eliminating JS flash-of-wrong-theme.
+	 * Default: light mode (asc-light).
+	 *
+	 * Caching Notes:
+	 * Page caching solutions (e.g. Varnish, Nginx FastCGI cache, WP Super Cache, Cloudflare)
+	 * MUST be configured to cache both theme versions separately by varying on the cookie:
+	 * Cookie Name: 'asc_cookie'
+	 * Settings / Values: 'asc-light' and 'asc-dark'.
+	 *
+	 * @param string[] $classes Existing body classes from WordPress.
+	 * @return string[]
+	 */
+	public function filter_body_class( array $classes ): array {
+		$raw = (string) ( $_COOKIE['asc_cookie'] ?? $_COOKIE['asc-cookie'] ?? '' );
+		$theme_class = 'asc-site-light'; // Default to light mode for this website
+		if ( 'asc-dark' === $raw ) {
+			$theme_class = 'asc-site-dark';
+		}
+		$classes[] = $theme_class;
+		return $classes;
+	}
+
+	/**
 	 * Absolute URL for a path under the site home (e.g. /wp-content/uploads/...).
 	 *
 	 * @param string $path Path beginning with /.
@@ -168,7 +196,7 @@ class Front {
 		$slug = (string) get_post_field( 'post_name', $post_id );
 		$post_type = (string) get_post_field( 'post_type', $post_id );
 		if ( '' !== $slug && '' !== $post_type ) {
-			$plugin_url = ContentMediaSync::get_post_media_url( $post_type, $slug );
+			$plugin_url = Media::get_post_media_url( $post_type, $slug );
 			if ( '' !== $plugin_url ) {
 				return $plugin_url;
 			}
@@ -221,11 +249,11 @@ class Front {
 	 * @return string
 	 */
 	public static function get_service_boiler_markup(): string {
-		return self::get_boiler_section_markup( PartialCatalog::KEY_AGENCY_BOILER, 'services' );
+		return self::get_boiler_section_markup( PartialCatalog::KEY_AGENCY_BOILER );
 	}
 
 	/**
-	 * Render a boiler partial wrapped in a section with a leading yellow divider.
+	 * Render a boiler partial wrapped in a section with a leading divider.
 	 *
 	 * Looks up the named partial in the Partials CPT. Returns an empty string when the post is missing or has no
 	 * body. Used by the single service / project / blog auto-append and
@@ -235,43 +263,32 @@ class Front {
 	 * tags automatically.
 	 *
 	 * @param string $partial_key One of PartialCatalog::KEY_AGENCY_BOILER or KEY_BLOG_BOILER.
-	 * @param string $divider_modifier Optional modifier for divider color (e.g. services).
 	 *
 	 * @return string
 	 */
-	public static function get_boiler_section_markup( string $partial_key, string $divider_modifier = '' ): string {
+	public static function get_boiler_section_markup( string $partial_key ): string {
 		$markup = PartialStore::get_raw_markup( $partial_key );
 		if ( '' === trim( $markup ) ) {
 			return '';
 		}
 
-		return self::wrap_divided_section_markup( wpautop( do_shortcode( $markup ) ), $partial_key, $divider_modifier );
+		return self::wrap_divided_section_markup( wpautop( do_shortcode( $markup ) ) );
 	}
 
 	/**
 	 * Wrap HTML in a section with a leading boiler divider above it.
 	 *
 	 * @param string $inner_html Processed partial or boiler body HTML.
-	 * @param string $partial_key Partial key for divider color (agency vs blog).
-	 * @param string $divider_modifier Optional modifier for divider color (e.g. services).
 	 *
 	 * @return string
 	 */
-	public static function wrap_divided_section_markup( string $inner_html, string $partial_key = '', string $divider_modifier = '' ): string {
+	public static function wrap_divided_section_markup( string $inner_html ): string {
 		if ( '' === trim( $inner_html ) ) {
 			return '';
 		}
 
-		$divider_class = 'example-boiler-divider';
-		if ( PartialCatalog::KEY_BLOG_BOILER === $partial_key ) {
-			$divider_class .= ' example-boiler-divider--blog';
-		}
-		if ( 'services' === $divider_modifier ) {
-			$divider_class .= ' example-boiler-divider--services';
-		}
-
 		return '<div class="example-boiler-section">'
-			. '<hr class="' . esc_attr( $divider_class ) . '" aria-hidden="true">'
+			. '<hr class="example-boiler-divider" aria-hidden="true">'
 			. $inner_html
 			. '</div>';
 	}
@@ -455,6 +472,16 @@ class Front {
 
 	public function render_scroll_top(): void {
 		echo '<button type="button" class="asc-scroll-top" aria-label="' . esc_attr__( 'Scroll to top', 'asc-ai-boiler' ) . '"><span class="dashicons dashicons-arrow-up-alt2" aria-hidden="true"></span></button>';
+	}
+
+	/**
+	 * Output the SVG favicon in the header.
+	 *
+	 * @return void
+	 */
+	public function render_favicon(): void {
+		$svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><style>path { fill: #0b7285; } @media (prefers-color-scheme: dark) { path { fill: #67d8ef; } }</style><path d="M3.76 17.010h12.48c1.1-1.38 1.76-3.11 1.76-5.010 0-4.41-3.58-8-8-8s-8 3.59-8 8c0 1.9 0.66 3.63 1.76 5.010zM9 6c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1zM4 8c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1zM8.52 11.4c0.84-0.83 6.51-3.5 6.51-3.5s-2.66 5.68-3.49 6.51c-0.84 0.84-2.18 0.84-3.020 0-0.83-0.83-0.83-2.18 0-3.010zM3 13c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1zM9 13c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1zM15 13c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1z"/></svg>';
+		echo '<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,' . base64_encode( $svg ) . '">' . "\n";
 	}
 
 }
