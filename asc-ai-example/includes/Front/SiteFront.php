@@ -12,6 +12,10 @@ declare( strict_types = 1 );
 
 namespace ASC\AI_EXAMPLE\Front;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use ASC\AI_BOILER\Core\PartialStore;
 use ASC\AI_EXAMPLE\Core\PartialCatalog;
 

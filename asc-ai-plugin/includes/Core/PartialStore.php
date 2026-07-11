@@ -9,6 +9,10 @@ declare( strict_types = 1 );
 
 namespace ASC\AI_BOILER\Core;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use WP_Post;
 use WP_Query;
 

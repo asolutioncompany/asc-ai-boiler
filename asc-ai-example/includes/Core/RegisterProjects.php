@@ -10,6 +10,10 @@ declare( strict_types = 1 );
 
 namespace ASC\AI_EXAMPLE\Core;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Register Projects Post Type Class
  */

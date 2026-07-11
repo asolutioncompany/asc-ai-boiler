@@ -12,6 +12,10 @@ declare( strict_types = 1 );
 
 namespace ASC\AI_EXAMPLE\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use ASC\AI_BOILER\Core\RegisterPartials;
 use ASC\AI_EXAMPLE\Core\RegisterProjects;
 use ASC\AI_EXAMPLE\Core\RegisterServices;

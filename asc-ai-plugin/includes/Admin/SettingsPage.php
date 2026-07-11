@@ -10,6 +10,10 @@ declare( strict_types = 1 );
 
 namespace ASC\AI_BOILER\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use ASC\AI_BOILER\Core\RegisterPartials;
 
 /**

@@ -9,6 +9,10 @@ declare( strict_types = 1 );
 
 namespace ASC\AI_EXAMPLE\Core;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use ASC\AI_BOILER\Admin\ContentSync;
 use ASC\AI_BOILER\Admin\SyncConfig;
 use ASC\AI_EXAMPLE\Admin\Admin;

@@ -12,6 +12,10 @@ declare( strict_types = 1 );
 
 namespace ASC\AI_EXAMPLE\Front;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use ASC\AI_BOILER\Core\Media;
 use ASC\AI_BOILER\Core\PartialStore;
 use ASC\AI_BOILER\Core\ThemeShell;
@@ -106,7 +110,6 @@ class Front {
 			'example_site_front',
 			array(
 				'ajax_url' => admin_url( 'admin-ajax.php' ),
-				'ajax_nonce' => wp_create_nonce( 'asc-ai-boiler-front-ajax-nonce' ),
 			)
 		);
 	}

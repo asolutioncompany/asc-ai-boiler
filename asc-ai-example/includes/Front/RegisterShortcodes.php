@@ -9,6 +9,10 @@ declare( strict_types = 1 );
 
 namespace ASC\AI_EXAMPLE\Front;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Central shortcode registration.
  */

@@ -9,6 +9,10 @@ declare( strict_types = 1 );
 
 namespace ASC\AI_EXAMPLE\Core;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use ASC\AI_BOILER\Admin\ContentSyncProfile as BoilerContentSyncProfile;
 use ASC\AI_EXAMPLE\Core\RegisterProjects;
 use ASC\AI_EXAMPLE\Core\RegisterServices;

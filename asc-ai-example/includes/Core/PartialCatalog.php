@@ -9,6 +9,10 @@ declare( strict_types = 1 );
 
 namespace ASC\AI_EXAMPLE\Core;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Product-layer partial shell catalog (keys map to {@see \ASC\AI_BOILER\Core\RegisterPartials::META_PARTIAL_KEY} values).
  */

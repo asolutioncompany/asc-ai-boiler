@@ -9,6 +9,10 @@ declare( strict_types = 1 );
 
 namespace ASC\AI_EXAMPLE\Core;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 class ArchiveConfig {
 	// Modify to test paging
 	public const HOME_BLOG_LIMIT      = 6;

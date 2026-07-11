@@ -10,6 +10,10 @@ declare( strict_types = 1 );
 
 namespace ASC\AI_EXAMPLE\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Services Admin Class
  */

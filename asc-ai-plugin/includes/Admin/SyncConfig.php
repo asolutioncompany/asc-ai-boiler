@@ -11,6 +11,10 @@ declare( strict_types = 1 );
 
 namespace ASC\AI_BOILER\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Sync configuration for {@see ContentSync} and the Import / Export admin UI.
  */
