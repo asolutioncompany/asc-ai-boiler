@@ -121,6 +121,20 @@ final class SyncConfig {
 	public const OPTION_ENABLE_SYNC_PAGE = 'asc_ai_boiler_enable_sync_page';
 
 	/**
+	 * Option key to store the companion plugin slug.
+	 *
+	 * @var string
+	 */
+	public const OPTION_COMPANION_SLUG = 'asc_ai_boiler_companion_slug';
+
+	/**
+	 * Transient key to cache resolved companion paths.
+	 *
+	 * @var string
+	 */
+	public const TRANSIENT_COMPANION_PATHS = 'asc_ai_boiler_companion_paths';
+
+	/**
 	 * Export: delete plugin HTML files with no matching published WordPress content.
 	 *
 	 * @return bool
@@ -319,6 +333,79 @@ final class SyncConfig {
 	}
 
 	/**
+	 * Get companion plugin slug.
+	 *
+	 * @return string
+	 */
+	public static function get_companion_slug(): string {
+		return trim( (string) get_option( self::OPTION_COMPANION_SLUG, '' ) );
+	}
+
+	/**
+	 * Set companion plugin slug. Clears paths transient on change.
+	 *
+	 * @param string $slug Slug name.
+	 * @return void
+	 */
+	public static function set_companion_slug( string $slug ): void {
+		$old_slug = self::get_companion_slug();
+		$new_slug = trim( $slug );
+		if ( $old_slug !== $new_slug ) {
+			update_option( self::OPTION_COMPANION_SLUG, $new_slug );
+			delete_transient( self::TRANSIENT_COMPANION_PATHS );
+		}
+	}
+
+	/**
+	 * Get dynamic companion plugin paths, caching in transient for performance.
+	 *
+	 * @return array{companion_slug:string, content_dir:string, content_url:string, media_dir:string, media_url:string, other_media_dir:string, other_media_url:string, is_active:bool}|null
+	 */
+	public static function get_companion_paths(): ?array {
+		$paths = get_transient( self::TRANSIENT_COMPANION_PATHS );
+		if ( is_array( $paths ) ) {
+			return $paths;
+		}
+
+		$slug = self::get_companion_slug();
+		if ( '' === $slug ) {
+			return null;
+		}
+
+		$plugin_dir = WP_PLUGIN_DIR . '/' . $slug;
+		if ( ! is_dir( $plugin_dir ) ) {
+			return null;
+		}
+
+		// Fast active check by inspecting active_plugins option
+		$active_plugins = get_option( 'active_plugins', array() );
+		$is_active = false;
+		if ( is_array( $active_plugins ) ) {
+			foreach ( $active_plugins as $plugin_file ) {
+				if ( 0 === strpos( $plugin_file, $slug . '/' ) ) {
+					$is_active = true;
+					break;
+				}
+			}
+		}
+
+		$paths = array(
+			'companion_slug'  => $slug,
+			'content_dir'     => trailingslashit( $plugin_dir . '/' . self::CONTENT_RELATIVE_ROOT ),
+			'content_url'     => trailingslashit( plugins_url( $slug ) . '/' . self::CONTENT_RELATIVE_ROOT ),
+			'media_dir'       => trailingslashit( $plugin_dir . '/' . self::CONTENT_RELATIVE_ROOT . 'media' ),
+			'media_url'       => trailingslashit( plugins_url( $slug ) . '/' . self::CONTENT_RELATIVE_ROOT . 'media' ),
+			'other_media_dir' => trailingslashit( $plugin_dir . '/' . self::CONTENT_RELATIVE_ROOT . 'other-media' ),
+			'other_media_url' => trailingslashit( plugins_url( $slug ) . '/' . self::CONTENT_RELATIVE_ROOT . 'other-media' ),
+			'is_active'       => $is_active,
+		);
+
+		set_transient( self::TRANSIENT_COMPANION_PATHS, $paths, DAY_IN_SECONDS );
+
+		return $paths;
+	}
+
+	/**
 	 * Check if a specific content type key is enabled for sync.
 	 *
 	 * @param string $type_key Content type key (e.g. pages, partials, posts, etc).
@@ -354,6 +441,8 @@ final class SyncConfig {
 		delete_option( self::OPTION_SYNC_CUSTOM_POST_TYPES );
 		delete_option( self::OPTION_SYNC_MEDIA );
 		delete_option( self::OPTION_ENABLE_SYNC_PAGE );
+		delete_option( self::OPTION_COMPANION_SLUG );
+		delete_transient( self::TRANSIENT_COMPANION_PATHS );
 	}
 
 	/**

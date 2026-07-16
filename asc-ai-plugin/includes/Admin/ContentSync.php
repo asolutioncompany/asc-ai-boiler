@@ -118,7 +118,8 @@ final class ContentSync {
 	 * Absolute path to the `content/` directory (trailing slash). Filtered by {@see FILTER_CONTENT_DIR}.
 	 */
 	public static function get_content_directory(): string {
-		$default = plugin_dir_path( \ASC_AI_PLUGIN_FILE ) . SyncConfig::CONTENT_RELATIVE_ROOT;
+		$paths = SyncConfig::get_companion_paths();
+		$default = ( $paths && isset( $paths['content_dir'] ) ) ? $paths['content_dir'] : plugin_dir_path( \ASC_AI_PLUGIN_FILE ) . SyncConfig::CONTENT_RELATIVE_ROOT;
 		return trailingslashit( (string) apply_filters( self::FILTER_CONTENT_DIR, $default ) );
 	}
 
@@ -126,7 +127,8 @@ final class ContentSync {
 	 * Public URL of the `content/` directory (trailing slash). Filtered by {@see FILTER_CONTENT_URL}.
 	 */
 	public static function get_content_url(): string {
-		$default = plugin_dir_url( \ASC_AI_PLUGIN_FILE ) . SyncConfig::CONTENT_RELATIVE_ROOT;
+		$paths = SyncConfig::get_companion_paths();
+		$default = ( $paths && isset( $paths['content_url'] ) ) ? $paths['content_url'] : plugin_dir_url( \ASC_AI_PLUGIN_FILE ) . SyncConfig::CONTENT_RELATIVE_ROOT;
 		return trailingslashit( (string) apply_filters( self::FILTER_CONTENT_URL, $default ) );
 	}
 

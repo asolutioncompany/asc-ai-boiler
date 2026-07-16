@@ -102,7 +102,8 @@ final class ContentMediaSync {
 	 * @return string Absolute path to content/media/ (trailing slash). Filtered by {@see FILTER_MEDIA_DIR}.
 	 */
 	public static function get_media_directory(): string {
-		$default = Core::get_instance()->get_plugin_path() . self::MEDIA_RELATIVE_DIR;
+		$paths = SyncConfig::get_companion_paths();
+		$default = ( $paths && isset( $paths['media_dir'] ) ) ? $paths['media_dir'] : Core::get_instance()->get_plugin_path() . self::MEDIA_RELATIVE_DIR;
 		return trailingslashit( (string) apply_filters( self::FILTER_MEDIA_DIR, $default ) );
 	}
 
@@ -145,7 +146,8 @@ final class ContentMediaSync {
 			return '';
 		}
 
-		$default = Core::get_instance()->get_plugin_url() . self::MEDIA_RELATIVE_DIR;
+		$paths = SyncConfig::get_companion_paths();
+		$default = ( $paths && isset( $paths['media_url'] ) ) ? $paths['media_url'] : Core::get_instance()->get_plugin_url() . self::MEDIA_RELATIVE_DIR;
 		$base = trailingslashit( (string) apply_filters( self::FILTER_MEDIA_URL, $default ) );
 
 		return esc_url( $base . $relative_path );
@@ -168,7 +170,8 @@ final class ContentMediaSync {
 	 * @return string
 	 */
 	public static function get_other_media_directory(): string {
-		$default = Core::get_instance()->get_plugin_path() . self::MEDIA_OTHER_RELATIVE_DIR;
+		$paths = SyncConfig::get_companion_paths();
+		$default = ( $paths && isset( $paths['other_media_dir'] ) ) ? $paths['other_media_dir'] : Core::get_instance()->get_plugin_path() . self::MEDIA_OTHER_RELATIVE_DIR;
 		return trailingslashit( (string) apply_filters( self::FILTER_OTHER_MEDIA_DIR, $default ) );
 	}
 
@@ -184,7 +187,8 @@ final class ContentMediaSync {
 		if ( '' === $relative_path ) {
 			return '';
 		}
-		$default = Core::get_instance()->get_plugin_url() . self::MEDIA_OTHER_RELATIVE_DIR;
+		$paths = SyncConfig::get_companion_paths();
+		$default = ( $paths && isset( $paths['other_media_url'] ) ) ? $paths['other_media_url'] : Core::get_instance()->get_plugin_url() . self::MEDIA_OTHER_RELATIVE_DIR;
 		$base = trailingslashit( (string) apply_filters( self::FILTER_OTHER_MEDIA_URL, $default ) );
 		return esc_url( $base . $relative_path );
 	}

@@ -74,6 +74,7 @@ class SettingsPage {
 	private const POST_IMPORT_CLEANUP = 'asc_ai_boiler_import_cleanup';
 	private const POST_DEVELOPMENT_MODE = 'asc_ai_boiler_development_mode';
 	private const POST_YOAST_SYNC = 'asc_ai_boiler_yoast_sync';
+	private const POST_COMPANION_SLUG = 'asc_ai_boiler_companion_slug';
 
 	/**
 	 * Constructor.
@@ -196,6 +197,7 @@ class SettingsPage {
 		SyncConfig::set_import_cleanup( isset( $_POST[ self::POST_IMPORT_CLEANUP ] ) );
 		SyncConfig::set_development_mode( isset( $_POST[ self::POST_DEVELOPMENT_MODE ] ) );
 		SyncConfig::set_yoast_sync( isset( $_POST[ self::POST_YOAST_SYNC ] ) );
+		SyncConfig::set_companion_slug( isset( $_POST[ self::POST_COMPANION_SLUG ] ) ? sanitize_text_field( wp_unslash( $_POST[ self::POST_COMPANION_SLUG ] ) ) : '' );
 
 		$redirect_url = add_query_arg(
 			array(
@@ -229,6 +231,7 @@ class SettingsPage {
 		$import_cleanup         = SyncConfig::is_import_cleanup();
 		$import_dev_mode        = SyncConfig::is_development_mode();
 		$yoast_sync             = SyncConfig::is_yoast_sync();
+		$companion_slug         = SyncConfig::get_companion_slug();
 
 		?>
 		<div class="wrap asc-ai-boiler-settings-page">
@@ -248,15 +251,56 @@ class SettingsPage {
 				<?php wp_nonce_field( self::SAVE_SETTINGS_NONCE ); ?>
 
 				<div class="asc-ai-boiler-card-grid">
-					<!-- Card 1: Security & Access -->
+					<!-- Card: General Settings -->
 					<div class="asc-ai-boiler-card">
 						<h2>
-							<span class="dashicons dashicons-shield"></span>
-							<?php esc_html_e( 'Enable Content Sync', \ASC_AI_PLUGIN_DOMAIN ); ?>
+							<span class="dashicons dashicons-admin-generic"></span>
+							<?php esc_html_e( 'General Settings', \ASC_AI_PLUGIN_DOMAIN ); ?>
 						</h2>
-						<p class="card-intro"><?php esc_html_e( 'It is advised to only enable the content sync functionality when actively using the functionality.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+						<p class="card-intro"><?php esc_html_e( 'Configure the companion plugin integration and sync page access.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
 
 						<div class="settings-checkbox-list">
+							<div class="settings-checkbox-item" style="display: flex; flex-direction: column; gap: 8px;">
+								<label for="companion-slug">
+									<strong><?php esc_html_e( 'Companion Plugin Slug', \ASC_AI_PLUGIN_DOMAIN ); ?></strong>
+								</label>
+								<input type="text" name="<?php echo esc_attr( self::POST_COMPANION_SLUG ); ?>" id="companion-slug" class="regular-text" value="<?php echo esc_attr( $companion_slug ); ?>" placeholder="e.g. asc-ai-example" style="max-width: 100%;">
+								<p class="description" style="margin-top: 0;">
+									<?php esc_html_e( 'The folder name of the companion plugin in the wp-content/plugins directory.', \ASC_AI_PLUGIN_DOMAIN ); ?>
+								</p>
+							</div>
+
+							<?php
+							$companion_paths = SyncConfig::get_companion_paths();
+							if ( $companion_paths ) :
+								?>
+								<div class="companion-status status-success" style="padding: 10px; background: #e7f4e4; border-left: 4px solid #46b450; border-radius: 2px;">
+									<p style="margin: 0 0 5px 0;"><strong><?php esc_html_e( 'Status: Connected', \ASC_AI_PLUGIN_DOMAIN ); ?></strong></p>
+									<p style="margin: 0; font-family: monospace; font-size: 11px; word-break: break-all;">
+										<?php echo esc_html( $companion_paths['content_dir'] ); ?>
+									</p>
+									<p style="margin: 5px 0 0 0; font-size: 12px;">
+										<?php
+										if ( $companion_paths['is_active'] ) {
+											esc_html_e( 'Companion plugin is currently active.', \ASC_AI_PLUGIN_DOMAIN );
+										} else {
+											esc_html_e( 'Companion plugin is installed but inactive.', \ASC_AI_PLUGIN_DOMAIN );
+										}
+										?>
+									</p>
+								</div>
+							<?php elseif ( ! empty( $companion_slug ) ) : ?>
+								<div class="companion-status status-error" style="padding: 10px; background: #fbeae5; border-left: 4px solid #dc3232; border-radius: 2px;">
+									<p style="margin: 0 0 5px 0; color: #d01111;"><strong><?php esc_html_e( 'Status: Directory Not Found', \ASC_AI_PLUGIN_DOMAIN ); ?></strong></p>
+									<p style="margin: 0; font-size: 12px;">
+										<?php
+										/* translators: %s: slug */
+										echo sprintf( esc_html__( 'Could not locate plugin directory for slug: %s', \ASC_AI_PLUGIN_DOMAIN ), esc_html( $companion_slug ) );
+										?>
+									</p>
+								</div>
+							<?php endif; ?>
+
 							<div class="settings-checkbox-item">
 								<label for="enable-sync-page">
 									<input type="checkbox" name="<?php echo esc_attr( self::POST_ENABLE_SYNC_PAGE ); ?>" id="enable-sync-page" value="1" <?php checked( $enable_sync_page ); ?>>
