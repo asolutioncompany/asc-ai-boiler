@@ -35,7 +35,9 @@ class Admin {
 	 */
 	public function enqueue_admin_assets( string $hook_suffix ): void {
 		$sync_hook_suffix = SettingsPage::admin_hook_suffix();
-		if ( '' !== $sync_hook_suffix && $hook_suffix === $sync_hook_suffix ) {
+		$settings_hook_suffix = SettingsPage::settings_hook_suffix();
+		if ( ( '' !== $sync_hook_suffix && $hook_suffix === $sync_hook_suffix ) ||
+			( '' !== $settings_hook_suffix && $hook_suffix === $settings_hook_suffix ) ) {
 			$this->enqueue_import_export_assets();
 			return;
 		}
@@ -45,7 +47,7 @@ class Admin {
 			return;
 		}
 
-		if ( $screen->id === SettingsPage::screen_id() ) {
+		if ( $screen->id === SettingsPage::screen_id() || $screen->id === SettingsPage::settings_screen_id() ) {
 			$this->enqueue_import_export_assets();
 		}
 	}

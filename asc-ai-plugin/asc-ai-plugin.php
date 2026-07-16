@@ -3,17 +3,16 @@
 declare( strict_types = 1 );
 
 /**
- * aS.c AI Plugin
+ * aS.c Boiler
  *
- * Boilerplate framework plugin: partial-based layouts, content sync, admin settings,
- * classic editor enforcement, and bundled admin assets.
+ * Boilerplate framework plugin: partial-based layouts, content sync, admin settings.
  *
  * @package asc-ai-plugin
  *
  * @wordpress-plugin
- * Plugin Name: aS.c AI Plugin
+ * Plugin Name: aS.c Boiler
  * Plugin URI: https://asolution.company
- * Description: WordPress boilerplate framework plugin providing partials, content sync, admin UI, and theme shell.
+ * Description: WordPress boilerplate framework plugin providing partial-based layouts, content sync, and admin settings.
  * Version: 1.0.0
  * Requires at least: 5.0
  * Tested up to: 6.9

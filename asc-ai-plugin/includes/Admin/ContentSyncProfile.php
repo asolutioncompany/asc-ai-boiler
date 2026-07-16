@@ -59,11 +59,27 @@ final class ContentSyncProfile {
 	}
 
 	/**
-	 * Per-type config: content type key => { post_type, label }.
+	 * Per-type config: content type key => { post_type, label } (filtered by active sync settings).
 	 *
 	 * @return array<string, array{post_type:string, label:string}>
 	 */
 	public static function sync_types(): array {
+		$all = self::all_sync_types();
+		$filtered = array();
+		foreach ( $all as $key => $config ) {
+			if ( SyncConfig::is_content_type_enabled( $key ) ) {
+				$filtered[ $key ] = $config;
+			}
+		}
+		return $filtered;
+	}
+
+	/**
+	 * All registered content types (unfiltered).
+	 *
+	 * @return array<string, array{post_type:string, label:string}>
+	 */
+	public static function all_sync_types(): array {
 		return self::resolved()['sync_types'];
 	}
 
@@ -86,13 +102,30 @@ final class ContentSyncProfile {
 	}
 
 	/**
-	 * Public list of content types in canonical iteration order: { key, label }.
+	 * Public list of enabled content types: { key, label }.
 	 *
 	 * @return list<array{key:string, label:string}>
 	 */
 	public static function type_list(): array {
 		$out = array();
 		foreach ( self::sync_types() as $key => $config ) {
+			$out[] = array(
+				'key' => $key,
+				'label' => $config['label'],
+			);
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Public list of all registered content types (including disabled ones): { key, label }.
+	 *
+	 * @return list<array{key:string, label:string}>
+	 */
+	public static function all_type_list(): array {
+		$out = array();
+		foreach ( self::all_sync_types() as $key => $config ) {
 			$out[] = array(
 				'key' => $key,
 				'label' => $config['label'],

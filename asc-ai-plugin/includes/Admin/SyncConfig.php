@@ -79,6 +79,48 @@ final class SyncConfig {
 	public const OPTION_YOAST_SYNC = 'asc_ai_boiler_yoast_sync';
 
 	/**
+	 * When true ("1"), pages are synced.
+	 *
+	 * @var string
+	 */
+	public const OPTION_SYNC_PAGES = 'asc_ai_boiler_sync_pages';
+
+	/**
+	 * When true ("1"), partials are synced.
+	 *
+	 * @var string
+	 */
+	public const OPTION_SYNC_PARTIALS = 'asc_ai_boiler_sync_partials';
+
+	/**
+	 * When true ("1"), posts are synced.
+	 *
+	 * @var string
+	 */
+	public const OPTION_SYNC_POSTS = 'asc_ai_boiler_sync_posts';
+
+	/**
+	 * When true ("1"), custom post types are synced.
+	 *
+	 * @var string
+	 */
+	public const OPTION_SYNC_CUSTOM_POST_TYPES = 'asc_ai_boiler_sync_custom_post_types';
+
+	/**
+	 * When true ("1"), media attachments are synced.
+	 *
+	 * @var string
+	 */
+	public const OPTION_SYNC_MEDIA = 'asc_ai_boiler_sync_media';
+
+	/**
+	 * When true ("1"), the Import/Export screen is enabled in the menu.
+	 *
+	 * @var string
+	 */
+	public const OPTION_ENABLE_SYNC_PAGE = 'asc_ai_boiler_enable_sync_page';
+
+	/**
 	 * Export: delete plugin HTML files with no matching published WordPress content.
 	 *
 	 * @return bool
@@ -169,6 +211,134 @@ final class SyncConfig {
 	}
 
 	/**
+	 * Whether pages sync is enabled.
+	 *
+	 * @return bool
+	 */
+	public static function is_pages_sync_enabled(): bool {
+		return self::is_enabled( self::OPTION_SYNC_PAGES, true );
+	}
+
+	/**
+	 * @param bool $enabled Whether to enable pages sync.
+	 *
+	 * @return void
+	 */
+	public static function set_pages_sync_enabled( bool $enabled ): void {
+		update_option( self::OPTION_SYNC_PAGES, $enabled ? '1' : '0' );
+	}
+
+	/**
+	 * Whether partials sync is enabled.
+	 *
+	 * @return bool
+	 */
+	public static function is_partials_sync_enabled(): bool {
+		return self::is_enabled( self::OPTION_SYNC_PARTIALS, true );
+	}
+
+	/**
+	 * @param bool $enabled Whether to enable partials sync.
+	 *
+	 * @return void
+	 */
+	public static function set_partials_sync_enabled( bool $enabled ): void {
+		update_option( self::OPTION_SYNC_PARTIALS, $enabled ? '1' : '0' );
+	}
+
+	/**
+	 * Whether posts sync is enabled.
+	 *
+	 * @return bool
+	 */
+	public static function is_posts_sync_enabled(): bool {
+		return self::is_enabled( self::OPTION_SYNC_POSTS, true );
+	}
+
+	/**
+	 * @param bool $enabled Whether to enable posts sync.
+	 *
+	 * @return void
+	 */
+	public static function set_posts_sync_enabled( bool $enabled ): void {
+		update_option( self::OPTION_SYNC_POSTS, $enabled ? '1' : '0' );
+	}
+
+	/**
+	 * Whether custom post types sync is enabled.
+	 *
+	 * @return bool
+	 */
+	public static function is_custom_post_types_sync_enabled(): bool {
+		return self::is_enabled( self::OPTION_SYNC_CUSTOM_POST_TYPES, true );
+	}
+
+	/**
+	 * @param bool $enabled Whether to enable custom post types sync.
+	 *
+	 * @return void
+	 */
+	public static function set_custom_post_types_sync_enabled( bool $enabled ): void {
+		update_option( self::OPTION_SYNC_CUSTOM_POST_TYPES, $enabled ? '1' : '0' );
+	}
+
+	/**
+	 * Whether media sync is enabled.
+	 *
+	 * @return bool
+	 */
+	public static function is_media_sync_enabled(): bool {
+		return self::is_enabled( self::OPTION_SYNC_MEDIA, true );
+	}
+
+	/**
+	 * @param bool $enabled Whether to enable media sync.
+	 *
+	 * @return void
+	 */
+	public static function set_media_sync_enabled( bool $enabled ): void {
+		update_option( self::OPTION_SYNC_MEDIA, $enabled ? '1' : '0' );
+	}
+
+	/**
+	 * Whether the Import/Export page is enabled.
+	 *
+	 * @return bool
+	 */
+	public static function is_sync_page_enabled(): bool {
+		return self::is_enabled( self::OPTION_ENABLE_SYNC_PAGE, true );
+	}
+
+	/**
+	 * @param bool $enabled Whether to enable the Import/Export page.
+	 *
+	 * @return void
+	 */
+	public static function set_sync_page_enabled( bool $enabled ): void {
+		update_option( self::OPTION_ENABLE_SYNC_PAGE, $enabled ? '1' : '0' );
+	}
+
+	/**
+	 * Check if a specific content type key is enabled for sync.
+	 *
+	 * @param string $type_key Content type key (e.g. pages, partials, posts, etc).
+	 *
+	 * @return bool
+	 */
+	public static function is_content_type_enabled( string $type_key ): bool {
+		if ( self::CONTENT_TYPE_PAGES === $type_key ) {
+			return self::is_pages_sync_enabled();
+		}
+		if ( self::CONTENT_TYPE_PARTIALS === $type_key ) {
+			return self::is_partials_sync_enabled();
+		}
+		if ( self::CONTENT_TYPE_POSTS === $type_key ) {
+			return self::is_posts_sync_enabled();
+		}
+		return self::is_custom_post_types_sync_enabled();
+	}
+
+	/**
 	 * Remove all sync options. For uninstall.
 	 *
 	 * @return void
@@ -178,6 +348,12 @@ final class SyncConfig {
 		delete_option( self::OPTION_IMPORT_CLEANUP );
 		delete_option( self::OPTION_DEVELOPMENT_MODE );
 		delete_option( self::OPTION_YOAST_SYNC );
+		delete_option( self::OPTION_SYNC_PAGES );
+		delete_option( self::OPTION_SYNC_PARTIALS );
+		delete_option( self::OPTION_SYNC_POSTS );
+		delete_option( self::OPTION_SYNC_CUSTOM_POST_TYPES );
+		delete_option( self::OPTION_SYNC_MEDIA );
+		delete_option( self::OPTION_ENABLE_SYNC_PAGE );
 	}
 
 	/**

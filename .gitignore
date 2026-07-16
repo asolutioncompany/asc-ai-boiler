@@ -1,5 +1,6 @@
 # Claude Code
 .claude/
+.vscode/
 
 # Git merge/rebase artifacts
 *.orig

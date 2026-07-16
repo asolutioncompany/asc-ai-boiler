@@ -65,8 +65,8 @@ class SettingsPage {
 	 */
 	public function register_menu(): void {
 		add_menu_page(
-			__( 'AI Example Settings', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
-			__( 'AI Example', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
+			__( 'aS.c Example Settings', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
+			__( 'aS.c Example', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
 			'manage_options',
 			self::PAGE_SLUG,
 			array( $this, 'render_settings_page' ),
@@ -76,8 +76,8 @@ class SettingsPage {
 
 		add_submenu_page(
 			self::PAGE_SLUG,
-			__( 'AI Example Settings', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
-			__( 'AI Example Settings', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
+			__( 'aS.c Example Settings', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
+			__( 'aS.c Example Settings', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
 			'manage_options',
 			self::PAGE_SLUG,
 			array( $this, 'render_settings_page' )
@@ -140,7 +140,7 @@ class SettingsPage {
 
 		?>
 		<div class="wrap example-settings-page example-admin-settings-hub">
-			<h1><?php esc_html_e( 'AI Example Settings', \ASC_AI_EXAMPLE_TEXT_DOMAIN ); ?></h1>
+			<h1><?php esc_html_e( 'aS.c Example Settings', \ASC_AI_EXAMPLE_TEXT_DOMAIN ); ?></h1>
 
 			<?php if ( isset( $_GET['settings-updated'] ) ) : ?>
 				<div class="notice notice-success is-dismissible">

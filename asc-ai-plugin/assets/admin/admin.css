@@ -1,48 +1,170 @@
-/*! Sync / Import–Export admin (boiler) */
-.asc-ai-boiler-settings-page__hub-back {
-	margin-bottom: 24px;
+/*! aS.c Boiler Admin Styles */
+
+/* Header section styling */
+.asc-ai-boiler-header {
+	margin-bottom: 32px;
+	padding-bottom: 16px;
+	border-bottom: 1px solid #dcdde0;
 }
 
-.asc-ai-boiler-settings-page__default-form {
+.asc-ai-boiler-header h1 {
+	font-size: 28px;
+	font-weight: 700;
+	color: #1e293b;
+	margin: 0 0 6px 0;
+}
+
+.asc-ai-boiler-header .description {
+	font-size: 15px;
+	color: #64748b;
+	margin: 0;
+}
+
+/* Settings Form & Cards layout */
+.asc-ai-boiler-card-grid,
+.asc-ai-boiler-sync-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+	gap: 28px;
+	margin-bottom: 32px;
+}
+
+@media (max-width: 782px) {
+	.asc-ai-boiler-card-grid,
+	.asc-ai-boiler-sync-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* Card styling */
+.asc-ai-boiler-card {
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 28px;
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
+	position: relative;
+	overflow: hidden;
+}
+
+.asc-ai-boiler-card h2 {
+	font-size: 18px;
+	font-weight: 600;
+	color: #0f172a;
 	margin: 0;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding-bottom: 12px;
+	border-bottom: 1px solid #f1f5f9;
 }
 
-.asc-ai-boiler-settings-page__default-form > h2 {
+.asc-ai-boiler-card h2 .dashicons {
+	color: #3b82f6;
+	font-size: 20px;
+	width: 20px;
+	height: 20px;
+}
+
+.asc-ai-boiler-card .card-intro {
+	font-size: 14px;
+	color: #64748b;
 	margin: 0;
+	line-height: 1.5;
 }
 
-.asc-ai-boiler-settings-page__default-form > p {
+/* Checkbox lists inside cards */
+.settings-checkbox-list {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+	margin-top: 6px;
+}
+
+.settings-checkbox-item {
+	padding: 12px 14px;
+	background: #f8fafc;
+	border: 1px solid #f1f5f9;
+	border-radius: 8px;
+	transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.settings-checkbox-item:hover {
+	background: #f1f5f9;
+	border-color: #e2e8f0;
+}
+
+.settings-checkbox-item label {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	cursor: pointer;
+	font-size: 14px;
+	color: #1e293b;
+	margin: 0 0 4px 0;
+}
+
+.settings-checkbox-item label input[type="checkbox"] {
+	flex-shrink: 0;
 	margin: 0;
+	width: 16px;
+	height: 16px;
 }
 
-.asc-ai-boiler-settings-page__default-form .form-table {
-	margin: 0;
+.settings-checkbox-item .description {
+	margin: 0 0 0 26px;
+	font-size: 13px;
+	color: #64748b;
+	line-height: 1.4;
 }
 
-.asc-ai-boiler-settings-page__sync-settings-form {
-	margin-bottom: 24px;
+/* Submit and action buttons formatting */
+.asc-ai-boiler-submit-wrap {
+	margin-top: 12px;
 }
 
-.asc-ai-boiler-settings-page__sync {
+.asc-ai-boiler-submit-wrap .button-primary.large,
+.asc-ai-boiler-settings-page .button-large {
+	padding: 8px 24px;
+	font-size: 14px;
+	line-height: 2;
+	height: auto;
+	border-radius: 6px;
+	font-weight: 500;
+}
+
+/* Sync screen specific cards */
+.asc-ai-boiler-sync-card {
+	gap: 18px;
+}
+
+.asc-ai-boiler-sync-actions,
+.asc-ai-boiler-sync-form {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
-	margin: 0;
 }
 
-.asc-ai-boiler-settings-page__sync > .description {
-	margin: 0;
+.asc-ai-boiler-sync-actions label {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	cursor: pointer;
+	font-size: 14px;
+	line-height: 1.4;
+	color: #334155;
 }
 
-.asc-ai-boiler-settings-page__sync > p {
-	margin: 0;
+.asc-ai-boiler-sync-actions label input[type="checkbox"] {
+	margin-top: 2px;
+	flex-shrink: 0;
 }
 
-.asc-ai-boiler-sync-status {
-	margin: 0;
+/* Differences list highlighting */
+.asc-ai-boiler-diff-highlight {
+	margin-bottom: 8px;
 }
 
 .asc-ai-boiler-diff-highlight:empty {
@@ -55,88 +177,99 @@
 .asc-ai-boiler-diff-highlight--error {
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
-	padding: 12px 16px;
-	border-radius: 2px;
-	border: 1px solid #2271b1;
-	border-left-width: 4px;
-	background: #f0f6fc;
+	gap: 14px;
+	padding: 16px;
+	border-radius: 8px;
+	border: 1px solid #cbd5e1;
+	border-left: 4px solid #3b82f6;
+	background: #f8fafc;
+	margin: 0;
 }
 
 .asc-ai-boiler-diff-highlight--empty {
-	background: #edfaef;
-	border-color: #68de7c;
-	border-left-color: #00a32a;
+	background: #f0fdf4;
+	border-color: #bbf7d0;
+	border-left-color: #22c55e;
 }
 
 .asc-ai-boiler-diff-highlight--error {
-	background: #fcf0f1;
-	border-color: #f0b0b5;
-	border-left-color: #d63638;
+	background: #fef2f2;
+	border-color: #fecaca;
+	border-left-color: #ef4444;
 }
 
 .asc-ai-boiler-diff-heading {
 	margin: 0;
-	font-size: 15px;
+	font-size: 16px;
 	font-weight: 600;
-	color: #1d2327;
+	color: #0f172a;
 }
 
 .asc-ai-boiler-diff-loading,
 .asc-ai-boiler-diff-summary {
 	margin: 0;
-	font-size: 15px;
-	font-weight: 600;
-	color: #1d2327;
+	font-size: 14px;
+	font-weight: 500;
+	color: #334155;
 }
 
 .asc-ai-boiler-diff-item {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
-	padding: 10px 12px;
-	border-radius: 2px;
-	background: #fff;
-	border: 1px solid #c3c4c7;
-	border-left-width: 4px;
+	gap: 10px;
+	padding: 14px;
+	border-radius: 6px;
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-left: 4px solid #94a3b8;
 }
 
 .asc-ai-boiler-diff-item--suggest-export {
-	border-left-color: #00a32a;
+	border-left-color: #22c55e;
 }
 
 .asc-ai-boiler-diff-item--suggest-import {
-	border-left-color: #2271b1;
+	border-left-color: #3b82f6;
 }
 
 .asc-ai-boiler-diff-item--suggest-unclear {
-	border-left-color: #dba617;
+	border-left-color: #f59e0b;
 }
 
 .asc-ai-boiler-diff-path {
-	font-size: 14px;
+	font-size: 13px;
 	font-weight: 600;
-	color: #1d2327;
+	color: #0f172a;
+	font-family: monospace, monospace;
 	word-break: break-all;
 }
 
 .asc-ai-boiler-diff-issues {
 	margin: 0;
-	padding-left: 20px;
+	padding-left: 18px;
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
 	list-style: disc;
+	font-size: 13px;
+	color: #475569;
 }
 
 .asc-ai-boiler-diff-suggestion {
 	margin: 0;
-	font-size: 14px;
-	color: #1d2327;
+	font-size: 13px;
+	color: #1e293b;
+	font-weight: 500;
 }
 
-/* No layout footprint until JS sets progress text (empty <p> still has line-height; flex gap still counts the item). */
-#asc-ai-boiler-sync-progress:empty {
+/* Status panel and messaging */
+.asc-ai-boiler-sync-status {
+	margin-top: 14px;
+}
+
+#asc-ai-boiler-sync-progress:empty,
+#asc-ai-boiler-import-progress:empty,
+#asc-ai-boiler-export-progress:empty {
 	display: none;
 }
 
@@ -149,100 +282,56 @@
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
-	padding: 12px 16px;
-	border-radius: 2px;
-	border: 1px solid #2271b1;
-	border-left-width: 4px;
-	background: #f0f6fc;
+	padding: 16px;
+	border-radius: 8px;
+	border: 1px solid #cbd5e1;
+	border-left: 4px solid #3b82f6;
+	background: #f8fafc;
 }
 
 .asc-ai-boiler-sync-status--export-done,
 .asc-ai-boiler-sync-status--import-done {
-	background: #edfaef;
-	border-color: #68de7c;
-	border-left-color: #00a32a;
+	background: #f0fdf4;
+	border-color: #bbf7d0;
+	border-left-color: #22c55e;
 }
 
 .asc-ai-boiler-sync-status--export-error,
 .asc-ai-boiler-sync-status--import-error {
-	background: #fcf0f1;
-	border-color: #f0b0b5;
-	border-left-color: #d63638;
+	background: #fef2f2;
+	border-color: #fecaca;
+	border-left-color: #ef4444;
 }
 
-.asc-ai-boiler-sync-status--export-running #asc-ai-boiler-sync-progress,
-.asc-ai-boiler-sync-status--export-done #asc-ai-boiler-sync-progress,
-.asc-ai-boiler-sync-status--export-error #asc-ai-boiler-sync-progress,
-.asc-ai-boiler-sync-status--import-running #asc-ai-boiler-sync-progress,
-.asc-ai-boiler-sync-status--import-done #asc-ai-boiler-sync-progress,
-.asc-ai-boiler-sync-status--import-error #asc-ai-boiler-sync-progress {
-	font-size: 15px;
+.asc-ai-boiler-sync-status--export-running #asc-ai-boiler-export-progress,
+.asc-ai-boiler-sync-status--export-done #asc-ai-boiler-export-progress,
+.asc-ai-boiler-sync-status--export-error #asc-ai-boiler-export-progress,
+.asc-ai-boiler-sync-status--import-running #asc-ai-boiler-import-progress,
+.asc-ai-boiler-sync-status--import-done #asc-ai-boiler-import-progress,
+.asc-ai-boiler-sync-status--import-error #asc-ai-boiler-import-progress {
+	font-size: 14px;
 	font-weight: 600;
-	color: #1d2327;
+	color: #0f172a;
+	margin: 0;
 }
 
-.asc-ai-boiler-settings-page__sync-form {
+.asc-ai-boiler-settings-page__sync-ajax-messages {
+	font-size: 13px;
+	color: #475569;
+}
+
+.asc-ai-boiler-settings-page__sync-ajax-messages ul.asc-ai-boiler-settings-page__sync-msg-list {
+	list-style: disc;
+	margin: 0 0 0 18px;
+	padding: 0;
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
-	margin: 0;
+	gap: 6px;
 }
 
-.asc-ai-boiler-settings-page__sync-form .description {
-	margin: 0;
-}
-
-.asc-ai-boiler-settings-page__sync-form > p {
-	margin: 0;
-}
-
-.asc-ai-boiler-settings-page__sync-form label {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-}
-
-.asc-ai-boiler-settings-page__sync-form label input[type="checkbox"] {
-	flex-shrink: 0;
-	margin: 0;
-}
-
-.asc-ai-boiler-settings-page__sync-form .asc-ai-boiler-settings-page__sync-import-confirm {
-	display: inline-flex;
-	align-items: flex-start;
-	gap: 8px;
-	max-width: 100%;
-}
-
-.asc-ai-boiler-settings-page__sync-import-confirm-text {
-	flex: 0 1 auto;
-	min-width: 0;
-}
-
-.asc-ai-boiler-sync-import-block.asc-ai-boiler-settings-page__sync-form,
-.asc-ai-boiler-sync-export-block.asc-ai-boiler-settings-page__sync-form {
-	align-items: flex-start;
-}
-
-.asc-ai-boiler-sync-import-block.asc-ai-boiler-settings-page__sync-form {
-	gap: 8px;
-}
-
-.asc-ai-boiler-sync-actions.asc-ai-boiler-settings-page__sync-form {
-	align-items: flex-start;
-}
-
-.asc-ai-boiler-settings-page__sync .asc-ai-boiler-settings-page__sync-form .button {
-	width: auto;
-}
-
-/* Override .wp-admin p label input[type="checkbox"] (WP core) — higher specificity than one class + p label. */
-.wp-admin .asc-ai-boiler-settings-page .asc-ai-boiler-settings-page__sync-form p label input[type="checkbox"] {
-	margin-top: 0;
-}
-
-.asc-ai-boiler-settings-page .notice ul.asc-ai-boiler-settings-page__sync-msg-list {
-	list-style: disc;
-	margin: 8px 0 0 20px;
-	padding: 0;
+/* Inline notice modifications for WordPress compatibility */
+.notice.inline {
+	margin: 0 0 8px 0;
+	padding: 8px 12px;
+	border-radius: 4px;
 }

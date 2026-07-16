@@ -17,7 +17,7 @@ use ASC\AI_BOILER\Admin\ContentSync;
 use ASC\AI_BOILER\Core\Media;
 
 /**
- * Example product integration with aS.c AI Boiler core APIs.
+ * Example product integration with aS.c Boiler core APIs.
  */
 final class BoilerIntegration {
 

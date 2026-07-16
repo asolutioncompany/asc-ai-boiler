@@ -1,6 +1,6 @@
 <?php
 /**
- * Boiler Import / Export admin screen: top-level menu, form post handler, and AJAX hooks for static sync.
+ * Boiler Settings and Import / Export admin screens.
  *
  * @package asc-ai-boiler
  * @since 1.0.0
@@ -17,110 +17,137 @@ if ( ! defined( 'ABSPATH' ) ) {
 use ASC\AI_BOILER\Core\RegisterPartials;
 
 /**
- * Top-level admin page for Import / Export and parent menu for Partials.
+ * Admin interface pages for aS.c Boiler Settings and static sync operations.
  */
 class SettingsPage {
 
 	/**
-	 * Admin page slug.
+	 * Main Settings page slug.
+	 *
+	 * @var string
+	 */
+	public const SETTINGS_PAGE_SLUG = 'asc-ai-boiler-settings';
+
+	/**
+	 * Import / Export page slug.
 	 *
 	 * @var string
 	 */
 	public const PAGE_SLUG = 'asc-ai-boiler-import-export';
 
 	/**
-	 * Admin hook suffix returned by {@see add_menu_page()} for this screen.
+	 * Admin hook suffix returned by {@see add_menu_page()} for Settings.
+	 *
+	 * @var string
+	 */
+	private static string $settings_hook_suffix = '';
+
+	/**
+	 * Admin hook suffix returned by {@see add_submenu_page()} for Import / Export.
 	 *
 	 * @var string
 	 */
 	private static string $admin_hook_suffix = '';
 
 	/**
-	 * Admin-post action for saving Import / Export checkboxes.
+	 * Admin-post action for saving settings.
 	 *
 	 * @var string
 	 */
 	public const SAVE_FORM_ACTION = 'asc_ai_boiler_save_settings';
 
 	/**
-	 * Nonce action for saving Import / Export settings.
+	 * Nonce action for saving settings.
 	 *
 	 * @var string
 	 */
 	private const SAVE_SETTINGS_NONCE = 'asc_ai_boiler_save_settings_nonce';
 
-	/**
-	 * POST field: export deletes orphan plugin files.
-	 *
-	 * @var string
-	 */
+	// POST checkbox fields
+	private const POST_SYNC_PAGES = 'asc_ai_boiler_sync_pages';
+	private const POST_SYNC_PARTIALS = 'asc_ai_boiler_sync_partials';
+	private const POST_SYNC_POSTS = 'asc_ai_boiler_sync_posts';
+	private const POST_SYNC_CUSTOM_POST_TYPES = 'asc_ai_boiler_sync_custom_post_types';
+	private const POST_SYNC_MEDIA = 'asc_ai_boiler_sync_media';
+	private const POST_ENABLE_SYNC_PAGE = 'asc_ai_boiler_enable_sync_page';
 	private const POST_EXPORT_CLEANUP = 'asc_ai_boiler_export_cleanup';
-
-	/**
-	 * POST field: import deletes orphan published content.
-	 *
-	 * @var string
-	 */
 	private const POST_IMPORT_CLEANUP = 'asc_ai_boiler_import_cleanup';
-
-	/**
-	 * POST field: development mode (pre-check import confirmation).
-	 *
-	 * @var string
-	 */
 	private const POST_DEVELOPMENT_MODE = 'asc_ai_boiler_development_mode';
-
-	/**
-	 * POST field: Yoast SEO integration sync.
-	 *
-	 * @var string
-	 */
 	private const POST_YOAST_SYNC = 'asc_ai_boiler_yoast_sync';
 
 	/**
 	 * Constructor.
 	 */
 	public function __construct() {
-		add_filter( RegisterPartials::FILTER_ADMIN_MENU_PARENT, static fn(): string => self::PAGE_SLUG );
+		add_filter( RegisterPartials::FILTER_ADMIN_MENU_PARENT, static fn(): string => self::SETTINGS_PAGE_SLUG );
 		add_action( 'admin_menu', array( $this, 'register_menu' ), 10 );
 		add_action( 'admin_post_' . self::SAVE_FORM_ACTION, array( $this, 'handle_save_sync_settings' ) );
-		add_action( 'wp_ajax_' . ContentSync::AJAX_ACTION_IMPORT_BATCH, array( ContentSync::class, 'handle_ajax_import_batch' ) );
-		add_action( 'wp_ajax_' . ContentSync::AJAX_ACTION_EXPORT_BATCH, array( ContentSync::class, 'handle_ajax_export_batch' ) );
-		add_action( 'wp_ajax_' . ContentSync::AJAX_ACTION_DETECT_DIFFERENCES, array( ContentSync::class, 'handle_ajax_detect_differences' ) );
+
+		if ( SyncConfig::is_sync_page_enabled() ) {
+			add_action( 'wp_ajax_' . ContentSync::AJAX_ACTION_IMPORT_BATCH, array( ContentSync::class, 'handle_ajax_import_batch' ) );
+			add_action( 'wp_ajax_' . ContentSync::AJAX_ACTION_EXPORT_BATCH, array( ContentSync::class, 'handle_ajax_export_batch' ) );
+			add_action( 'wp_ajax_' . ContentSync::AJAX_ACTION_DETECT_DIFFERENCES, array( ContentSync::class, 'handle_ajax_detect_differences' ) );
+		}
 	}
 
 	/**
-	 * Register top-level menu and self-submenu (removes duplicate top-level label).
+	 * Register menus.
 	 *
 	 * @return void
 	 */
 	public function register_menu(): void {
-		$hook_suffix = add_menu_page(
-			__( 'AI Boiler', \ASC_AI_PLUGIN_DOMAIN ),
-			__( 'AI Boiler', \ASC_AI_PLUGIN_DOMAIN ),
+		$parent_slug = self::SETTINGS_PAGE_SLUG;
+
+		$settings_hook = add_menu_page(
+			__( 'aS.c Boiler', \ASC_AI_PLUGIN_DOMAIN ),
+			__( 'aS.c Boiler', \ASC_AI_PLUGIN_DOMAIN ),
 			'manage_options',
-			self::PAGE_SLUG,
-			array( $this, 'render_import_export_page' ),
+			$parent_slug,
+			array( $this, 'render_settings_page' ),
 			'dashicons-admin-generic',
 			57
 		);
 
-		if ( is_string( $hook_suffix ) ) {
-			self::$admin_hook_suffix = $hook_suffix;
+		if ( is_string( $settings_hook ) ) {
+			self::$settings_hook_suffix = $settings_hook;
 		}
 
 		add_submenu_page(
-			self::PAGE_SLUG,
-			__( 'Import / Export', \ASC_AI_PLUGIN_DOMAIN ),
-			__( 'Import / Export', \ASC_AI_PLUGIN_DOMAIN ),
+			$parent_slug,
+			__( 'Settings', \ASC_AI_PLUGIN_DOMAIN ),
+			__( 'Settings', \ASC_AI_PLUGIN_DOMAIN ),
 			'manage_options',
-			self::PAGE_SLUG,
-			array( $this, 'render_import_export_page' )
+			$parent_slug,
+			array( $this, 'render_settings_page' )
 		);
+
+		if ( SyncConfig::is_sync_page_enabled() ) {
+			$sync_hook = add_submenu_page(
+				$parent_slug,
+				__( 'Import / Export', \ASC_AI_PLUGIN_DOMAIN ),
+				__( 'Import / Export', \ASC_AI_PLUGIN_DOMAIN ),
+				'manage_options',
+				self::PAGE_SLUG,
+				array( $this, 'render_import_export_page' )
+			);
+
+			if ( is_string( $sync_hook ) ) {
+				self::$admin_hook_suffix = $sync_hook;
+			}
+		}
 	}
 
 	/**
-	 * Hook suffix for this screen (for {@see Admin::enqueue_admin_assets()}).
+	 * Hook suffix for Settings page.
+	 *
+	 * @return string
+	 */
+	public static function settings_hook_suffix(): string {
+		return self::$settings_hook_suffix;
+	}
+
+	/**
+	 * Hook suffix for Import/Export page.
 	 *
 	 * @return string
 	 */
@@ -129,7 +156,16 @@ class SettingsPage {
 	}
 
 	/**
-	 * Screen ID for this page.
+	 * Screen ID for Settings page.
+	 *
+	 * @return string
+	 */
+	public static function settings_screen_id(): string {
+		return self::SETTINGS_PAGE_SLUG;
+	}
+
+	/**
+	 * Screen ID for Import/Export page.
 	 *
 	 * @return string
 	 */
@@ -138,7 +174,7 @@ class SettingsPage {
 	}
 
 	/**
-	 * Persist sync settings checkboxes.
+	 * Persist all options.
 	 *
 	 * @return void
 	 */
@@ -149,6 +185,13 @@ class SettingsPage {
 
 		check_admin_referer( self::SAVE_SETTINGS_NONCE );
 
+		SyncConfig::set_pages_sync_enabled( isset( $_POST[ self::POST_SYNC_PAGES ] ) );
+		SyncConfig::set_partials_sync_enabled( isset( $_POST[ self::POST_SYNC_PARTIALS ] ) );
+		SyncConfig::set_posts_sync_enabled( isset( $_POST[ self::POST_SYNC_POSTS ] ) );
+		SyncConfig::set_custom_post_types_sync_enabled( isset( $_POST[ self::POST_SYNC_CUSTOM_POST_TYPES ] ) );
+		SyncConfig::set_media_sync_enabled( isset( $_POST[ self::POST_SYNC_MEDIA ] ) );
+		SyncConfig::set_sync_page_enabled( isset( $_POST[ self::POST_ENABLE_SYNC_PAGE ] ) );
+
 		SyncConfig::set_export_cleanup( isset( $_POST[ self::POST_EXPORT_CLEANUP ] ) );
 		SyncConfig::set_import_cleanup( isset( $_POST[ self::POST_IMPORT_CLEANUP ] ) );
 		SyncConfig::set_development_mode( isset( $_POST[ self::POST_DEVELOPMENT_MODE ] ) );
@@ -156,13 +199,175 @@ class SettingsPage {
 
 		$redirect_url = add_query_arg(
 			array(
-				'page' => self::PAGE_SLUG,
+				'page' => self::SETTINGS_PAGE_SLUG,
 				'settings-updated' => '1',
 			),
 			admin_url( 'admin.php' )
 		);
 		wp_safe_redirect( $redirect_url );
 		exit;
+	}
+
+	/**
+	 * Render settings page.
+	 *
+	 * @return void
+	 */
+	public function render_settings_page(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$sync_pages             = SyncConfig::is_pages_sync_enabled();
+		$sync_partials          = SyncConfig::is_partials_sync_enabled();
+		$sync_posts             = SyncConfig::is_posts_sync_enabled();
+		$sync_custom_post_types = SyncConfig::is_custom_post_types_sync_enabled();
+		$sync_media             = SyncConfig::is_media_sync_enabled();
+		$enable_sync_page       = SyncConfig::is_sync_page_enabled();
+
+		$export_delete_orphans  = SyncConfig::is_export_cleanup();
+		$import_cleanup         = SyncConfig::is_import_cleanup();
+		$import_dev_mode        = SyncConfig::is_development_mode();
+		$yoast_sync             = SyncConfig::is_yoast_sync();
+
+		?>
+		<div class="wrap asc-ai-boiler-settings-page">
+			<div class="asc-ai-boiler-header">
+				<h1><?php esc_html_e( 'aS.c Boiler Settings', \ASC_AI_PLUGIN_DOMAIN ); ?></h1>
+				<p class="description"><?php esc_html_e( 'Configure synchronization settings.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+			</div>
+
+			<?php if ( isset( $_GET['settings-updated'] ) ) : ?>
+				<div class="notice notice-success is-dismissible">
+					<p><?php esc_html_e( 'Settings saved.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+				</div>
+			<?php endif; ?>
+
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="asc-ai-boiler-settings-form">
+				<input type="hidden" name="action" value="<?php echo esc_attr( self::SAVE_FORM_ACTION ); ?>">
+				<?php wp_nonce_field( self::SAVE_SETTINGS_NONCE ); ?>
+
+				<div class="asc-ai-boiler-card-grid">
+					<!-- Card 1: Security & Access -->
+					<div class="asc-ai-boiler-card">
+						<h2>
+							<span class="dashicons dashicons-shield"></span>
+							<?php esc_html_e( 'Enable Content Sync', \ASC_AI_PLUGIN_DOMAIN ); ?>
+						</h2>
+						<p class="card-intro"><?php esc_html_e( 'It is advised to only enable the content sync functionality when actively using the functionality.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+
+						<div class="settings-checkbox-list">
+							<div class="settings-checkbox-item">
+								<label for="enable-sync-page">
+									<input type="checkbox" name="<?php echo esc_attr( self::POST_ENABLE_SYNC_PAGE ); ?>" id="enable-sync-page" value="1" <?php checked( $enable_sync_page ); ?>>
+									<strong><?php esc_html_e( 'Enable Import / Export Page', \ASC_AI_PLUGIN_DOMAIN ); ?></strong>
+								</label>
+								<p class="description"><?php esc_html_e( 'Turn this off when not actively using sync for security and performance.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+							</div>
+						</div>
+					</div>
+
+					<!-- Card 2: Sync Behavior -->
+					<div class="asc-ai-boiler-card">
+						<h2>
+							<span class="dashicons dashicons-admin-settings"></span>
+							<?php esc_html_e( 'Sync Behavior', \ASC_AI_PLUGIN_DOMAIN ); ?>
+						</h2>
+						<p class="card-intro"><?php esc_html_e( 'Adjust the backup, restore, and metadata actions.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+
+						<div class="settings-checkbox-list">
+							<div class="settings-checkbox-item">
+								<label for="import-cleanup">
+									<input type="checkbox" name="<?php echo esc_attr( self::POST_IMPORT_CLEANUP ); ?>" id="import-cleanup" value="1" <?php checked( $import_cleanup ); ?>>
+									<strong><?php esc_html_e( 'Import Cleanup', \ASC_AI_PLUGIN_DOMAIN ); ?></strong>
+								</label>
+								<p class="description"><?php esc_html_e( 'Delete published WordPress content if its plugin HTML file is missing on import.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+							</div>
+
+							<div class="settings-checkbox-item">
+								<label for="export-cleanup">
+									<input type="checkbox" name="<?php echo esc_attr( self::POST_EXPORT_CLEANUP ); ?>" id="export-cleanup" value="1" <?php checked( $export_delete_orphans ); ?>>
+									<strong><?php esc_html_e( 'Export Cleanup', \ASC_AI_PLUGIN_DOMAIN ); ?></strong>
+								</label>
+								<p class="description"><?php esc_html_e( 'Delete local plugin content files that have no matching WordPress content on export.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+							</div>
+
+							<div class="settings-checkbox-item">
+								<label for="development-mode">
+									<input type="checkbox" name="<?php echo esc_attr( self::POST_DEVELOPMENT_MODE ); ?>" id="development-mode" value="1" <?php checked( $import_dev_mode ); ?>>
+									<strong><?php esc_html_e( 'Developer Mode', \ASC_AI_PLUGIN_DOMAIN ); ?></strong>
+								</label>
+								<p class="description"><?php esc_html_e( 'Pre-check the confirmation boxes on the sync screens for faster click cycles.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+							</div>
+						</div>
+					</div>
+
+					<!-- Card 3: Content to Sync -->
+					<div class="asc-ai-boiler-card">
+						<h2>
+							<span class="dashicons dashicons-category"></span>
+							<?php esc_html_e( 'Content Types to Sync', \ASC_AI_PLUGIN_DOMAIN ); ?>
+						</h2>
+						<p class="card-intro"><?php esc_html_e( 'Choose what types of content to include in sync runs.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+
+						<div class="settings-checkbox-list">
+							<div class="settings-checkbox-item">
+								<label for="sync-pages">
+									<input type="checkbox" name="<?php echo esc_attr( self::POST_SYNC_PAGES ); ?>" id="sync-pages" value="1" <?php checked( $sync_pages ); ?>>
+									<strong><?php esc_html_e( 'Pages', \ASC_AI_PLUGIN_DOMAIN ); ?></strong>
+								</label>
+								<p class="description"><?php esc_html_e( 'Sync standard pages under content/pages.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+							</div>
+
+							<div class="settings-checkbox-item">
+								<label for="sync-partials">
+									<input type="checkbox" name="<?php echo esc_attr( self::POST_SYNC_PARTIALS ); ?>" id="sync-partials" value="1" <?php checked( $sync_partials ); ?>>
+									<strong><?php esc_html_e( 'Partials', \ASC_AI_PLUGIN_DOMAIN ); ?></strong>
+								</label>
+								<p class="description"><?php esc_html_e( 'Sync reusable partial layout files under content/partials.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+							</div>
+
+							<div class="settings-checkbox-item">
+								<label for="sync-posts">
+									<input type="checkbox" name="<?php echo esc_attr( self::POST_SYNC_POSTS ); ?>" id="sync-posts" value="1" <?php checked( $sync_posts ); ?>>
+									<strong><?php esc_html_e( 'Posts', \ASC_AI_PLUGIN_DOMAIN ); ?></strong>
+								</label>
+								<p class="description"><?php esc_html_e( 'Sync standard posts under content/posts.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+							</div>
+
+							<div class="settings-checkbox-item">
+								<label for="sync-cpts">
+									<input type="checkbox" name="<?php echo esc_attr( self::POST_SYNC_CUSTOM_POST_TYPES ); ?>" id="sync-cpts" value="1" <?php checked( $sync_custom_post_types ); ?>>
+									<strong><?php esc_html_e( 'Custom Post Types', \ASC_AI_PLUGIN_DOMAIN ); ?></strong>
+								</label>
+								<p class="description"><?php esc_html_e( 'Sync custom post types defined under content.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+							</div>
+
+							<div class="settings-checkbox-item">
+								<label for="sync-media">
+									<input type="checkbox" name="<?php echo esc_attr( self::POST_SYNC_MEDIA ); ?>" id="sync-media" value="1" <?php checked( $sync_media ); ?>>
+									<strong><?php esc_html_e( 'Media Library', \ASC_AI_PLUGIN_DOMAIN ); ?></strong>
+								</label>
+								<p class="description"><?php esc_html_e( 'Sync media files under content/media.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+							</div>
+
+							<div class="settings-checkbox-item">
+								<label for="yoast-sync">
+									<input type="checkbox" name="<?php echo esc_attr( self::POST_YOAST_SYNC ); ?>" id="yoast-sync" value="1" <?php checked( $yoast_sync ); ?>>
+									<strong><?php esc_html_e( 'Yoast SEO Sync', \ASC_AI_PLUGIN_DOMAIN ); ?></strong>
+								</label>
+								<p class="description"><?php esc_html_e( 'Sync Yoast SEO data under content/meta-descriptions.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="asc-ai-boiler-submit-wrap">
+					<?php submit_button( __( 'Save Settings', \ASC_AI_PLUGIN_DOMAIN ), 'primary large' ); ?>
+				</div>
+			</form>
+		</div>
+		<?php
 	}
 
 	/**
@@ -175,148 +380,111 @@ class SettingsPage {
 			return;
 		}
 
-		$export_delete_orphans = SyncConfig::is_export_cleanup();
+		if ( ! SyncConfig::is_sync_page_enabled() ) {
+			?>
+			<div class="wrap asc-ai-boiler-settings-page">
+				<h1><?php esc_html_e( 'Import / Export', \ASC_AI_PLUGIN_DOMAIN ); ?></h1>
+				<div class="notice notice-error">
+					<p><strong><?php esc_html_e( 'Access Denied: The Import / Export page is currently disabled in the settings.', \ASC_AI_PLUGIN_DOMAIN ); ?></strong></p>
+					<p><?php echo sprintf(
+						/* translators: %s: URL to the settings page */
+						__( 'You can enable it by visiting the <a href="%s">aS.c Boiler Settings</a> page.', \ASC_AI_PLUGIN_DOMAIN ),
+						esc_url( admin_url( 'admin.php?page=' . self::SETTINGS_PAGE_SLUG ) )
+					); ?></p>
+				</div>
+			</div>
+			<?php
+			return;
+		}
+
 		$import_cleanup = SyncConfig::is_import_cleanup();
 		$import_dev_mode = SyncConfig::is_development_mode();
-		$yoast_sync = SyncConfig::is_yoast_sync();
 		$auto_confirm_attr = $import_dev_mode ? '1' : '0';
 
 		?>
 		<div class="wrap asc-ai-boiler-settings-page">
-			<h1><?php esc_html_e( 'Import / Export', \ASC_AI_PLUGIN_DOMAIN ); ?></h1>
+			<div class="asc-ai-boiler-header">
+				<h1><?php esc_html_e( 'aS.c Boiler Import / Export', \ASC_AI_PLUGIN_DOMAIN ); ?></h1>
+				<p class="description"><?php esc_html_e( 'Synchronize WordPress database content with plugin workspace files.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+			</div>
 
-			<?php if ( isset( $_GET['settings-updated'] ) ) : ?>
-				<div class="notice notice-success is-dismissible">
-					<p><?php esc_html_e( 'Settings saved.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
-				</div>
-			<?php endif; ?>
+			<div class="asc-ai-boiler-sync-grid">
+				<div class="asc-ai-boiler-card asc-ai-boiler-sync-card">
+					<h2>
+						<span class="dashicons dashicons-visibility"></span>
+						<?php esc_html_e( 'Differences and Status', \ASC_AI_PLUGIN_DOMAIN ); ?>
+					</h2>
+					<p class="card-intro"><?php esc_html_e( 'Compare files on disk with published content to find conflicts before syncing.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
 
-			<h2><?php esc_html_e( 'Import / Export settings', \ASC_AI_PLUGIN_DOMAIN ); ?></h2>
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="asc-ai-boiler-settings-page__default-form asc-ai-boiler-settings-page__sync-settings-form">
-				<input type="hidden" name="action" value="<?php echo esc_attr( self::SAVE_FORM_ACTION ); ?>">
-				<?php wp_nonce_field( self::SAVE_SETTINGS_NONCE ); ?>
-				<table class="form-table" role="presentation">
-					<tbody>
-						<tr>
-							<th scope="row"><?php esc_html_e( 'Export cleanup', \ASC_AI_PLUGIN_DOMAIN ); ?></th>
-							<td>
-								<label for="asc-ai-boiler-export-cleanup">
-									<input
-										type="checkbox"
-										name="<?php echo esc_attr( self::POST_EXPORT_CLEANUP ); ?>"
-										id="asc-ai-boiler-export-cleanup"
-										value="1"
-										<?php checked( $export_delete_orphans ); ?>
-									>
-									<?php esc_html_e( 'After export, delete plugin content files that have no matching published WordPress content.', \ASC_AI_PLUGIN_DOMAIN ); ?>
-								</label>
-								<p class="description"><?php esc_html_e( 'Use when WordPress content was removed on purpose.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><?php esc_html_e( 'Import cleanup', \ASC_AI_PLUGIN_DOMAIN ); ?></th>
-							<td>
-								<label for="asc-ai-boiler-import-cleanup">
-									<input
-										type="checkbox"
-										name="<?php echo esc_attr( self::POST_IMPORT_CLEANUP ); ?>"
-										id="asc-ai-boiler-import-cleanup"
-										value="1"
-										<?php checked( $import_cleanup ); ?>
-									>
-									<?php esc_html_e( 'After import, delete published WordPress content that has no matching plugin content files.', \ASC_AI_PLUGIN_DOMAIN ); ?>
-								</label>
-								<p class="description"><?php esc_html_e( 'Use when plugin export files were removed on purpose.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><?php esc_html_e( 'Developer mode', \ASC_AI_PLUGIN_DOMAIN ); ?></th>
-							<td>
-								<label for="asc-ai-boiler-import-development-mode">
-									<input
-										type="checkbox"
-										name="<?php echo esc_attr( self::POST_DEVELOPMENT_MODE ); ?>"
-										id="asc-ai-boiler-import-development-mode"
-										value="1"
-										<?php checked( $import_dev_mode ); ?>
-									>
-									<?php esc_html_e( 'Pre-check the import confirmation below.', \ASC_AI_PLUGIN_DOMAIN ); ?>
-								</label>
-								<p class="description"><?php esc_html_e( 'Use for one-click import from new plugin files by having the confirmation checkbox always checked.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><?php esc_html_e( 'Yoast SEO settings', \ASC_AI_PLUGIN_DOMAIN ); ?></th>
-							<td>
-								<label for="asc-ai-boiler-yoast-sync">
-									<input
-										type="checkbox"
-										name="<?php echo esc_attr( self::POST_YOAST_SYNC ); ?>"
-										id="asc-ai-boiler-yoast-sync"
-										value="1"
-										<?php checked( $yoast_sync ); ?>
-									>
-									<?php esc_html_e( 'Import/Export Yoast settings on sync.', \ASC_AI_PLUGIN_DOMAIN ); ?>
-								</label>
-								<p class="description"><?php esc_html_e( 'If unchecked, Yoast SEO fields are ignored and not updated or exported.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				<?php submit_button( __( 'Save Import / Export settings', \ASC_AI_PLUGIN_DOMAIN ) ); ?>
-			</form>
+					<div class="asc-ai-boiler-diff-highlight" id="asc-ai-boiler-diff-highlight" aria-live="polite"></div>
 
-			<hr>
-
-			<div class="asc-ai-boiler-settings-page__sync" id="asc-ai-boiler-sync-block" data-asc-ai-boiler-import-auto-confirm="<?php echo esc_attr( $auto_confirm_attr ); ?>">
-				<p class="description">
-					<?php esc_html_e( 'Synchronize WordPress published content with plugin content files under the content directory.', \ASC_AI_PLUGIN_DOMAIN ); ?>
-				</p>
-				<p class="description">
-					<?php esc_html_e( 'Export writes all published pages, posts, partials, and custom post types from the WordPress database to the plugin content files, including publication and modification dates, page/post title, page/post slug, tags, categories, excerpts, meta descriptions, Yoast SEO settings (focus keyphrases, social titles, and social descriptions), and WordPress media library files. Whether orphaned plugin files are removed afterward depends on the export cleanup setting above.', \ASC_AI_PLUGIN_DOMAIN ); ?>
-				</p>
-				<p class="description">
-					<?php esc_html_e( 'Import updates all published pages, posts, partials, and custom post types from the plugin content files to the WordPress database, using the manifest for publication time, page/post title, page/post slug, tags, categories, excerpts, meta descriptions, Yoast SEO settings (focus keyphrases, social titles, and social descriptions), and WordPress media library files when applicable. Last modified time in WordPress is not taken from the manifest. When import finishes, plugin HTML and content-manifest.json on disk are rewritten to canonical export form from WordPress. Whether orphaned published WordPress content is removed from the WordPress database afterward depends on the import cleanup setting above.', \ASC_AI_PLUGIN_DOMAIN ); ?>
-				</p>
-				<p class="description">
-					<?php
-					echo esc_html(
-						sprintf(
-							/* translators: %d: number of items per AJAX batch */
-							__( 'Each export or import run processes up to %d published posts or plugin files per request, so large sites stay within PHP time limits.', \ASC_AI_PLUGIN_DOMAIN ),
-							SyncConfig::CONTENT_SYNC_BATCH_SIZE
-						)
-					);
-					?>
-				</p>
-				<p class="description">
-					<?php esc_html_e( 'Import brings plugin HTML and content/media/ into WordPress (including the media library, default images, and featured images via manifest bindings), along with Yoast SEO integration fields (when enabled). Other post metadata (for example custom fields from advanced plugins) is not synced. Configure that data separately on each WordPress instance when needed.', \ASC_AI_PLUGIN_DOMAIN ); ?>
-				</p>
-				<div class="asc-ai-boiler-diff-highlight" id="asc-ai-boiler-diff-highlight" aria-live="polite"></div>
-				<p class="asc-ai-boiler-settings-page__sync-detect-wrap">
-					<button type="button" class="button" id="asc-ai-boiler-detect-difference"><?php esc_html_e( 'Detect Differences', \ASC_AI_PLUGIN_DOMAIN ); ?></button>
-				</p>
-				<p class="asc-ai-boiler-sync-actions__export">
-					<button type="button" class="button button-primary" id="asc-ai-boiler-export-submit"><?php esc_html_e( 'Export to plugin files', \ASC_AI_PLUGIN_DOMAIN ); ?></button>
-				</p>
-				<div class="asc-ai-boiler-sync-status" id="asc-ai-boiler-sync-status">
-					<p class="description" id="asc-ai-boiler-sync-progress" aria-live="polite"></p>
-					<div id="asc-ai-boiler-sync-messages" class="asc-ai-boiler-settings-page__sync-ajax-messages"></div>
+					<p class="asc-ai-boiler-settings-page__sync-detect-wrap">
+						<button type="button" class="button button-primary button-large" id="asc-ai-boiler-detect-difference"><?php esc_html_e( 'Detect Differences', \ASC_AI_PLUGIN_DOMAIN ); ?></button>
+					</p>
 				</div>
 
-				<div class="asc-ai-boiler-sync-actions asc-ai-boiler-settings-page__sync-form">
-					<?php if ( $import_cleanup ) : ?>
-						<p class="description"><?php esc_html_e( 'Import cleanup is enabled: finishing import may move WordPress posts to the trash when their plugin HTML file is missing.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
-					<?php endif; ?>
-					<p>
-						<label class="asc-ai-boiler-settings-page__sync-import-confirm" for="asc-ai-boiler-import-confirm">
-							<input type="checkbox" id="asc-ai-boiler-import-confirm" value="1"<?php checked( $import_dev_mode ); ?>>
-							<span class="asc-ai-boiler-settings-page__sync-import-confirm-text"><?php esc_html_e( 'I understand that import will overwrite post bodies where plugin file markup differs from WordPress.', \ASC_AI_PLUGIN_DOMAIN ); ?></span>
-						</label>
-					</p>
-					<p class="asc-ai-boiler-sync-actions__import">
-						<button type="button" class="button button-secondary" id="asc-ai-boiler-import-submit"><?php esc_html_e( 'Import from plugin files', \ASC_AI_PLUGIN_DOMAIN ); ?></button>
-					</p>
+				<div class="asc-ai-boiler-card asc-ai-boiler-sync-card" id="asc-ai-boiler-sync-block" data-asc-ai-boiler-import-auto-confirm="<?php echo esc_attr( $auto_confirm_attr ); ?>">
+					<h2>
+						<span class="dashicons dashicons-download"></span>
+						<?php esc_html_e( 'Database Import', \ASC_AI_PLUGIN_DOMAIN ); ?>
+					</h2>
+					<p class="card-intro"><?php esc_html_e( 'Read static files on disk and overwrite WordPress database entries.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+
+					<div class="asc-ai-boiler-sync-actions asc-ai-boiler-settings-page__sync-form">
+						<?php if ( $import_cleanup ) : ?>
+							<div class="notice notice-warning inline">
+								<p><?php esc_html_e( 'Import cleanup is enabled: finishing import will move WordPress posts to the trash when their plugin HTML file is missing.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+							</div>
+						<?php endif; ?>
+
+						<div class="settings-checkbox-item">
+							<label for="asc-ai-boiler-import-confirm">
+								<input type="checkbox" id="asc-ai-boiler-import-confirm" value="1"<?php checked( $import_dev_mode ); ?>>
+								<strong><?php esc_html_e( 'Confirm Import', \ASC_AI_PLUGIN_DOMAIN ); ?></strong>
+							</label>
+							<p class="description"><?php esc_html_e( 'I understand that import will overwrite database post content with markup from plugin files.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+						</div>
+
+						<p class="description">
+							<?php esc_html_e( 'Import publishes content to the WordPress database from the plugin content files. The existing content-manifest.json is regenerated.', \ASC_AI_PLUGIN_DOMAIN ); ?>
+						</p>
+
+						<p class="asc-ai-boiler-sync-actions__import">
+							<button type="button" class="button button-secondary button-large" id="asc-ai-boiler-import-submit"><?php esc_html_e( 'Import from plugin files', \ASC_AI_PLUGIN_DOMAIN ); ?></button>
+						</p>
+					</div>
+
+					<div class="asc-ai-boiler-sync-status" id="asc-ai-boiler-import-status">
+						<p class="description" id="asc-ai-boiler-import-progress" aria-live="polite"></p>
+						<div id="asc-ai-boiler-import-messages" class="asc-ai-boiler-settings-page__sync-ajax-messages"></div>
+					</div>
+				</div>
+
+				<div class="asc-ai-boiler-card asc-ai-boiler-sync-card">
+					<h2>
+						<span class="dashicons dashicons-upload"></span>
+						<?php esc_html_e( 'Database Export', \ASC_AI_PLUGIN_DOMAIN ); ?>
+					</h2>
+					<p class="card-intro"><?php esc_html_e( 'Dump WordPress database content out to static files.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+
+					<div class="asc-ai-boiler-sync-form">
+						<?php if ( SyncConfig::is_export_cleanup() ) : ?>
+							<div class="notice notice-warning inline">
+								<p><?php esc_html_e( 'Export cleanup is enabled: finishing export will delete plugin content files that have no matching published WordPress content.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
+							</div>
+						<?php endif; ?>
+						<p class="description">
+							<?php esc_html_e( 'Export writes published content to plugin content files. The existing content-manifest.json is regenerated.', \ASC_AI_PLUGIN_DOMAIN ); ?>
+						</p>
+						<p class="asc-ai-boiler-sync-actions__export">
+							<button type="button" class="button button-primary button-large" id="asc-ai-boiler-export-submit"><?php esc_html_e( 'Export to plugin files', \ASC_AI_PLUGIN_DOMAIN ); ?></button>
+						</p>
+					</div>
+
+					<div class="asc-ai-boiler-sync-status" id="asc-ai-boiler-export-status">
+						<p class="description" id="asc-ai-boiler-export-progress" aria-live="polite"></p>
+						<div id="asc-ai-boiler-export-messages" class="asc-ai-boiler-settings-page__sync-ajax-messages"></div>
+					</div>
 				</div>
 			</div>
 		</div>

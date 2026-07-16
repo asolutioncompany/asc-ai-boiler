@@ -1692,8 +1692,10 @@ final class ContentSync {
 			);
 		}
 
-		foreach ( ContentMediaSync::detect_differences() as $media_diff ) {
-			$differences[] = $media_diff;
+		if ( SyncConfig::is_media_sync_enabled() ) {
+			foreach ( ContentMediaSync::detect_differences() as $media_diff ) {
+				$differences[] = $media_diff;
+			}
 		}
 
 		usort(
@@ -2378,8 +2380,27 @@ final class ContentSync {
 	private static function write_content_export_manifest( array &$messages ): bool {
 		ContentSync::ensure_content_directories_exist();
 
+		$existing_manifest = array();
+		$path = ContentSync::get_content_manifest_path();
+		if ( is_readable( $path ) ) {
+			$json_content = file_get_contents( $path );
+			if ( false !== $json_content && '' !== $json_content ) {
+				$decoded = json_decode( $json_content, true );
+				if ( is_array( $decoded ) ) {
+					$existing_manifest = $decoded;
+				}
+			}
+		}
+
 		$types_out = array();
-		foreach ( ContentSyncProfile::sync_types() as $type_key => $type_config ) {
+		foreach ( ContentSyncProfile::all_sync_types() as $type_key => $type_config ) {
+			if ( ! SyncConfig::is_content_type_enabled( $type_key ) ) {
+				if ( isset( $existing_manifest['types'][ $type_key ] ) && is_array( $existing_manifest['types'][ $type_key ] ) ) {
+					$types_out[ $type_key ] = $existing_manifest['types'][ $type_key ];
+				}
+				continue;
+			}
+
 			$entries_by_filename = array();
 			foreach ( self::query_posts_for_type( $type_config['post_type'] ) as $post ) {
 				$row = self::build_export_manifest_row_from_post( $type_key, $post );
@@ -2400,12 +2421,20 @@ final class ContentSync {
 			$types_out[ $type_key ] = array_values( $entries_by_filename );
 		}
 
+		if ( SyncConfig::is_media_sync_enabled() ) {
+			$media_out = ContentMediaSync::build_manifest_media_rows_for_manifest();
+			$bindings_out = ContentMediaSync::build_manifest_media_bindings_for_export();
+		} else {
+			$media_out = isset( $existing_manifest['media'] ) && is_array( $existing_manifest['media'] ) ? $existing_manifest['media'] : array();
+			$bindings_out = isset( $existing_manifest['media_bindings'] ) && is_array( $existing_manifest['media_bindings'] ) ? $existing_manifest['media_bindings'] : array();
+		}
+
 		$payload = array(
 			'manifest_version' => 1,
 			'exported_at' => gmdate( 'c' ),
 			'types' => $types_out,
-			'media' => ContentMediaSync::build_manifest_media_rows_for_manifest(),
-			'media_bindings' => ContentMediaSync::build_manifest_media_bindings_for_export(),
+			'media' => $media_out,
+			'media_bindings' => $bindings_out,
 		);
 
 		$flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
@@ -2834,6 +2863,9 @@ final class ContentSync {
 	 * @return void
 	 */
 	private static function maybe_import_plugin_media( array &$messages ): void {
+		if ( ! SyncConfig::is_media_sync_enabled() ) {
+			return;
+		}
 		$result = ContentMediaSync::import_from_plugin_files( $messages );
 		if ( 0 === $result['processed'] ) {
 			return;
@@ -2929,6 +2961,9 @@ final class ContentSync {
 	 * @return void
 	 */
 	private static function maybe_export_plugin_media( array &$messages ): void {
+		if ( ! SyncConfig::is_media_sync_enabled() ) {
+			return;
+		}
 		ContentMediaSync::export_to_plugin_files( $messages );
 	}
 
@@ -3078,6 +3113,15 @@ final class ContentSync {
 	public static function handle_ajax_detect_differences(): void {
 		check_ajax_referer( self::nonce_action() );
 
+		if ( ! SyncConfig::is_sync_page_enabled() ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Import/Export is disabled in settings.', \ASC_AI_PLUGIN_DOMAIN ),
+				),
+				403
+			);
+		}
+
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error(
 				array(
@@ -3098,6 +3142,15 @@ final class ContentSync {
 	 */
 	public static function handle_ajax_import_batch(): void {
 		check_ajax_referer( self::nonce_action() );
+
+		if ( ! SyncConfig::is_sync_page_enabled() ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Import/Export is disabled in settings.', \ASC_AI_PLUGIN_DOMAIN ),
+				),
+				403
+			);
+		}
 
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error(
@@ -3131,6 +3184,15 @@ final class ContentSync {
 	 */
 	public static function handle_ajax_export_batch(): void {
 		check_ajax_referer( self::nonce_action() );
+
+		if ( ! SyncConfig::is_sync_page_enabled() ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Import/Export is disabled in settings.', \ASC_AI_PLUGIN_DOMAIN ),
+				),
+				403
+			);
+		}
 
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error(

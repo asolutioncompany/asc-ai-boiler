@@ -1,4 +1,4 @@
-# aS.c AI Boiler
+# aS.c Boiler
 
 WordPress boilerplate plugin for AI-assisted site builds. Provides a partial-based layout system, content sync, custom post types, shortcodes, admin settings, and bundled assets.
 

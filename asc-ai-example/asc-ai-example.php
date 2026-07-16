@@ -3,19 +3,19 @@
 declare( strict_types = 1 );
 
 /**
- * aS.c AI Example
+ * aS.c Example
  *
- * Example site plugin for the aS.c AI Boiler framework: services/projects post types,
- * shortcodes, blog and listing UI, admin screens, content sync profile, and bundled assets.
+ * Example site layer for the aS.c Boiler framework. This plugin should be replaced with your own plugin to utilitize
+ * the aS.c Boiler framework.
  *
- * Requires the aS.c AI Plugin to be active.
+ * Requires aS.c Boiler to be active.
  *
  * @package asc-ai-example
  *
  * @wordpress-plugin
- * Plugin Name: aS.c AI Example
+ * Plugin Name: aS.c Example
  * Plugin URI: https://asolution.company
- * Description: Example site layer for the aS.c AI Plugin: post types, shortcodes, content sync, admin screens, and front-end assets.
+ * Description: Example site layer for the aS.c Boiler framework.
  * Version: 1.0.0
  * Requires at least: 5.0
  * Tested up to: 6.9

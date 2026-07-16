@@ -1,6 +1,6 @@
 {
 	"name": "asolution-company/asc-ai-plugin",
-	"description": "WordPress plugin: aS.c AI boilerplate framework (Core + Admin layers).",
+	"description": "WordPress plugin: aS.c boilerplate framework (Core + Admin layers).",
 	"type": "wordpress-plugin",
 	"require": {
 		"php": ">=8.1"

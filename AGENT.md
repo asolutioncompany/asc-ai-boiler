@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENT.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI assistants/agents when working with code in this repository.
 
 Three-package WordPress repo. PHP 8.1+, GPL v3.
 - `asc-ai-theme/`   bare WordPress theme (no logic)
@@ -12,6 +12,7 @@ Three-package WordPress repo. PHP 8.1+, GPL v3.
 Consult STYLE.md for all code generation and reviews.
 Consult ARCH.md when working on new features or asking about structure.
 Consult LOG.md before suggesting architectural changes.
+Consult BRAND KIT.md for CSS styling, color schemes, and fonts.
 Do not rewrite working code without being asked.
 Do not add comments unless asked.
 

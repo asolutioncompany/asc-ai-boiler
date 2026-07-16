@@ -32,9 +32,12 @@
 		var sync = asc_ai_boiler_admin.sync;
 		var ajaxUrl = asc_ai_boiler_admin.ajax_url;
 		var str = sync.strings;
-		var $progress = $('#asc-ai-boiler-sync-progress');
-		var $messages = $('#asc-ai-boiler-sync-messages');
-		var $status = $('#asc-ai-boiler-sync-status');
+		var $importProgress = $('#asc-ai-boiler-import-progress');
+		var $importMessages = $('#asc-ai-boiler-import-messages');
+		var $importStatus = $('#asc-ai-boiler-import-status');
+		var $exportProgress = $('#asc-ai-boiler-export-progress');
+		var $exportMessages = $('#asc-ai-boiler-export-messages');
+		var $exportStatus = $('#asc-ai-boiler-export-status');
 		var $importBtn = $('#asc-ai-boiler-import-submit');
 		var $exportBtn = $('#asc-ai-boiler-export-submit');
 		var $detectBtn = $('#asc-ai-boiler-detect-difference');
@@ -97,30 +100,30 @@
 			});
 		}
 
-		function appendDetailMessages(lines) {
+		function appendDetailMessages($container, lines) {
 			if (!lines || !lines.length) {
 				return;
 			}
-			var $ul = $messages.find('ul').first();
+			var $ul = $container.find('ul').first();
 			if (!$ul.length) {
 				$ul = $('<ul class="asc-ai-boiler-settings-page__sync-msg-list"></ul>');
-				$messages.append($ul);
+				$container.append($ul);
 			}
 			lines.forEach(function (line) {
 				$ul.append($('<li></li>').text(line));
 			});
 		}
 
-		function clearSyncStatusHighlight() {
-			$status.removeClass(
+		function clearSyncStatusHighlight($statusEl) {
+			$statusEl.removeClass(
 				'asc-ai-boiler-sync-status--export-running asc-ai-boiler-sync-status--export-done asc-ai-boiler-sync-status--export-error '
 					+ 'asc-ai-boiler-sync-status--import-running asc-ai-boiler-sync-status--import-done asc-ai-boiler-sync-status--import-error'
 			);
 		}
 
 		function importFailure(msg) {
-			$status.removeClass('asc-ai-boiler-sync-status--import-running').addClass('asc-ai-boiler-sync-status--import-error');
-			$progress.text(sprintf(str.failure, msg));
+			$importStatus.removeClass('asc-ai-boiler-sync-status--import-running').addClass('asc-ai-boiler-sync-status--import-error');
+			$importProgress.text(sprintf(str.failure, msg));
 			setRunning(false);
 		}
 
@@ -168,10 +171,10 @@
 				return;
 			}
 
-			clearSyncStatusHighlight();
-			$status.addClass('asc-ai-boiler-sync-status--import-running');
-			$messages.empty();
-			$progress.text(str.import_starting || 'Import starting…');
+			clearSyncStatusHighlight($importStatus);
+			$importStatus.addClass('asc-ai-boiler-sync-status--import-running');
+			$importMessages.empty();
+			$importProgress.text(str.import_starting || 'Import starting…');
 			setRunning(true);
 			var offset = 0;
 			var totalUpdated = 0;
@@ -184,21 +187,21 @@
 					confirmed: '1'
 				}).done(function (res) {
 					if (!res || !res.success || !res.data) {
-						$status.removeClass('asc-ai-boiler-sync-status--import-running').addClass('asc-ai-boiler-sync-status--import-error');
-						$progress.text(sprintf(str.failure, 'invalid response'));
+						$importStatus.removeClass('asc-ai-boiler-sync-status--import-running').addClass('asc-ai-boiler-sync-status--import-error');
+						$importProgress.text(sprintf(str.failure, 'invalid response'));
 						setRunning(false);
 						return;
 					}
 					var d = res.data;
-					appendDetailMessages(d.messages || []);
+					appendDetailMessages($importMessages, d.messages || []);
 					totalUpdated += d.updated_in_batch || 0;
 					offset = d.next_offset;
 					var totalJobs = d.total_jobs || 0;
 					var processed = Math.min(offset, totalJobs);
-					$progress.text(sprintf(str.import_progress, String(processed), String(totalJobs)));
+					$importProgress.text(sprintf(str.import_progress, String(processed), String(totalJobs)));
 					if (d.done) {
-						$status.removeClass('asc-ai-boiler-sync-status--import-running').addClass('asc-ai-boiler-sync-status--import-done');
-						$progress.text(sprintf(str.import_complete, String(totalUpdated), String(totalJobs)));
+						$importStatus.removeClass('asc-ai-boiler-sync-status--import-running').addClass('asc-ai-boiler-sync-status--import-done');
+						$importProgress.text(sprintf(str.import_complete, String(totalUpdated), String(totalJobs)));
 						setRunning(false);
 						return;
 					}
@@ -219,10 +222,10 @@
 			if ($exportBtn.prop('disabled')) {
 				return;
 			}
-			clearSyncStatusHighlight();
-			$status.addClass('asc-ai-boiler-sync-status--export-running');
-			$messages.empty();
-			$progress.text(str.export_starting || 'Export starting…');
+			clearSyncStatusHighlight($exportStatus);
+			$exportStatus.addClass('asc-ai-boiler-sync-status--export-running');
+			$exportMessages.empty();
+			$exportProgress.text(str.export_starting || 'Export starting…');
 			setRunning(true);
 			var typeIndex = 0;
 			var postOffset = 0;
@@ -237,13 +240,13 @@
 					post_offset: postOffset
 				}).done(function (res) {
 					if (!res || !res.success || !res.data) {
-						$status.removeClass('asc-ai-boiler-sync-status--export-running').addClass('asc-ai-boiler-sync-status--export-error');
-						$progress.text(sprintf(str.failure, 'invalid response'));
+						$exportStatus.removeClass('asc-ai-boiler-sync-status--export-running').addClass('asc-ai-boiler-sync-status--export-error');
+						$exportProgress.text(sprintf(str.failure, 'invalid response'));
 						setRunning(false);
 						return;
 					}
 					var d = res.data;
-					appendDetailMessages(d.messages || []);
+					appendDetailMessages($exportMessages, d.messages || []);
 					var batchFiles = d.updated_in_batch || 0;
 					var batchMeta = d.manifest_metadata_refreshed_in_batch || 0;
 					runningFiles += batchFiles;
@@ -251,18 +254,18 @@
 					typeIndex = d.type_index;
 					postOffset = d.post_offset;
 					if (d.done) {
-						$status.removeClass('asc-ai-boiler-sync-status--export-running').addClass('asc-ai-boiler-sync-status--export-done');
+						$exportStatus.removeClass('asc-ai-boiler-sync-status--export-running').addClass('asc-ai-boiler-sync-status--export-done');
 						if (runningMeta > 0 && str.export_complete_with_meta) {
-							$progress.text(
+							$exportProgress.text(
 								sprintf(str.export_complete_with_meta, String(runningFiles), String(runningMeta))
 							);
 						} else {
-							$progress.text(sprintf(str.export_complete, String(runningFiles)));
+							$exportProgress.text(sprintf(str.export_complete, String(runningFiles)));
 						}
 						setRunning(false);
 						return;
 					}
-					$progress.text(
+					$exportProgress.text(
 						sprintf(
 							str.export_progress,
 							String(batchFiles),
@@ -277,8 +280,8 @@
 					if (xhr && xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
 						msg = xhr.responseJSON.data.message;
 					}
-					$status.removeClass('asc-ai-boiler-sync-status--export-running').addClass('asc-ai-boiler-sync-status--export-error');
-					$progress.text(sprintf(str.failure, msg));
+					$exportStatus.removeClass('asc-ai-boiler-sync-status--export-running').addClass('asc-ai-boiler-sync-status--export-error');
+					$exportProgress.text(sprintf(str.failure, msg));
 					setRunning(false);
 				});
 			}
