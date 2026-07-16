@@ -1,0 +1,253 @@
+{
+    "manifest_version": 1,
+    "exported_at": "2026-07-16T12:00:00+00:00",
+    "types": {
+        "partials": [
+            {
+                "post_type": "asc_boiler_partial",
+                "title": "Agency Boiler",
+                "slug": "agency-boiler",
+                "filename": "agency-boiler.html",
+                "date_gmt": "2026-06-03T12:00:00+00:00",
+                "partial_key": "agency_boiler"
+            },
+            {
+                "post_type": "asc_boiler_partial",
+                "title": "Blog Boiler",
+                "slug": "blog-boiler",
+                "filename": "blog-boiler.html",
+                "date_gmt": "2026-06-03T12:00:00+00:00",
+                "partial_key": "blog_boiler"
+            },
+            {
+                "post_type": "asc_boiler_partial",
+                "title": "Contact Call to Action",
+                "slug": "contact-call-to-action",
+                "filename": "contact-call-to-action.html",
+                "date_gmt": "2026-06-03T12:00:00+00:00",
+                "partial_key": "contact_call_to_action"
+            },
+            {
+                "post_type": "asc_boiler_partial",
+                "title": "Footer",
+                "slug": "footer",
+                "filename": "footer.html",
+                "date_gmt": "2026-06-03T12:00:00+00:00",
+                "partial_key": "footer"
+            },
+            {
+                "post_type": "asc_boiler_partial",
+                "title": "Header",
+                "slug": "header",
+                "filename": "header.html",
+                "date_gmt": "2026-06-03T12:00:00+00:00",
+                "partial_key": "header"
+            }
+        ],
+        "pages": [
+            {
+                "post_type": "page",
+                "title": "About Us",
+                "slug": "about-us",
+                "filename": "about-us.html",
+                "date_gmt": "2026-06-03T12:00:00+00:00",
+                "excerpt": "about-us.txt",
+                "meta_description": "about-us.txt",
+                "social_title": "About Us - Fast WordPress",
+                "x_title": "About Us - Fast WordPress"
+            },
+            {
+                "post_type": "page",
+                "title": "Blog",
+                "slug": "blog",
+                "filename": "blog.html",
+                "date_gmt": "2026-06-03T12:00:00+00:00",
+                "excerpt": "blog.txt",
+                "meta_description": "blog.txt",
+                "social_title": "Blog - Fast WordPress",
+                "x_title": "Blog - Fast WordPress"
+            },
+            {
+                "post_type": "page",
+                "title": "Contact Us",
+                "slug": "contact-us",
+                "filename": "contact-us.html",
+                "date_gmt": "2026-06-03T12:00:00+00:00",
+                "excerpt": "contact-us.txt",
+                "meta_description": "contact-us.txt",
+                "social_title": "Contact Us - Fast WordPress",
+                "x_title": "Contact Us - Fast WordPress"
+            },
+            {
+                "post_type": "page",
+                "title": "Home",
+                "slug": "home",
+                "filename": "home.html",
+                "date_gmt": "2026-06-03T12:00:00+00:00",
+                "excerpt": "home.txt",
+                "meta_description": "home.txt",
+                "social_title": "Home - Fast WordPress",
+                "x_title": "Home - Fast WordPress"
+            },
+            {
+                "post_type": "page",
+                "title": "Page Not Found",
+                "slug": "page-not-found",
+                "filename": "page-not-found.html",
+                "date_gmt": "2026-06-17T10:42:40+00:00",
+                "excerpt": "page-not-found.txt",
+                "meta_description": "page-not-found.txt",
+                "social_title": "Page Not Found - Fast WordPress",
+                "x_title": "Page Not Found - Fast WordPress"
+            },
+            {
+                "post_type": "page",
+                "title": "Privacy Policy",
+                "slug": "privacy-policy",
+                "filename": "privacy-policy.html",
+                "date_gmt": "2026-06-03T22:46:06+00:00",
+                "excerpt": "privacy-policy.txt",
+                "meta_description": "privacy-policy.txt",
+                "social_title": "Privacy Policy - Fast WordPress",
+                "x_title": "Privacy Policy - Fast WordPress"
+            }
+        ],
+        "posts": [
+            {
+                "post_type": "post",
+                "title": "How AI-Assisted WordPress Development Can Improve Design",
+                "slug": "ai-assisted-wordpress-development-improves-design",
+                "filename": "ai-assisted-wordpress-development-improves-design.html",
+                "date_gmt": "2026-06-02T12:00:00+00:00",
+                "excerpt": "ai-assisted-wordpress-development-improves-design.txt",
+                "meta_description": "ai-assisted-wordpress-development-improves-design.txt",
+                "social_title": "How AI-Assisted WordPress Development Can Improve Design - Fast WordPress",
+                "x_title": "How AI-Assisted WordPress Development Can Improve Design - Fast WordPress",
+                "categories": [
+                    {
+                        "slug": "uncategorized",
+                        "name": "Uncategorized"
+                    }
+                ]
+            },
+            {
+                "post_type": "post",
+                "title": "How AI-Assisted WordPress Development Can Improve Performance and Security",
+                "slug": "ai-assisted-wordpress-development-improves-performance-and-security",
+                "filename": "ai-assisted-wordpress-development-improves-performance-and-security.html",
+                "date_gmt": "2026-06-03T12:00:00+00:00",
+                "excerpt": "ai-assisted-wordpress-development-improves-performance-and-security.txt",
+                "meta_description": "ai-assisted-wordpress-development-improves-performance-and-security.txt",
+                "social_title": "How AI-Assisted WordPress Development Can Improve Performance and Security - Fast WordPress",
+                "x_title": "How AI-Assisted WordPress Development Can Improve Performance and Security - Fast WordPress",
+                "categories": [
+                    {
+                        "slug": "uncategorized",
+                        "name": "Uncategorized"
+                    }
+                ]
+            },
+            {
+                "post_type": "post",
+                "title": "How AI-Assisted WordPress Development Can Improve SEO",
+                "slug": "ai-assisted-wordpress-development-improves-seo",
+                "filename": "ai-assisted-wordpress-development-improves-seo.html",
+                "date_gmt": "2026-06-01T12:00:00+00:00",
+                "excerpt": "ai-assisted-wordpress-development-improves-seo.txt",
+                "meta_description": "ai-assisted-wordpress-development-improves-seo.txt",
+                "social_title": "How AI-Assisted WordPress Development Can Improve SEO - Fast WordPress",
+                "x_title": "How AI-Assisted WordPress Development Can Improve SEO - Fast WordPress",
+                "categories": [
+                    {
+                        "slug": "uncategorized",
+                        "name": "Uncategorized"
+                    }
+                ]
+            }
+        ]
+    },
+    "media": [
+        {
+            "filename": "blog-default.jpg",
+            "title": "Blog post",
+            "alt": "Blog post",
+            "caption": "",
+            "description": "Blog post",
+            "mime": "image/jpeg"
+        },
+        {
+            "filename": "blog-design.jpg",
+            "title": "WordPress Website Design",
+            "alt": "WordPress Website Design",
+            "caption": "",
+            "description": "WordPress Website Design",
+            "mime": "image/jpeg"
+        },
+        {
+            "filename": "blog-performance.jpg",
+            "title": "Website Performance & Security",
+            "alt": "Website Performance & Security",
+            "caption": "",
+            "description": "Website Performance & Security",
+            "mime": "image/jpeg"
+        },
+        {
+            "filename": "blog-seo.jpg",
+            "title": "SEO & WordPress Analytics",
+            "alt": "SEO & WordPress Analytics",
+            "caption": "",
+            "description": "SEO & WordPress Analytics",
+            "mime": "image/jpeg"
+        },
+        {
+            "filename": "hero.jpg",
+            "title": "Fast WordPress Hero",
+            "alt": "Fast WordPress Hero",
+            "caption": "",
+            "description": "Fast WordPress Hero",
+            "mime": "image/jpeg"
+        },
+        {
+            "filename": "about-us.jpg",
+            "title": "About Us Illustration",
+            "alt": "Cozy office workspace with team collaboration illustration",
+            "caption": "",
+            "description": "About Us Illustration",
+            "mime": "image/jpeg"
+        },
+        {
+            "filename": "contact-us.jpg",
+            "title": "Contact Us Illustration",
+            "alt": "Cozy office workspace desk showing contact channels illustration",
+            "caption": "",
+            "description": "Contact Us Illustration",
+            "mime": "image/jpeg"
+        }
+    ],
+    "media_bindings": [
+        {
+            "media_filename": "blog-default.jpg",
+            "target": "setting",
+            "option": "min_example_site_settings",
+            "key": "image_blog_default_id"
+        },
+        {
+            "media_filename": "blog-design.jpg",
+            "target": "featured",
+            "post_type": "post",
+            "slug": "ai-assisted-wordpress-development-improves-design"
+        },
+        {
+            "media_filename": "blog-performance.jpg",
+            "target": "featured",
+            "post_type": "post",
+            "slug": "ai-assisted-wordpress-development-improves-performance-and-security"
+        },
+        {
+            "media_filename": "blog-seo.jpg",
+            "target": "featured",
+            "post_type": "post",
+            "slug": "ai-assisted-wordpress-development-improves-seo"
+        }
+    ]
+}

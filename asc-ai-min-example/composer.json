@@ -1,0 +1,13 @@
+{
+	"name": "asolution-company/asc-ai-min-example",
+	"description": "WordPress plugin: aS.c AI minimum example site layer (Core + Admin + Front).",
+	"type": "wordpress-plugin",
+	"require": {
+		"php": ">=8.1"
+	},
+	"autoload": {
+		"psr-4": {
+			"ASC\\AI_MIN_EXAMPLE\\": "includes/"
+		}
+	}
+}

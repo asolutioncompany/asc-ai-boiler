@@ -29,11 +29,11 @@ The site implements a dual-theme system (defaulting to light mode) using CSS var
 | Variable | Description / Purpose | Light Theme Hex (Default) | Dark Theme Hex |
 | :--- | :--- | :--- | :--- |
 | `--example-bg` | Main page background | `#ffffff` | `#101418` |
-| `--example-surface` | Surfaces (cards, inputs, panels) | `#e9ecef` | `#1a2028` |
-| `--example-muted-bg` | Hover states, secondary panels | `#dee2e6` | `#2e3648` |
-| `--example-fg` | Main foreground / text | `#303438` | `#f8f8f2` |
-| `--example-muted` | Muted text, borders, placeholders | `#6c757d` | `#75715e` |
-| `--example-post-date` | Post date metadata | `#6c757d` | `#a8acb8` |
+| `--example-surface` | Surfaces (cards, inputs, panels) | `#f2efef` | `#1a2028` |
+| `--example-muted-bg` | Hover states, secondary panels | `#dbdada` | `#2e3648` |
+| `--example-fg` | Main foreground / text | `#212121` | `#f8f8f2` |
+| `--example-muted` | Muted text, borders, placeholders | `#757575` | `#75715e` |
+| `--example-post-date` | Post date metadata | `#757575` | `#a8acb8` |
 
 ### Accents & Utility Colors
 
