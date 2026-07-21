@@ -1020,7 +1020,21 @@ final class ContentMediaSync {
 			return 0;
 		}
 
-		$upload = wp_upload_bits( basename( $absolute ), null, $file_contents );
+		$date_gmt = isset( $manifest_row['date_gmt'] ) ? trim( (string) $manifest_row['date_gmt'] ) : '';
+		$time_arg = null;
+		$post_date_gmt = null;
+		$post_date = null;
+
+		if ( '' !== $date_gmt ) {
+			$ts = strtotime( $date_gmt );
+			if ( false !== $ts && $ts > 0 ) {
+				$time_arg      = date( 'Y/m', $ts );
+				$post_date_gmt = gmdate( 'Y-m-d H:i:s', $ts );
+				$post_date     = date( 'Y-m-d H:i:s', $ts );
+			}
+		}
+
+		$upload = wp_upload_bits( basename( $absolute ), null, $file_contents, $time_arg );
 		if ( ! is_array( $upload ) || ! empty( $upload['error'] ) ) {
 			$messages[] = sprintf(
 				/* translators: %s: relative media path */
@@ -1042,12 +1056,18 @@ final class ContentMediaSync {
 		}
 
 		$title = self::manifest_title_for_row( $manifest_row, $relative_path );
+		$attachment_data = array(
+			'post_mime_type' => $mime,
+			'post_title'     => $title,
+			'post_status'    => 'inherit',
+		);
+		if ( null !== $post_date_gmt ) {
+			$attachment_data['post_date_gmt'] = $post_date_gmt;
+			$attachment_data['post_date']     = $post_date;
+		}
+
 		$attachment_id = wp_insert_attachment(
-			array(
-				'post_mime_type' => $mime,
-				'post_title' => $title,
-				'post_status' => 'inherit',
-			),
+			$attachment_data,
 			(string) $upload['file']
 		);
 
