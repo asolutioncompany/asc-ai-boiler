@@ -54,8 +54,8 @@ See `ARCH.md` for architecture detail and `STYLE.md` for code style.
 
 ## Requirements
 
-- WordPress 5.0+
-- PHP 8.1+
+- WordPress 5.0+ (Tested up to 7.0.2)
+- PHP 8.1+ (Tested up to 8.3)
 - Composer (for autoloader)
 
 ## Setup
