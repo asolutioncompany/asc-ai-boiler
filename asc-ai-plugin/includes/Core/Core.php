@@ -16,11 +16,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 use ASC\AI_BOILER\Admin\Admin as BoilerAdmin;
 
 /**
+ * @since 1.0
  * Boiler Core (singleton).
  */
 class Core {
 
-	public const VERSION = '1.0.0';
+	public const VERSION = '1.0';
 
 	private static ?Core $instance = null;
 

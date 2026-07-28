@@ -1,7 +1,7 @@
 # Copyright (C) 2026 aSolution.company
 msgid ""
 msgstr ""
-"Project-Id-Version: aS.c AI Boiler 1.0.0\n"
+"Project-Id-Version: aS.c AI Boiler 1.0\n"
 "Report-Msgid-Bugs-To: https://asolution.company\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"

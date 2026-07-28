@@ -8,12 +8,13 @@ declare( strict_types = 1 );
  * Example site layer for the aS.c AI Boiler Framework. Standalone site layer.
  *
  * @package asc-ai-example
+ * @since 1.0
  *
  * @wordpress-plugin
  * Plugin Name: aS.c AI Boiler Example
  * Plugin URI: https://asolution.company
  * Description: Example site layer for the aS.c AI Boiler Framework.
- * Version: 1.0.0
+ * Version: 1.0
  * Requires at least: 5.0
  * Tested up to: 6.9
  * Requires PHP: 8.1

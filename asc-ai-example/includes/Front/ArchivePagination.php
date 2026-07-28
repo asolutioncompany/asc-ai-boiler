@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * @since 1.0
  * Prev / Next + Page X of N for static pages using the paged query var.
  */
 class ArchivePagination {

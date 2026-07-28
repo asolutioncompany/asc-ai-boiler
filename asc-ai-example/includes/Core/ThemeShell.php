@@ -17,6 +17,7 @@ use ASC\AI_EXAMPLE\Front\CallToAction;
 use ASC\AI_EXAMPLE\Front\SiteFront;
 
 /**
+ * @since 1.0
  * Theme template bypass and document shell for asc-ai-example.
  */
 final class ThemeShell {

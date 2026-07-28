@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * @since 1.0
  * Core Media Helper Class.
  */
 final class Media {

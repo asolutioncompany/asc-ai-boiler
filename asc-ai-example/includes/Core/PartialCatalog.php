@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * @since 1.0
  * Product-layer partial shell catalog.
  */
 final class PartialCatalog {

@@ -5,7 +5,7 @@
  * Handles front-end initialization and enqueues front assets.
  *
  * @package asc-ai-example
- * @since 1.0.0
+ * @since 1.0
  */
 
 declare( strict_types = 1 );

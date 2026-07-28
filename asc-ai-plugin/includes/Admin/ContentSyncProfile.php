@@ -19,6 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * @since 1.0
  * Static sync profile: type list, partial shell filename map, and page seed resolvers.
  */
 final class ContentSyncProfile {

@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use ASC\AI_BOILER\Core\Core;
 
 /**
+ * @since 1.0
  * Boiler Admin (Import / Export). No front-end responsibilities.
  */
 class Admin {

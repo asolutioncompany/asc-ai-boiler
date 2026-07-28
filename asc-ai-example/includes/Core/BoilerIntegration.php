@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * @since 1.0
  * Minimum example product integration with aS.c Boiler core APIs.
  */
 final class BoilerIntegration {

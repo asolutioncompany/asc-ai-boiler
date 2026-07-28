@@ -8,12 +8,13 @@ declare( strict_types = 1 );
  * Content synchronization tool for the aS.c AI Boiler Framework.
  *
  * @package asc-ai-plugin
+ * @since 1.0
  *
  * @wordpress-plugin
  * Plugin Name: aS.c AI Boiler Plugin
  * Plugin URI: https://asolution.company
  * Description: Content synchronization tool for the aS.c AI Boiler Framework.
- * Version: 1.0.0
+ * Version: 1.0
  * Requires at least: 5.0
  * Tested up to: 6.9
  * Requires PHP: 8.1

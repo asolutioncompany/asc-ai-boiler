@@ -3,7 +3,7 @@
  * Minimum Example Settings: default images and quick links to content admin screens.
  *
  * @package asc-ai-example
- * @since 1.0.0
+ * @since 1.0
  */
 
 declare( strict_types = 1 );

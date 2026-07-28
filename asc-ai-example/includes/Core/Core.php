@@ -17,11 +17,12 @@ use ASC\AI_EXAMPLE\Admin\Admin;
 use ASC\AI_EXAMPLE\Front\Front;
 
 /**
+ * @since 1.0
  * Minimum example product Core (singleton).
  */
 class Core {
 
-	public const VERSION = '1.0.0';
+	public const VERSION = '1.0';
 
 	private static ?Core $instance = null;
 

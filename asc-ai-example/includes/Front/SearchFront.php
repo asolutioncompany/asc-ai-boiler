@@ -18,6 +18,7 @@ use ASC\AI_EXAMPLE\Core\ArchiveConfig;
 use ASC\AI_EXAMPLE\Core\CoreSettings;
 
 /**
+ * @since 1.0
  * Handles search results, archive, and 404 page rendering.
  */
 class SearchFront {

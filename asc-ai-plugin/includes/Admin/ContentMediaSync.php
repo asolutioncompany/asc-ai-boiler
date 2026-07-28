@@ -21,6 +21,7 @@ use ASC\AI_BOILER\Core\Core;
 use ASC\AI_BOILER\Core\Media;
 
 /**
+ * @since 1.0
  * Sync between content/media/ and WordPress attachments.
  */
 final class ContentMediaSync {

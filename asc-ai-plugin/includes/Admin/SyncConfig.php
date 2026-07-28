@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * @since 1.0
  * Sync configuration for {@see ContentSync} and the Import / Export admin UI.
  */
 final class SyncConfig {

@@ -17,6 +17,7 @@ use WP_Post;
 use WP_Query;
 
 /**
+ * @since 1.0
  * Store helpers for partial CPT posts.
  */
 final class PartialStore {

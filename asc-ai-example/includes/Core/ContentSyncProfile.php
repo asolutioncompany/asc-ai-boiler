@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * @since 1.0
  * Product partial shell map and profile filter.
  */
 final class ContentSyncProfile {

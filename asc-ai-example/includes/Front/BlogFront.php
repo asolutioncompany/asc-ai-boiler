@@ -5,7 +5,7 @@
  * Blog listings, archives, and single-post content filter.
  *
  * @package asc-ai-example
- * @since 1.0.0
+ * @since 1.0
  */
 
 declare( strict_types = 1 );

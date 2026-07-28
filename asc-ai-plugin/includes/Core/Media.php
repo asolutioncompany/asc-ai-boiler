@@ -5,7 +5,7 @@
  * Safe for both public front-end and dashboard admin routines.
  *
  * @package asc-ai-boiler
- * @since 1.0.0
+ * @since 1.0
  */
 
 declare( strict_types = 1 );

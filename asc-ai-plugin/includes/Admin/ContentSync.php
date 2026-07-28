@@ -19,6 +19,7 @@ use WP_Query;
 use WP_Term;
 
 /**
+ * @since 1.0
  * Static HTML sync between plugin content files and WordPress posts.
  */
 final class ContentSync {

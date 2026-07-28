@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use ASC\AI_EXAMPLE\Core\Media;
 
 /**
+ * @since 1.0
  * Maps minimum example content to plugin media under content/media/.
  */
 final class MediaBindings {

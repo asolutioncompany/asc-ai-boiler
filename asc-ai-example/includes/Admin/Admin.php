@@ -5,7 +5,7 @@
  * Core admin class that maintains constants and initializes admin components.
  *
  * @package asc-ai-example
- * @since 1.0.0
+ * @since 1.0
  */
 
 declare( strict_types = 1 );

@@ -17,6 +17,7 @@ use ASC\AI_EXAMPLE\Core\PartialCatalog;
 use ASC\AI_EXAMPLE\Core\PartialStore;
 
 /**
+ * @since 1.0
  * CTA shortcode handlers.
  */
 class CallToAction {
