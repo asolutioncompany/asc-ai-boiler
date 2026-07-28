@@ -1,6 +1,6 @@
 # aS.c AI Boiler Framework
 
-WordPress boilerplate framework for AI-assisted site builds. Features a decoupled architecture where site layer plugins (`aS.c AI Boiler Example`) operate completely standalone with their own theme shell and partials registry, while `aS.c AI Boiler Plugin` serves as an independent Content Synchronization Tool.
+WordPress boilerplate framework for AI-assisted site builds. Features a decoupled architecture where site layer plugins (`aS.c AI Boiler Example`) operate completely standalone with their own theme shell and partials registry, while `aS.c AI Boiler Plugin` serves as an independent Content Synchronization Tool. It is shipped with a minimum theme `aS.c AI Boiler Theme` but is compatible with others and page builers.
 
 Includes a standalone example site layer (`asc-ai-example`) featuring a Portfolio Custom Post Type (with featured image and additional photo gallery support), Blog, Pages, and Partials for testing and starting new website builds.
 
@@ -18,10 +18,12 @@ You can preview the framework in action by visiting the example site at [boiler.
   - Categories & Tags
   - Excerpt
   - Publication Date
-  - SEO Meta Description
-  - Social Title (OpenGraph)
-  - X Title (Twitter)
-  - SEO Focus Keyphrase
+  - SEO Meta Description (Yoast)
+  - Social Title (OpenGraph) (Yoast)
+  - X Title (Twitter) (Yoast)
+  - SEO Focus Keyphrase (Yoast)
+  - Media alt, title, caption, and description
+  - Featured images
 - **CMS Flexibility**: The synchronization tool allows WordPress to still be used normally as a CMS to add and edit posts, pages, and media directly in the dashboard.
 
 ## Additional Notes
