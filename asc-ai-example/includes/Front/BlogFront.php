@@ -2,9 +2,9 @@
 /**
  * Blog Front Class
  *
- * Blog listings, archives, and single-post content filter. Shortcodes are registered in RegisterShortcodes.
+ * Blog listings, archives, and single-post content filter.
  *
- * @package asc-ai-boiler
+ * @package asc-ai-example
  * @since 1.0.0
  */
 
@@ -33,7 +33,7 @@ class BlogFront {
 	}
 
 	/**
-	 * Home: latest blogs (max 6, test overrides).
+	 * Home: latest blogs.
 	 *
 	 * @return string
 	 */
@@ -41,12 +41,12 @@ class BlogFront {
 		$limit = ArchiveConfig::HOME_BLOG_LIMIT;
 		$query = new WP_Query(
 			array(
-				'post_type'              => 'post',
-				'post_status'            => 'publish',
-				'posts_per_page'         => $limit,
-				'orderby'                => 'date',
-				'order'                  => 'DESC',
-				'no_found_rows'          => false,
+				'post_type' => 'post',
+				'post_status' => 'publish',
+				'posts_per_page' => $limit,
+				'orderby' => 'date',
+				'order' => 'DESC',
+				'no_found_rows' => false,
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => true,
 			)
@@ -94,13 +94,13 @@ class BlogFront {
 
 		$query = new WP_Query(
 			array(
-				'post_type'              => 'post',
-				'post_status'            => 'publish',
-				'posts_per_page'         => $per_page,
-				'paged'                  => $paged,
-				'orderby'                => 'date',
-				'order'                  => 'DESC',
-				'no_found_rows'          => false,
+				'post_type' => 'post',
+				'post_status' => 'publish',
+				'posts_per_page' => $per_page,
+				'paged' => $paged,
+				'orderby' => 'date',
+				'order' => 'DESC',
+				'no_found_rows' => false,
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => true,
 			)
@@ -138,6 +138,7 @@ class BlogFront {
 			. '</a>'
 			. '</div>';
 	}
+
 	/**
 	 * Filter single blog content into custom markup.
 	 *

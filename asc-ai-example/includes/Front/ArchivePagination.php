@@ -2,7 +2,7 @@
 /**
  * Pagination markup for paged archive shortcodes.
  *
- * @package asc-ai-boiler
+ * @package asc-ai-example
  */
 
 declare( strict_types = 1 );

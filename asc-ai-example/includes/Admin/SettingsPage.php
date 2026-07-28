@@ -1,8 +1,8 @@
 <?php
 /**
- * Example Settings: default images and quick links to content admin screens.
+ * Minimum Example Settings: default images and quick links to content admin screens.
  *
- * @package asc-ai-boiler
+ * @package asc-ai-example
  * @since 1.0.0
  */
 
@@ -14,13 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use ASC\AI_BOILER\Core\RegisterPartials;
+use ASC\AI_EXAMPLE\Core\RegisterPartials;
+use ASC\AI_EXAMPLE\Core\RegisterPortfolio;
 use ASC\AI_EXAMPLE\Core\CoreSettings;
-use ASC\AI_EXAMPLE\Core\RegisterProjects;
-use ASC\AI_EXAMPLE\Core\RegisterServices;
 
 /**
- * Top-level Example Settings admin page.
+ * Top-level Minimum Example Settings admin page.
  */
 class SettingsPage {
 
@@ -59,14 +58,14 @@ class SettingsPage {
 	}
 
 	/**
-	 * Register top-level menu and first submenu (removes duplicate top-level label).
+	 * Register top-level menu and first submenu.
 	 *
 	 * @return void
 	 */
 	public function register_menu(): void {
 		add_menu_page(
-			__( 'aS.c Example Settings', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
-			__( 'aS.c Example', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
+			__( 'aS.c AI Example Settings', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
+			__( 'aS.c AI Example', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
 			'manage_options',
 			self::PAGE_SLUG,
 			array( $this, 'render_settings_page' ),
@@ -76,8 +75,8 @@ class SettingsPage {
 
 		add_submenu_page(
 			self::PAGE_SLUG,
-			__( 'aS.c Example Settings', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
-			__( 'aS.c Example Settings', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
+			__( 'aS.c AI Example Settings', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
+			__( 'aS.c AI Example Settings', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
 			'manage_options',
 			self::PAGE_SLUG,
 			array( $this, 'render_settings_page' )
@@ -125,7 +124,7 @@ class SettingsPage {
 	}
 
 	/**
-	 * Render Example Settings page.
+	 * Render Settings page.
 	 *
 	 * @return void
 	 */
@@ -140,7 +139,7 @@ class SettingsPage {
 
 		?>
 		<div class="wrap example-settings-page example-admin-settings-hub">
-			<h1><?php esc_html_e( 'aS.c Example Settings', \ASC_AI_EXAMPLE_TEXT_DOMAIN ); ?></h1>
+			<h1><?php esc_html_e( 'aS.c AI Boiler Example Settings', \ASC_AI_EXAMPLE_TEXT_DOMAIN ); ?></h1>
 
 			<?php if ( isset( $_GET['settings-updated'] ) ) : ?>
 				<div class="notice notice-success is-dismissible">
@@ -259,30 +258,15 @@ class SettingsPage {
 			);
 		}
 
-		$this->append_post_type_link( $out, RegisterServices::POST_TYPE );
-		$this->append_post_type_link( $out, RegisterProjects::POST_TYPE );
-
-		return $out;
-	}
-
-	/**
-	 * Append a post type’s admin URL and plural label when the type is registered.
-	 *
-	 * @param list<array{url:string, label:string}> $links Running list.
-	 * @param string                                $post_type Post type slug.
-	 *
-	 * @return void
-	 */
-	private function append_post_type_link( array &$links, string $post_type ): void {
-		$obj = get_post_type_object( $post_type );
-		if ( ! $obj instanceof \WP_Post_Type ) {
-			return;
+		$portfolio_obj = get_post_type_object( RegisterPortfolio::POST_TYPE );
+		if ( $portfolio_obj instanceof \WP_Post_Type ) {
+			$out[] = array(
+				'url' => admin_url( 'edit.php?post_type=' . RegisterPortfolio::POST_TYPE ),
+				'label' => $portfolio_obj->labels->name,
+			);
 		}
 
-		$links[] = array(
-			'url' => admin_url( 'edit.php?post_type=' . $post_type ),
-			'label' => $obj->labels->name,
-		);
+		return $out;
 	}
 
 	/**
@@ -297,12 +281,8 @@ class SettingsPage {
 				'label' => __( 'Blog default image', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
 			),
 			array(
-				'key' => CoreSettings::SETTING_IMAGE_SERVICES,
-				'label' => __( 'Services default image', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
-			),
-			array(
-				'key' => CoreSettings::SETTING_IMAGE_PROJECTS,
-				'label' => __( 'Projects default image', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
+				'key' => CoreSettings::SETTING_IMAGE_PORTFOLIO,
+				'label' => __( 'Portfolio default image', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
 			),
 		);
 	}

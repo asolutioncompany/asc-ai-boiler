@@ -3,16 +3,16 @@
 declare( strict_types = 1 );
 
 /**
- * aS.c Boiler
+ * aS.c AI Boiler Plugin
  *
- * Boilerplate framework plugin: partial-based layouts, content sync, admin settings.
+ * Content synchronization tool for the aS.c AI Boiler Framework.
  *
  * @package asc-ai-plugin
  *
  * @wordpress-plugin
- * Plugin Name: aS.c Boiler
+ * Plugin Name: aS.c AI Boiler Plugin
  * Plugin URI: https://asolution.company
- * Description: WordPress boilerplate framework plugin providing partial-based layouts, content sync, and admin settings.
+ * Description: Content synchronization tool for the aS.c AI Boiler Framework.
  * Version: 1.0.0
  * Requires at least: 5.0
  * Tested up to: 6.9

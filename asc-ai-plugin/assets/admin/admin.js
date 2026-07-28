@@ -1,8 +1,10 @@
 (function ($) {
 	'use strict';
+
 	$(document).ready(function () {
 		initSyncBatches();
 	});
+
 	function sprintf(template) {
 		var args = Array.prototype.slice.call(arguments, 1);
 		var i = 0;
@@ -61,6 +63,47 @@
 			$detectBtn.prop('disabled', running);
 		}
 
+		function renderSummaryBar($container, summary) {
+			if (!summary || !$container || !$container.length) {
+				return;
+			}
+			$container.find('> .asc-ai-boiler-diff-summary-bar').remove();
+
+			var $summaryBar = $('<div class="asc-ai-boiler-diff-summary-bar"></div>');
+			var pagesCount = summary.pages_scanned || 0;
+			var partialsCount = summary.partials_scanned || 0;
+			var postsCount = summary.posts_scanned || 0;
+			var imagesCount = summary.images_scanned || 0;
+
+			var pagesText = (str.pages_scanned || 'Pages Scanned');
+			var partialsText = (str.partials_scanned || 'Partials Scanned');
+			var postsText = (str.posts_scanned || 'Posts & CPTs Scanned');
+			var imagesText = (str.images_scanned || 'Images Scanned');
+
+			$summaryBar.append(
+				$('<div class="asc-ai-boiler-summary-pill"></div>').html(
+					'<span class="dashicons dashicons-admin-page"></span> <strong>' + pagesCount + '</strong> ' + pagesText
+				)
+			);
+			$summaryBar.append(
+				$('<div class="asc-ai-boiler-summary-pill"></div>').html(
+					'<span class="dashicons dashicons-layout"></span> <strong>' + partialsCount + '</strong> ' + partialsText
+				)
+			);
+			$summaryBar.append(
+				$('<div class="asc-ai-boiler-summary-pill"></div>').html(
+					'<span class="dashicons dashicons-admin-post"></span> <strong>' + postsCount + '</strong> ' + postsText
+				)
+			);
+			$summaryBar.append(
+				$('<div class="asc-ai-boiler-summary-pill"></div>').html(
+					'<span class="dashicons dashicons-format-image"></span> <strong>' + imagesCount + '</strong> ' + imagesText
+				)
+			);
+
+			$container.prepend($summaryBar);
+		}
+
 		function renderDiffResult(data) {
 			$diffBox.empty();
 			$diffBox.removeClass(
@@ -69,6 +112,11 @@
 			if (!data) {
 				return;
 			}
+
+			if (data.summary) {
+				renderSummaryBar($diffBox, data.summary);
+			}
+
 			if (data.in_sync) {
 				$diffBox.addClass('asc-ai-boiler-diff-highlight--empty');
 				$diffBox.append($('<p class="asc-ai-boiler-diff-summary"></p>').text(str.detect_none));
@@ -83,8 +131,30 @@
 				if (suggestKey !== 'export' && suggestKey !== 'import' && suggestKey !== 'unclear') {
 					suggestKey = 'unclear';
 				}
+				if (row.is_minor_summary) {
+					$item.addClass('asc-ai-boiler-diff-item--minor-summary');
+				}
 				$item.addClass('asc-ai-boiler-diff-item--suggest-' + suggestKey);
-				$item.append($('<div class="asc-ai-boiler-diff-path"></div>').text(row.relative_path || ''));
+
+				var $header = $('<div class="asc-ai-boiler-diff-path-header"></div>');
+
+				if (row.is_minor_summary) {
+					$header.append('<span class="dashicons dashicons-info asc-ai-boiler-diff-icon asc-ai-boiler-diff-icon--minor" title="Minor Adjustments"></span>');
+					$header.append($('<span class="asc-ai-boiler-diff-badge asc-ai-boiler-diff-badge--minor"></span>').text(str.minor_sync || 'Minor Sync'));
+				} else if (suggestKey === 'import') {
+					$header.append('<span class="dashicons dashicons-download asc-ai-boiler-diff-icon asc-ai-boiler-diff-icon--import" title="Import needed from plugin files"></span>');
+					$header.append($('<span class="asc-ai-boiler-diff-badge asc-ai-boiler-diff-badge--import"></span>').text(str.import_needed || 'Import Needed'));
+				} else if (suggestKey === 'export') {
+					$header.append('<span class="dashicons dashicons-upload asc-ai-boiler-diff-icon asc-ai-boiler-diff-icon--export" title="Export needed to plugin files"></span>');
+					$header.append($('<span class="asc-ai-boiler-diff-badge asc-ai-boiler-diff-badge--export"></span>').text(str.export_needed || 'Export Needed'));
+				} else {
+					$header.append('<span class="dashicons dashicons-warning asc-ai-boiler-diff-icon asc-ai-boiler-diff-icon--unclear" title="Review choices"></span>');
+					$header.append($('<span class="asc-ai-boiler-diff-badge asc-ai-boiler-diff-badge--unclear"></span>').text(str.review_needed || 'Review Needed'));
+				}
+
+				$header.append($('<div class="asc-ai-boiler-diff-path"></div>').text(row.relative_path || ''));
+				$item.append($header);
+
 				var issues = row.issues || [];
 				if (issues.length) {
 					var $issues = $('<ul class="asc-ai-boiler-diff-issues"></ul>');
@@ -117,7 +187,7 @@
 		function clearSyncStatusHighlight($statusEl) {
 			$statusEl.removeClass(
 				'asc-ai-boiler-sync-status--export-running asc-ai-boiler-sync-status--export-done asc-ai-boiler-sync-status--export-error '
-					+ 'asc-ai-boiler-sync-status--import-running asc-ai-boiler-sync-status--import-done asc-ai-boiler-sync-status--import-error'
+				+ 'asc-ai-boiler-sync-status--import-running asc-ai-boiler-sync-status--import-done asc-ai-boiler-sync-status--import-error'
 			);
 		}
 
@@ -193,6 +263,9 @@
 						return;
 					}
 					var d = res.data;
+					if (d.summary) {
+						renderSummaryBar($importStatus, d.summary);
+					}
 					appendDetailMessages($importMessages, d.messages || []);
 					totalUpdated += d.updated_in_batch || 0;
 					offset = d.next_offset;
@@ -246,6 +319,9 @@
 						return;
 					}
 					var d = res.data;
+					if (d.summary) {
+						renderSummaryBar($exportStatus, d.summary);
+					}
 					appendDetailMessages($exportMessages, d.messages || []);
 					var batchFiles = d.updated_in_batch || 0;
 					var batchMeta = d.manifest_metadata_refreshed_in_batch || 0;

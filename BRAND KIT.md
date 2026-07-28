@@ -1,6 +1,6 @@
 # Brand Kit
 
-This document defines the graphical styling, typography, and color schemes for the **aS.c AI Boiler** project. These styles are implemented in the stylesheet at [front.css](file:///media/keith/Data/work/asc-ai-boiler/asc-ai-example/assets/front/front.css).
+This document defines the graphical styling, typography, and color schemes for the **aS.c AI Boiler Framework** project. These styles are implemented in the stylesheet at [front.css](file:///media/keith/Data/work/asc-ai-boiler/asc-ai-example/assets/front/front.css).
 
 ---
 

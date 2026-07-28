@@ -2,9 +2,7 @@
 /**
  * Site shell: partial shortcodes and home URL helper.
  *
- * Shortcode registration lives in RegisterShortcodes.
- *
- * @package asc-ai-boiler
+ * @package asc-ai-example
  * @since 1.0.0
  */
 
@@ -16,10 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use ASC\AI_BOILER\Core\PartialStore;
+use ASC\AI_EXAMPLE\Core\Media;
 use ASC\AI_EXAMPLE\Core\PartialCatalog;
-
-use ASC\AI_BOILER\Core\Media;
+use ASC\AI_EXAMPLE\Core\PartialStore;
 
 /**
  * Site Front Class
@@ -41,7 +38,7 @@ class SiteFront {
 	}
 
 	/**
-	 * Site home URL for partials (no trailing slash). Use like href="[example_home_url]/about-us/".
+	 * Site home URL for partials (no trailing slash).
 	 *
 	 * @return string
 	 */
@@ -50,7 +47,7 @@ class SiteFront {
 	}
 
 	/**
-	 * Render header from the Partials CPT (published body only).
+	 * Render header from the Partials CPT.
 	 *
 	 * @return string
 	 */
@@ -60,20 +57,12 @@ class SiteFront {
 			return '';
 		}
 
-		// Adjust theme toggle aria-pressed attributes based on current cookie to prevent flickering.
-		$cookie = (string) ( $_COOKIE['asc_cookie'] ?? $_COOKIE['asc-cookie'] ?? '' );
-		$is_dark = ( 'asc-dark' === $cookie ); // Default is light mode
-		if ( ! $is_dark ) {
-			// In light mode, light-button is pressed (true) and dark-button is unpressed (false).
-			$raw = str_replace( 'aria-label="Light mode" aria-pressed="false"', 'aria-label="Light mode" aria-pressed="true"', $raw );
-			$raw = str_replace( 'aria-label="Dark mode" aria-pressed="true"', 'aria-label="Dark mode" aria-pressed="false"', $raw );
-		}
-
+		$raw = str_replace( '[example_home_url]', esc_url( untrailingslashit( home_url() ) ), $raw );
 		return do_shortcode( $raw );
 	}
 
 	/**
-	 * Render footer from the Partials CPT (published body only).
+	 * Render footer from the Partials CPT.
 	 *
 	 * @return string
 	 */
@@ -83,11 +72,12 @@ class SiteFront {
 			return '';
 		}
 
+		$raw = str_replace( '[example_home_url]', esc_url( untrailingslashit( home_url() ) ), $raw );
 		return do_shortcode( $raw );
 	}
 
 	/**
-	 * Agency boiler section (Partials CPT) preceded by the yellow divider.
+	 * Agency boiler section preceded by divider.
 	 *
 	 * @return string
 	 */
@@ -96,7 +86,7 @@ class SiteFront {
 	}
 
 	/**
-	 * Blog boiler section (Partials CPT) preceded by the green divider.
+	 * Blog boiler section preceded by divider.
 	 *
 	 * @return string
 	 */
@@ -105,9 +95,7 @@ class SiteFront {
 	}
 
 	/**
-	 * Social media icon row (Partials CPT).
-	 *
-	 * Used in the footer brand column and the contact-us info panel via the [example_social_links] shortcode.
+	 * Social media icon row.
 	 *
 	 * @return string
 	 */
@@ -118,5 +106,29 @@ class SiteFront {
 		}
 
 		return do_shortcode( $raw );
+	}
+
+	/**
+	 * @return string
+	 */
+	public function render_about_image_shortcode(): string {
+		$url = Media::get_attachment_url_for_path( 'about-us.jpg' );
+		if ( '' === $url ) {
+			return '';
+		}
+
+		return '<img class="example-page-clipart-image" src="' . esc_url( $url ) . '" alt="' . esc_attr__( 'Cozy office workspace with team collaboration illustration', \ASC_AI_EXAMPLE_TEXT_DOMAIN ) . '" width="640" height="640" loading="lazy" decoding="async">';
+	}
+
+	/**
+	 * @return string
+	 */
+	public function render_contact_image_shortcode(): string {
+		$url = Media::get_attachment_url_for_path( 'contact-us.jpg' );
+		if ( '' === $url ) {
+			return '';
+		}
+
+		return '<img class="example-page-clipart-image" src="' . esc_url( $url ) . '" alt="' . esc_attr__( 'Cozy office workspace desk showing contact channels illustration', \ASC_AI_EXAMPLE_TEXT_DOMAIN ) . '" width="640" height="640" loading="lazy" decoding="async">';
 	}
 }

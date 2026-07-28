@@ -1,10 +1,8 @@
 <?php
 /**
- * Call-to-action shortcodes: markup loaded from the Contact Call to Action partial (Partials CPT).
+ * Call-to-action shortcodes.
  *
- * Shortcode registration lives in RegisterShortcodes.
- *
- * @package asc-ai-boiler
+ * @package asc-ai-example
  */
 
 declare( strict_types = 1 );
@@ -15,18 +13,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use ASC\AI_BOILER\Core\PartialStore;
 use ASC\AI_EXAMPLE\Core\PartialCatalog;
+use ASC\AI_EXAMPLE\Core\PartialStore;
 
 /**
- * CTA shortcode handlers (content from partial; {@see PartialCatalog::KEY_CONTACT_CALL_TO_ACTION}).
+ * CTA shortcode handlers.
  */
 class CallToAction {
 
 	/**
-	 * Home page Request Quote CTA (Contact Call to Action partial).
-	 *
-	 * Shortcode: `[example_home_cta_request_quote]`.
+	 * Home page Request Quote CTA.
 	 *
 	 * @return string
 	 */
@@ -36,8 +32,6 @@ class CallToAction {
 
 	/**
 	 * Contact call-to-action partial (all pages before the footer).
-	 *
-	 * Shortcode: `[example_cta]`.
 	 *
 	 * @return string
 	 */

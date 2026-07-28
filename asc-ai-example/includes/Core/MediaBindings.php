@@ -1,8 +1,8 @@
 <?php
 /**
- * Example site media paths and manifest bindings for {@see Media}.
+ * Minimum example site media paths and manifest bindings for {@see Media}.
  *
- * @package asc-ai-boiler
+ * @package asc-ai-example
  */
 
 declare( strict_types = 1 );
@@ -13,10 +13,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use ASC\AI_BOILER\Core\Media;
+use ASC\AI_EXAMPLE\Core\Media;
 
 /**
- * Maps example content to plugin media under content/media/.
+ * Maps minimum example content to plugin media under content/media/.
  */
 final class MediaBindings {
 
@@ -51,8 +51,7 @@ final class MediaBindings {
 	public static function filter_setting_media_path( string $path, string $setting_key ): string {
 		$map = array(
 			CoreSettings::SETTING_IMAGE_BLOG_DEFAULT => 'blog-default.jpg',
-			CoreSettings::SETTING_IMAGE_SERVICES => 'services-default.jpg',
-			CoreSettings::SETTING_IMAGE_PROJECTS => 'projects-default.jpg',
+			CoreSettings::SETTING_IMAGE_PORTFOLIO => 'projects-default.jpg',
 		);
 
 		if ( isset( $map[ $setting_key ] ) ) {
@@ -80,66 +79,17 @@ final class MediaBindings {
 			return $blog_map[ $slug ];
 		}
 
-		$project_map = array(
-			'pool-service-company' => 'project-pool-service.jpg',
-			'landscaping-company' => 'project-landscaping.jpg',
+		$portfolio_map = array(
 			'dog-groomer' => 'project-dog-groomer.jpg',
+			'landscaping-company' => 'project-landscaping.jpg',
+			'pool-service-company' => 'project-pool-service.jpg',
 		);
 
-		if ( RegisterProjects::POST_TYPE === $post_type && isset( $project_map[ $slug ] ) ) {
-			return $project_map[ $slug ];
-		}
-
-		$service_icon_map = array(
-			'wordpress-design' => 'service-design.png',
-			'hosting' => 'service-hosting.png',
-			'maintenance' => 'service-maintenance.png',
-		);
-
-		if ( RegisterServices::POST_TYPE === $post_type && isset( $service_icon_map[ $slug ] ) ) {
-			return $service_icon_map[ $slug ];
+		if ( RegisterPortfolio::POST_TYPE === $post_type && isset( $portfolio_map[ $slug ] ) ) {
+			return $portfolio_map[ $slug ];
 		}
 
 		return $path;
-	}
-
-	/**
-	 * Foreground dashicon class for a service slug.
-	 *
-	 * @param string $slug Service post slug.
-	 *
-	 * @return string Dashicon CSS class or empty string.
-	 */
-	public static function service_dashicon( string $slug ): string {
-		$map = array(
-			'wordpress-design' => 'dashicons-art',
-			'hosting'          => 'dashicons-cloud',
-			'maintenance'      => 'dashicons-admin-tools',
-			'help'             => 'dashicons-sos',
-		);
-
-		return $map[ $slug ] ?? '';
-	}
-
-	/**
-	 * Smaller list-view service icon under content/media/icons/.
-	 *
-	 * @param string $slug Service post slug.
-	 *
-	 * @return string Relative path or empty string.
-	 */
-	public static function service_list_icon_relative_path( string $slug ): string {
-		$list_icon_map = array(
-			'wordpress-design' => 'service-design.png',
-			'hosting' => 'service-hosting.png',
-			'maintenance' => 'service-maintenance.png',
-		);
-
-		if ( isset( $list_icon_map[ $slug ] ) ) {
-			return $list_icon_map[ $slug ];
-		}
-
-		return '';
 	}
 
 	/**
@@ -156,16 +106,10 @@ final class MediaBindings {
 				'key' => CoreSettings::SETTING_IMAGE_BLOG_DEFAULT,
 			),
 			array(
-				'media_filename' => 'services-default.jpg',
-				'target' => 'setting',
-				'option' => $option,
-				'key' => CoreSettings::SETTING_IMAGE_SERVICES,
-			),
-			array(
 				'media_filename' => 'projects-default.jpg',
 				'target' => 'setting',
 				'option' => $option,
-				'key' => CoreSettings::SETTING_IMAGE_PROJECTS,
+				'key' => CoreSettings::SETTING_IMAGE_PORTFOLIO,
 			),
 			array(
 				'media_filename' => 'blog-seo.jpg',
@@ -186,22 +130,22 @@ final class MediaBindings {
 				'slug' => 'ai-assisted-wordpress-development-improves-performance-and-security',
 			),
 			array(
-				'media_filename' => 'project-pool-service.jpg',
+				'media_filename' => 'project-dog-groomer.jpg',
 				'target' => 'featured',
-				'post_type' => RegisterProjects::POST_TYPE,
-				'slug' => 'pool-service-company',
+				'post_type' => RegisterPortfolio::POST_TYPE,
+				'slug' => 'dog-groomer',
 			),
 			array(
 				'media_filename' => 'project-landscaping.jpg',
 				'target' => 'featured',
-				'post_type' => RegisterProjects::POST_TYPE,
+				'post_type' => RegisterPortfolio::POST_TYPE,
 				'slug' => 'landscaping-company',
 			),
 			array(
-				'media_filename' => 'project-dog-groomer.jpg',
+				'media_filename' => 'project-pool-service.jpg',
 				'target' => 'featured',
-				'post_type' => RegisterProjects::POST_TYPE,
-				'slug' => 'dog-groomer',
+				'post_type' => RegisterPortfolio::POST_TYPE,
+				'slug' => 'pool-service-company',
 			),
 		);
 	}

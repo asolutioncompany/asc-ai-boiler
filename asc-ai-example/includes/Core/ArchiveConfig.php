@@ -1,8 +1,8 @@
 <?php
 /**
- * Example archive limits and slug constants.
+ * Minimum example archive limits and slug constants.
  *
- * @package asc-ai-boiler
+ * @package asc-ai-example
  */
 
 declare( strict_types = 1 );
@@ -14,14 +14,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class ArchiveConfig {
-	// Modify to test paging
-	public const HOME_BLOG_LIMIT      = 6;
-	public const BLOG_ARCHIVE_LIMIT   = 12;
+	public const HOME_BLOG_LIMIT = 6;
+	public const BLOG_ARCHIVE_LIMIT = 12;
+	public const PORTFOLIO_ARCHIVE_LIMIT = 12;
 	public const SEARCH_ARCHIVE_LIMIT = 12;
 
-	public const SLUG_BLOG     = 'blog';
-	public const SLUG_PROJECTS = 'featured-work';
-	public const SLUG_SERVICES = 'our-services';
+	public const SLUG_BLOG = 'blog';
+	public const SLUG_PORTFOLIO = 'portfolio';
 
 	public static function url_for_page_slug( string $slug ): string {
 		$slug = trim( $slug, '/' );

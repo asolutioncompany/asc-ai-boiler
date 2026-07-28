@@ -4,7 +4,7 @@
  *
  * Handles front-end initialization and enqueues front assets.
  *
- * @package asc-ai-boiler
+ * @package asc-ai-example
  * @since 1.0.0
  */
 
@@ -16,21 +16,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use ASC\AI_BOILER\Core\Media;
-use ASC\AI_BOILER\Core\PartialStore;
-use ASC\AI_BOILER\Core\ThemeShell;
+use ASC\AI_EXAMPLE\Core\Media;
+use ASC\AI_EXAMPLE\Core\PartialStore;
+use ASC\AI_EXAMPLE\Core\ThemeShell;
 use ASC\AI_EXAMPLE\Core\ArchiveConfig;
 use ASC\AI_EXAMPLE\Core\CoreSettings;
-use ASC\AI_EXAMPLE\Core\RegisterProjects;
-use ASC\AI_EXAMPLE\Core\RegisterServices;
 use ASC\AI_EXAMPLE\Core\PartialCatalog;
+
+use ASC\AI_EXAMPLE\Core\RegisterPortfolio;
 
 /**
  * Front Class
  */
 class Front {
-	private const FRONT_EXCERPT_WORD_COUNT = 30
-	;
+	private const FRONT_EXCERPT_WORD_COUNT = 30;
 
 	/**
 	 * Initialize the Front class.
@@ -52,13 +51,14 @@ class Front {
 		add_action( 'wp_footer', array( $this, 'render_scroll_top' ) );
 		add_filter( 'excerpt_length', array( $this, 'get_front_excerpt_length' ), 999 );
 		add_filter( 'body_class', array( $this, 'filter_body_class' ) );
+
 		$site_front = new SiteFront();
 		$call_to_action = new CallToAction();
 		$blog_front = new BlogFront();
-		$projects_front = new ProjectsFront();
-		$services_front = new ServicesFront();
+		$portfolio_front = new PortfolioFront();
+
 		new SearchFront();
-		new RegisterShortcodes( $site_front, $call_to_action, $blog_front, $projects_front, $services_front );
+		new RegisterShortcodes( $site_front, $call_to_action, $blog_front, $portfolio_front );
 	}
 
 	/**
@@ -117,31 +117,16 @@ class Front {
 	/**
 	 * Add asc-site-dark or asc-site-light to the body class list based on the theme cookie.
 	 *
-	 * Hooked to 'body_class'. PHP reads the cookie set by the client so the correct
-	 * class is present in the cached HTML, eliminating JS flash-of-wrong-theme.
-	 * Default: light mode (asc-light).
-	 *
-	 * Caching Notes:
-	 * Page caching solutions (e.g. Varnish, Nginx FastCGI cache, WP Super Cache, Cloudflare)
-	 * MUST be configured to cache both theme versions separately by varying on the cookie:
-	 * Cookie Name: 'asc_cookie'
-	 * Settings / Values: 'asc-light' and 'asc-dark'.
-	 *
 	 * @param string[] $classes Existing body classes from WordPress.
 	 * @return string[]
 	 */
 	public function filter_body_class( array $classes ): array {
-		$raw = (string) ( $_COOKIE['asc_cookie'] ?? $_COOKIE['asc-cookie'] ?? '' );
-		$theme_class = 'asc-site-light'; // Default to light mode for this website
-		if ( 'asc-dark' === $raw ) {
-			$theme_class = 'asc-site-dark';
-		}
-		$classes[] = $theme_class;
+		$classes[] = 'asc-site-light';
 		return $classes;
 	}
 
 	/**
-	 * Absolute URL for a path under the site home (e.g. /wp-content/uploads/...).
+	 * Absolute URL for a path under the site home.
 	 *
 	 * @param string $path Path beginning with /.
 	 *
@@ -209,61 +194,7 @@ class Front {
 	}
 
 	/**
-	 * Featured / New label spans for services and projects CPTs.
-	 *
-	 * @param int $post_id Post ID.
-	 *
-	 * @return string
-	 */
-
-
-	/**
-	 * Single CPT page media column with settings-based image default.
-	 *
-	 * @param int $post_id Post ID.
-	 * @param string $setting_key Image setting key.
-	 *
-	 * @return string
-	 */
-	public static function single_page_media_markup_with_setting_key( int $post_id, string $setting_key ): string {
-		if ( has_post_thumbnail( $post_id ) ) {
-			return (string) get_the_post_thumbnail( $post_id, 'large', array( 'loading' => 'lazy' ) );
-		}
-
-		$title = (string) get_the_title( $post_id );
-		$default_image = self::media_url_for_post( $post_id, $setting_key );
-		$default_alt = self::default_image_alt_by_setting_key( $setting_key, $title );
-
-		return '<img src="' . esc_url( $default_image ) . '" alt="' . esc_attr( $default_alt ) . '" width="1440" height="1080">';
-	}
-
-	/**
-	 * Agency boiler markup appended to single service and project posts.
-	 *
-	 * @return string
-	 */
-	public static function get_agency_boiler_markup(): string {
-		return self::get_boiler_section_markup( PartialCatalog::KEY_AGENCY_BOILER );
-	}
-
-	/**
-	 * Agency boiler markup for single service posts (purple divider).
-	 *
-	 * @return string
-	 */
-	public static function get_service_boiler_markup(): string {
-		return self::get_boiler_section_markup( PartialCatalog::KEY_AGENCY_BOILER );
-	}
-
-	/**
 	 * Render a boiler partial wrapped in a section with a leading divider.
-	 *
-	 * Looks up the named partial in the Partials CPT. Returns an empty string when the post is missing or has no
-	 * body. Used by the single service / project / blog auto-append and
-	 * by the [example_boiler_agency] and [example_blog_boiler] shortcodes.
-	 *
-	 * The partial body is run through `wpautop()` so plain-text boiler sources are wrapped in paragraph
-	 * tags automatically.
 	 *
 	 * @param string $partial_key One of PartialCatalog::KEY_AGENCY_BOILER or KEY_BLOG_BOILER.
 	 *
@@ -297,7 +228,7 @@ class Front {
 	}
 
 	/**
-	 * Single blog / project layout: left 1/3 (featured image, boiler) | right 2/3 (tag, title, meta, content).
+	 * Single blog layout: left 1/3 (featured image, boiler) | right 2/3 (tag, title, meta, content).
 	 *
 	 * @param string $media_markup Featured image HTML.
 	 * @param string $heading_markup Pills, tags, and title markup.
@@ -330,8 +261,11 @@ class Front {
 
 		return '<article class="example-single-entry">'
 			. '<div class="example-single-entry-layout">'
+			. '<div class="example-single-entry-column example-single-entry-column--left">'
 			. '<div class="example-single-entry-column example-single-entry-column--lead">'
 			. '<figure class="example-single-entry-media">' . $media_markup . '</figure>'
+			. '</div>'
+			. $sidebar_block_markup
 			. '</div>'
 			. '<div class="example-single-entry-column example-single-entry-column--main">'
 			. '<header class="example-single-entry-header">'
@@ -342,14 +276,12 @@ class Front {
 			. '<div class="example-post-entry-body">' . $main_markup . '</div>'
 			. '</div>'
 			. '</div>'
-			. $sidebar_block_markup
 			. '</div>'
 			. '</article>';
 	}
 
 	/**
 	 * Wrap paged listing archive grid and pagination in example-card-section (no hero column).
-	 * Page h1 titles belong in page content, not here.
 	 *
 	 * @param int $page_id Current WordPress page ID.
 	 * @param string $inner_markup Grid and pagination HTML.
@@ -392,7 +324,7 @@ class Front {
 	}
 
 	/**
-	 * First paragraph HTML from post content (after {@see the_content} filters).
+	 * First paragraph HTML from post content (after typical the_content filters).
 	 *
 	 * @param string $content_raw Raw post_content.
 	 *
@@ -422,7 +354,7 @@ class Front {
 	}
 
 	/**
-	 * Read More button linking to a single post (listing cards and featured home blocks).
+	 * Read More button linking to a single post.
 	 *
 	 * @param string $permalink Post permalink.
 	 *
@@ -439,37 +371,30 @@ class Front {
 	}
 
 	/**
-	 * Leading crumb link before taxonomy tags (services, projects, blog).
+	 * Leading crumb link before taxonomy tags.
 	 *
 	 * @param string $post_type Post type key.
 	 *
 	 * @return array{label:string, href:string}
 	 */
 	private static function get_primary_post_type_tag( string $post_type ): array {
-		if ( RegisterServices::POST_TYPE === $post_type ) {
+		if ( RegisterPortfolio::POST_TYPE === $post_type ) {
 			return array(
-				'label' => 'Services',
-				'href'  => ArchiveConfig::url_for_page_slug( ArchiveConfig::SLUG_SERVICES ),
-			);
-		}
-
-		if ( RegisterProjects::POST_TYPE === $post_type ) {
-			return array(
-				'label' => __( 'Projects', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
-				'href'  => ArchiveConfig::url_for_page_slug( ArchiveConfig::SLUG_PROJECTS ),
+				'label' => __( 'Portfolio', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
+				'href' => ArchiveConfig::url_for_page_slug( ArchiveConfig::SLUG_PORTFOLIO ),
 			);
 		}
 
 		if ( 'post' === $post_type ) {
 			return array(
 				'label' => __( 'Blog', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
-				'href'  => ArchiveConfig::url_for_page_slug( ArchiveConfig::SLUG_BLOG ),
+				'href' => ArchiveConfig::url_for_page_slug( ArchiveConfig::SLUG_BLOG ),
 			);
 		}
 
 		return array(
 			'label' => '',
-			'href'  => '',
+			'href' => '',
 		);
 	}
 
@@ -486,5 +411,4 @@ class Front {
 		$svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><style>path { fill: #0b7285; } @media (prefers-color-scheme: dark) { path { fill: #67d8ef; } }</style><path d="M3.76 17.010h12.48c1.1-1.38 1.76-3.11 1.76-5.010 0-4.41-3.58-8-8-8s-8 3.59-8 8c0 1.9 0.66 3.63 1.76 5.010zM9 6c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1zM4 8c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1zM8.52 11.4c0.84-0.83 6.51-3.5 6.51-3.5s-2.66 5.68-3.49 6.51c-0.84 0.84-2.18 0.84-3.020 0-0.83-0.83-0.83-2.18 0-3.010zM3 13c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1zM9 13c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1zM15 13c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1z"/></svg>';
 		echo '<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,' . base64_encode( $svg ) . '">' . "\n";
 	}
-
 }

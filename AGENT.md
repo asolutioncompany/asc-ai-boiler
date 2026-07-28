@@ -9,12 +9,13 @@ Three-package WordPress repo. PHP 8.1+, GPL v3.
 
 ## Rules
 
-Consult STYLE.md for all code generation and reviews.
-Consult ARCH.md when working on new features or asking about structure.
-Consult LOG.md before suggesting architectural changes.
-Consult BRAND KIT.md for CSS styling, color schemes, and fonts.
-Do not rewrite working code without being asked.
-Do not add comments unless asked.
+- Consult STYLE.md for all code generation and reviews.
+- Never use column alignment padding before `=` or `=>` in variable assignments or arrays.
+- Consult ARCH.md when working on new features or asking about structure.
+- Consult LOG.md before suggesting architectural changes.
+- Consult BRAND KIT.md for CSS styling, color schemes, and fonts.
+- Do not rewrite working code without being asked.
+- Do not add comments unless asked.
 
 ## Commands
 

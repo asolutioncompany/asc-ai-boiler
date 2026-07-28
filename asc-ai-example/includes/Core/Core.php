@@ -1,8 +1,8 @@
 <?php
 /**
- * Product core: CPTs, front, and Example admin (excluding boiler sync UI). The partial CPT is registered by boiler {@see \ASC\AI_BOILER\Core\Core}.
+ * Product core: CPTs, front, and Example admin (excluding boiler sync UI).
  *
- * @package asc-ai-boiler
+ * @package asc-ai-example
  */
 
 declare( strict_types = 1 );
@@ -13,23 +13,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use ASC\AI_BOILER\Admin\ContentSync;
-use ASC\AI_BOILER\Admin\SyncConfig;
 use ASC\AI_EXAMPLE\Admin\Admin;
 use ASC\AI_EXAMPLE\Front\Front;
 
 /**
- * Example product Core (singleton).
+ * Minimum example product Core (singleton).
  */
 class Core {
+
+	public const VERSION = '1.0.0';
 
 	private static ?Core $instance = null;
 
 	private function __construct() {
+		add_action( 'init', array( RegisterPartials::class, 'register' ), 5 );
+		ThemeShell::register();
 		BoilerIntegration::register();
-		ContentSync::ensure_content_directories_exist();
-		new RegisterProjects();
-		new RegisterServices();
+		new RegisterPortfolio();
 		new Front();
 		if ( is_admin() ) {
 			new Admin();
@@ -44,17 +44,13 @@ class Core {
 	}
 
 	public static function activate(): void {
-		$register_projects = new RegisterProjects();
-		$register_projects->register_post_type();
+		RegisterPartials::register();
 
-		$register_services = new RegisterServices();
-		$register_services->register_post_type();
-
-		ContentSync::ensure_content_directories_exist();
+		$register_portfolio = new RegisterPortfolio();
+		$register_portfolio->register_post_type();
 
 		flush_rewrite_rules();
-
-		add_option( 'example_site_version', \ASC\AI_BOILER\Core\Core::VERSION );
+		add_option( 'example_site_version', self::VERSION );
 	}
 
 	public static function deactivate(): void {
@@ -64,6 +60,5 @@ class Core {
 	public static function uninstall(): void {
 		delete_option( 'example_site_version' );
 		delete_option( 'example_site_development_mode' );
-		SyncConfig::delete_all_sync_options();
 	}
 }

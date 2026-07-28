@@ -18,8 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use ASC\AI_BOILER\Core\RegisterPartials;
-
 /**
  * Static sync profile: type list, partial shell filename map, and page seed resolvers.
  */
@@ -50,12 +48,18 @@ final class ContentSyncProfile {
 	private static $cached = null;
 
 	/**
+	 * @var array<string, array{post_type:string, label:string}>|null
+	 */
+	private static $cached_sync_types = null;
+
+	/**
 	 * Drop cached profile (call when content-manifest.json changes on disk).
 	 *
 	 * @return void
 	 */
 	public static function invalidate_cache(): void {
 		self::$cached = null;
+		self::$cached_sync_types = null;
 	}
 
 	/**
@@ -64,6 +68,10 @@ final class ContentSyncProfile {
 	 * @return array<string, array{post_type:string, label:string}>
 	 */
 	public static function sync_types(): array {
+		if ( null !== self::$cached_sync_types ) {
+			return self::$cached_sync_types;
+		}
+
 		$all = self::all_sync_types();
 		$filtered = array();
 		foreach ( $all as $key => $config ) {
@@ -71,7 +79,9 @@ final class ContentSyncProfile {
 				$filtered[ $key ] = $config;
 			}
 		}
-		return $filtered;
+
+		self::$cached_sync_types = $filtered;
+		return self::$cached_sync_types;
 	}
 
 	/**
@@ -84,7 +94,7 @@ final class ContentSyncProfile {
 	}
 
 	/**
-	 * Partials seed map: filename => partial key (matches {@see RegisterPartials::META_PARTIAL_KEY}).
+	 * Partials seed map: filename => partial key (matches _asc_ai_boiler_partial_key).
 	 *
 	 * @return array<string, string>
 	 */
@@ -186,7 +196,7 @@ final class ContentSyncProfile {
 	 * }
 	 */
 	private static function build_manifest_driven_defaults(): array {
-		$manifest_types = ContentSync::get_manifest_types_snapshot();
+		$manifest_types = ContentManifest::get_manifest_types_snapshot();
 
 		$sync_types = array();
 		foreach ( ContentSync::get_content_type_keys() as $type_key ) {
@@ -213,7 +223,7 @@ final class ContentSyncProfile {
 	 */
 	private static function infer_post_type_for_type_key( string $type_key, array $manifest_types ): string {
 		if ( SyncConfig::CONTENT_TYPE_PARTIALS === $type_key ) {
-			return RegisterPartials::POST_TYPE;
+			return 'asc_boiler_partial';
 		}
 
 		if ( isset( $manifest_types[ $type_key ] ) && is_array( $manifest_types[ $type_key ] ) ) {
@@ -232,8 +242,6 @@ final class ContentSyncProfile {
 		}
 
 		switch ( $type_key ) {
-			case SyncConfig::CONTENT_TYPE_PARTIALS:
-				return RegisterPartials::POST_TYPE;
 			case SyncConfig::CONTENT_TYPE_PAGES:
 				return 'page';
 			case SyncConfig::CONTENT_TYPE_POSTS:
@@ -286,7 +294,7 @@ final class ContentSyncProfile {
 				continue;
 			}
 
-			$fn = ContentSync::manifest_resolve_filename_from_entry( $entry );
+			$fn = ContentManifest::manifest_resolve_filename_from_entry( $entry );
 			if ( '' === $fn ) {
 				continue;
 			}
@@ -301,7 +309,7 @@ final class ContentSyncProfile {
 			}
 
 			if ( '' === $partial_key ) {
-				$slug_from_file = self::filename_to_slug( $fn );
+				$slug_from_file = ContentSyncProfile::filename_to_slug( $fn );
 				if ( '' !== $slug_from_file ) {
 					$partial_key = str_replace( '-', '_', $slug_from_file );
 				}
@@ -337,7 +345,7 @@ final class ContentSyncProfile {
 				continue;
 			}
 
-			$fn = ContentSync::manifest_resolve_filename_from_entry( $entry );
+			$fn = ContentManifest::manifest_resolve_filename_from_entry( $entry );
 			if ( '' === $fn ) {
 				continue;
 			}
@@ -358,7 +366,7 @@ final class ContentSyncProfile {
 			}
 
 			if ( '' === $slug ) {
-				$slug = self::filename_to_slug( $fn );
+				$slug = ContentSyncProfile::filename_to_slug( $fn );
 			}
 
 			$map[ $fn ] = array(
@@ -383,10 +391,10 @@ final class ContentSyncProfile {
 			}
 		}
 
-		return self::title_fallback_from_slug( self::filename_to_slug( $filename ) );
+		return ContentSyncProfile::title_fallback_from_slug( ContentSyncProfile::filename_to_slug( $filename ) );
 	}
 
-	private static function filename_to_slug( string $filename ): string {
+	public static function filename_to_slug( string $filename ): string {
 		if ( '.html' !== substr( $filename, -5 ) ) {
 			return '';
 		}
@@ -394,7 +402,7 @@ final class ContentSyncProfile {
 		return substr( $filename, 0, -5 );
 	}
 
-	private static function title_fallback_from_slug( string $slug ): string {
+	public static function title_fallback_from_slug( string $slug ): string {
 		if ( '' === $slug ) {
 			return '';
 		}

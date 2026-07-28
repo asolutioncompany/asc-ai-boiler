@@ -1,8 +1,8 @@
 <?php
 /**
- * Example overrides for boiler static content sync profile (partial shell filename map).
+ * Minimum overrides for boiler static content sync profile (partial shell filename map).
  *
- * @package asc-ai-boiler
+ * @package asc-ai-example
  */
 
 declare( strict_types = 1 );
@@ -13,10 +13,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use ASC\AI_BOILER\Admin\ContentSyncProfile as BoilerContentSyncProfile;
-use ASC\AI_EXAMPLE\Core\RegisterProjects;
-use ASC\AI_EXAMPLE\Core\RegisterServices;
-
 /**
  * Product partial shell map and profile filter.
  */
@@ -26,7 +22,7 @@ final class ContentSyncProfile {
 	 * @return void
 	 */
 	public static function register(): void {
-		add_filter( BoilerContentSyncProfile::FILTER_PROFILE, array( self::class, 'filter_profile' ), 10, 1 );
+		add_filter( 'asc_ai_boiler_content_sync_profile', array( self::class, 'filter_profile' ), 10, 1 );
 	}
 
 	/**
@@ -64,13 +60,9 @@ final class ContentSyncProfile {
 		$profile['sync_types'] = array_merge(
 			$profile['sync_types'],
 			array(
-				CoreSettings::CONTENT_TYPE_SERVICES => array(
-					'post_type' => RegisterServices::POST_TYPE,
-					'label' => __( 'Services', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
-				),
-				CoreSettings::CONTENT_TYPE_PROJECTS => array(
-					'post_type' => RegisterProjects::POST_TYPE,
-					'label' => __( 'Projects', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
+				CoreSettings::CONTENT_TYPE_PORTFOLIO => array(
+					'post_type' => RegisterPortfolio::POST_TYPE,
+					'label' => __( 'Portfolio', 'asc-ai-example' ),
 				),
 			)
 		);

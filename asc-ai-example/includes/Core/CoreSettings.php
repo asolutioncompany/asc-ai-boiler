@@ -1,8 +1,8 @@
 <?php
 /**
- * Core settings for the example site.
+ * Core settings for the minimum example site.
  *
- * @package asc-ai-boiler
+ * @package asc-ai-example
  * @since 1.0.0
  */
 
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use ASC\AI_BOILER\Core\Media;
+use ASC\AI_EXAMPLE\Core\Media;
 
 /**
  * Shared settings for admin and front rendering.
@@ -29,7 +29,7 @@ class CoreSettings {
 	public const OPTION_KEY = 'example_site_settings';
 
 	/**
-	 * Example Settings admin menu slug (Boiler Settings hub; slug unchanged for compatibility).
+	 * Settings admin menu slug (Boiler Settings hub).
 	 *
 	 * @var string
 	 */
@@ -39,11 +39,9 @@ class CoreSettings {
 	 * Image setting keys (attachment IDs).
 	 */
 	public const SETTING_IMAGE_BLOG_DEFAULT = 'image_blog_default_id';
-	public const SETTING_IMAGE_SERVICES = 'image_services_default_id';
-	public const SETTING_IMAGE_PROJECTS = 'image_projects_default_id';
+	public const SETTING_IMAGE_PORTFOLIO = 'image_portfolio_default_id';
 
-	public const CONTENT_TYPE_SERVICES = 'services';
-	public const CONTENT_TYPE_PROJECTS = 'projects';
+	public const CONTENT_TYPE_PORTFOLIO = 'portfolio';
 
 	/**
 	 * Home Contact / Request Quote CTA band partial under content/partials/.
@@ -81,8 +79,7 @@ class CoreSettings {
 	public static function get_image_setting_keys(): array {
 		return array(
 			self::SETTING_IMAGE_BLOG_DEFAULT,
-			self::SETTING_IMAGE_SERVICES,
-			self::SETTING_IMAGE_PROJECTS,
+			self::SETTING_IMAGE_PORTFOLIO,
 		);
 	}
 
@@ -94,8 +91,7 @@ class CoreSettings {
 	public static function get_default_settings(): array {
 		return array(
 			self::SETTING_IMAGE_BLOG_DEFAULT => 0,
-			self::SETTING_IMAGE_SERVICES => 0,
-			self::SETTING_IMAGE_PROJECTS => 0,
+			self::SETTING_IMAGE_PORTFOLIO => 0,
 		);
 	}
 
@@ -118,26 +114,6 @@ class CoreSettings {
 			}
 		}
 
-		if ( 0 === $settings[ self::SETTING_IMAGE_SERVICES ] ) {
-			$legacy = max(
-				(int) ( $stored['image_services_environmental_id'] ?? 0 ),
-				(int) ( $stored['image_services_industrial_id'] ?? 0 )
-			);
-			if ( $legacy > 0 ) {
-				$settings[ self::SETTING_IMAGE_SERVICES ] = $legacy;
-			}
-		}
-
-		if ( 0 === $settings[ self::SETTING_IMAGE_PROJECTS ] ) {
-			$legacy = max(
-				(int) ( $stored['image_projects_environmental_id'] ?? 0 ),
-				(int) ( $stored['image_projects_industrial_id'] ?? 0 )
-			);
-			if ( $legacy > 0 ) {
-				$settings[ self::SETTING_IMAGE_PROJECTS ] = $legacy;
-			}
-		}
-
 		return $settings;
 	}
 
@@ -149,65 +125,34 @@ class CoreSettings {
 	 * @return array<string, int>
 	 */
 	public static function sanitize_image_settings_input( mixed $input ): array {
-		$sanitized = self::get_default_settings();
+		$out = self::get_default_settings();
 		if ( ! is_array( $input ) ) {
-			return $sanitized;
+			return $out;
 		}
 
 		foreach ( self::get_image_setting_keys() as $key ) {
-			if ( ! isset( $input[ $key ] ) ) {
-				continue;
+			if ( isset( $input[ $key ] ) ) {
+				$val = absint( $input[ $key ] );
+				if ( $val > 0 ) {
+					$out[ $key ] = $val;
+				}
 			}
-			$value = absint( $input[ $key ] );
-			if ( $value > 0 ) {
-				$sanitized[ $key ] = $value;
-			}
 		}
 
-		return $sanitized;
+		return $out;
 	}
 
 	/**
-	 * Get configured attachment ID for image key.
+	 * Public URL for a configuration image key, fall back to plugin content/media/.
 	 *
-	 * @param string $key Setting key.
+	 * @param string $key Settings key.
 	 *
-	 * @return int
-	 */
-	public static function get_image_attachment_id( string $key ): int {
-		$settings = self::get_settings();
-		if ( ! isset( $settings[ $key ] ) ) {
-			return 0;
-		}
-
-		return (int) $settings[ $key ];
-	}
-
-	/**
-	 * Get fallback plugin media path by image key (under content/media/).
-	 *
-	 * @param string $key Setting key.
-	 *
-	 * @return string Relative path under content/media/, or empty string.
-	 */
-	public static function get_fallback_media_path( string $key ): string {
-		$path = apply_filters( Media::FILTER_SETTING_MEDIA_PATH, '', $key );
-		if ( ! is_string( $path ) ) {
-			return '';
-		}
-
-		return trim( $path );
-	}
-
-	/**
-	 * Get effective image URL for a key.
-	 *
-	 * @param string $key Setting key.
-	 *
-	 * @return string
+	 * @return string Image absolute URL or empty string.
 	 */
 	public static function get_image_url( string $key ): string {
-		$attachment_id = self::get_image_attachment_id( $key );
+		$settings = self::get_settings();
+		$attachment_id = $settings[ $key ] ?? 0;
+
 		if ( $attachment_id > 0 ) {
 			$url = wp_get_attachment_image_url( $attachment_id, 'full' );
 			if ( is_string( $url ) && '' !== $url ) {
@@ -215,38 +160,28 @@ class CoreSettings {
 			}
 		}
 
-		$fallback_path = self::get_fallback_media_path( $key );
-		if ( '' !== $fallback_path ) {
-			return Media::get_attachment_url_for_path( $fallback_path );
-		}
-
-		return '';
+		return Media::get_attachment_url_for_path( 'blog-default.jpg' );
 	}
 
 	/**
-	 * Get image alt text for a key.
+	 * Image alt description for a configuration key.
 	 *
-	 * @param string $key Setting key.
-	 * @param string $fallback_alt Fallback alt.
+	 * @param string $key Settings key.
+	 * @param string $fallback Alternative text fallback.
 	 *
-	 * @return string
+	 * @return string Alt attribute text description.
 	 */
-	public static function get_image_alt( string $key, string $fallback_alt = '' ): string {
-		$attachment_id = self::get_image_attachment_id( $key );
-		if ( $attachment_id <= 0 ) {
-			return $fallback_alt;
+	public static function get_image_alt( string $key, string $fallback ): string {
+		$settings = self::get_settings();
+		$attachment_id = $settings[ $key ] ?? 0;
+
+		if ( $attachment_id > 0 ) {
+			$alt = (string) get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
+			if ( '' !== trim( $alt ) ) {
+				return $alt;
+			}
 		}
 
-		$alt = trim( (string) get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) );
-		if ( '' !== $alt ) {
-			return $alt;
-		}
-
-		$title = get_the_title( $attachment_id );
-		if ( is_string( $title ) && '' !== trim( $title ) ) {
-			return $title;
-		}
-
-		return $fallback_alt;
+		return $fallback;
 	}
 }

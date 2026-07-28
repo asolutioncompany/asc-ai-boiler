@@ -244,62 +244,6 @@
 		});
 	}
 
-	function initThemeToggle() {
-		var COOKIE_NAME = 'asc_cookie';
-		var LIGHT = 'asc-light';
-		var DARK = 'asc-dark';
-
-		var lightBtns = document.querySelectorAll('.example-theme-toggle-btn--light');
-		var darkBtns = document.querySelectorAll('.example-theme-toggle-btn--dark');
-		if (!lightBtns.length || !darkBtns.length) {
-			return;
-		}
-
-		function getCookie(name) {
-			var match = document.cookie.match('(?:^|; )' + name + '=([^;]*)');
-			return match ? decodeURIComponent(match[1]) : null;
-		}
-
-		function setCookie(name, value) {
-			var expires = new Date();
-			expires.setFullYear(expires.getFullYear() + 1);
-			document.cookie = name + '=' + encodeURIComponent(value) + '; path=/; expires=' + expires.toUTCString() + '; SameSite=Lax';
-		}
-
-		function applyTheme(theme) {
-			var isLight = theme === LIGHT;
-			document.body.classList.toggle('asc-site-light', isLight);
-			document.body.classList.toggle('asc-site-dark', !isLight);
-			Array.prototype.forEach.call(lightBtns, function (btn) {
-				btn.setAttribute('aria-pressed', isLight ? 'true' : 'false');
-			});
-			Array.prototype.forEach.call(darkBtns, function (btn) {
-				btn.setAttribute('aria-pressed', isLight ? 'false' : 'true');
-			});
-		}
-
-		var current = getCookie(COOKIE_NAME);
-		if (current !== LIGHT && current !== DARK) {
-			setCookie(COOKIE_NAME, LIGHT); // Default to light mode for this website
-			current = LIGHT;
-		}
-		applyTheme(current);
-
-		Array.prototype.forEach.call(lightBtns, function (btn) {
-			btn.addEventListener('click', function () {
-				setCookie(COOKIE_NAME, LIGHT);
-				applyTheme(LIGHT);
-			});
-		});
-
-		Array.prototype.forEach.call(darkBtns, function (btn) {
-			btn.addEventListener('click', function () {
-				setCookie(COOKIE_NAME, DARK);
-				applyTheme(DARK);
-			});
-		});
-	}
-
 	function initScrollTop() {
 		var btn = document.querySelector('.asc-scroll-top');
 		if (!btn) {
@@ -329,10 +273,72 @@
 		updateVisibility();
 	}
 
+	function initHeaderSearch() {
+		var header = document.querySelector('.example-header');
+		var searchToggles = document.querySelectorAll('.example-header-search-toggle');
+		var searchWrap = document.getElementById('example-header-search-form-wrap');
+		var searchInput = document.getElementById('example-header-search-input');
+		var searchClose = document.getElementById('example-header-search-close');
+		var lastActiveToggle = null;
+
+		if (!header || searchToggles.length === 0 || !searchWrap) {
+			return;
+		}
+
+		function openSearch(triggerBtn) {
+			lastActiveToggle = triggerBtn || null;
+			header.classList.add('example-header--search-open');
+			Array.prototype.forEach.call(searchToggles, function (btn) {
+				btn.setAttribute('aria-expanded', 'true');
+				btn.setAttribute('aria-label', 'Close search');
+			});
+			searchWrap.setAttribute('aria-hidden', 'false');
+			if (searchInput) {
+				window.setTimeout(function () {
+					searchInput.focus();
+				}, 50);
+			}
+		}
+
+		function closeSearch(shouldRestoreFocus) {
+			header.classList.remove('example-header--search-open');
+			Array.prototype.forEach.call(searchToggles, function (btn) {
+				btn.setAttribute('aria-expanded', 'false');
+				btn.setAttribute('aria-label', 'Open search');
+			});
+			searchWrap.setAttribute('aria-hidden', 'true');
+			if (shouldRestoreFocus !== false && lastActiveToggle && typeof lastActiveToggle.focus === 'function') {
+				lastActiveToggle.focus();
+			}
+		}
+
+		Array.prototype.forEach.call(searchToggles, function (btn) {
+			btn.addEventListener('click', function () {
+				if (header.classList.contains('example-header--search-open')) {
+					closeSearch(true);
+				} else {
+					openSearch(btn);
+				}
+			});
+		});
+
+		if (searchClose) {
+			searchClose.addEventListener('click', function () {
+				closeSearch(true);
+			});
+		}
+
+		document.addEventListener('keydown', function (e) {
+			if (e.key === 'Escape' && header.classList.contains('example-header--search-open')) {
+				closeSearch(true);
+			}
+		});
+	}
+
 	$(document).ready(function () {
 		initHeaderNav();
+		initHeaderSearch();
 		initSkipLinkFocus();
-		initThemeToggle();
 		initScrollTop();
 	});
 })(jQuery);

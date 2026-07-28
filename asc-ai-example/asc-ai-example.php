@@ -3,19 +3,16 @@
 declare( strict_types = 1 );
 
 /**
- * aS.c Example
+ * aS.c AI Boiler Example
  *
- * Example site layer for the aS.c Boiler framework. This plugin should be replaced with your own plugin to utilitize
- * the aS.c Boiler framework.
- *
- * Requires aS.c Boiler to be active.
+ * Example site layer for the aS.c AI Boiler Framework. Standalone site layer.
  *
  * @package asc-ai-example
  *
  * @wordpress-plugin
- * Plugin Name: aS.c Example
+ * Plugin Name: aS.c AI Boiler Example
  * Plugin URI: https://asolution.company
- * Description: Example site layer for the aS.c Boiler framework.
+ * Description: Example site layer for the aS.c AI Boiler Framework.
  * Version: 1.0.0
  * Requires at least: 5.0
  * Tested up to: 6.9
@@ -49,10 +46,6 @@ if ( ! defined( 'ASC_AI_EXAMPLE_ARCHIVE_ENABLED' ) ) {
 }
 
 // Card grid excerpt source: 'none' | 'excerpt' | 'meta_description' | 'content'
-// 'excerpt'          — WordPress post excerpt (post_excerpt field)
-// 'meta_description' — SEO meta description (meta key set by asc_ai_boiler_meta_description_meta_key filter)
-// 'content'          — post body text, truncated by ASC_AI_EXAMPLE_CARD_WORD_LIMIT or ASC_AI_EXAMPLE_CARD_CHAR_LIMIT
-// 'none'             — no excerpt shown on cards (default)
 if ( ! defined( 'ASC_AI_EXAMPLE_CARD_EXCERPT_SOURCE' ) ) {
 	define( 'ASC_AI_EXAMPLE_CARD_EXCERPT_SOURCE', 'none' );
 }

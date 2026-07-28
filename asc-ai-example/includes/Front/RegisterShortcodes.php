@@ -1,8 +1,8 @@
 <?php
 /**
- * Registers all example site shortcodes in one place (handlers remain on domain classes).
+ * Registers all example site shortcodes in one place.
  *
- * @package asc-ai-boiler
+ * @package asc-ai-example
  */
 
 declare( strict_types = 1 );
@@ -19,23 +19,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 class RegisterShortcodes {
 
 	/**
-	 * @param SiteFront $site_front Site shell shortcodes (header, footer, boiler, social links, image helpers).
-	 * @param CallToAction $call_to_action CTA bands (e.g. home Request Quote).
+	 * @param SiteFront $site_front Site shell shortcodes.
+	 * @param CallToAction $call_to_action CTA bands.
 	 * @param BlogFront $blog_front Blog listings and single-post filter.
-	 * @param ProjectsFront $projects_front Projects sections and single-project filter.
-	 * @param ServicesFront $services_front Services sections and single-service filter.
+	 * @param PortfolioFront $portfolio_front Portfolio grid listings.
 	 */
 	public function __construct(
 		SiteFront $site_front,
 		CallToAction $call_to_action,
 		BlogFront $blog_front,
-		ProjectsFront $projects_front,
-		ServicesFront $services_front
+		PortfolioFront $portfolio_front
 	) {
 		$this->register_site( $site_front, $call_to_action );
 		$this->register_blog( $blog_front );
-		$this->register_projects( $projects_front );
-		$this->register_services( $services_front );
+		$this->register_portfolio( $portfolio_front );
 	}
 
 	/**
@@ -47,6 +44,8 @@ class RegisterShortcodes {
 	private function register_site( SiteFront $site_front, CallToAction $call_to_action ): void {
 		add_shortcode( 'example_home_url', array( $site_front, 'render_example_home_url_shortcode' ) );
 		add_shortcode( 'example_hero_image', array( $site_front, 'render_hero_image_shortcode' ) );
+		add_shortcode( 'example_about_image', array( $site_front, 'render_about_image_shortcode' ) );
+		add_shortcode( 'example_contact_image', array( $site_front, 'render_contact_image_shortcode' ) );
 
 		add_shortcode( 'example_header', array( $site_front, 'render_header_shortcode' ) );
 		add_shortcode( 'example_footer', array( $site_front, 'render_footer_shortcode' ) );
@@ -70,23 +69,12 @@ class RegisterShortcodes {
 	}
 
 	/**
-	 * @param ProjectsFront $projects_front Projects front.
+	 * @param PortfolioFront $portfolio_front Portfolio front.
 	 *
 	 * @return void
 	 */
-	private function register_projects( ProjectsFront $projects_front ): void {
-		add_shortcode( 'example_home_featured_project', array( $projects_front, 'render_featured_project_shortcode' ) );
-		add_shortcode( 'example_all_projects', array( $projects_front, 'shortcode_all_projects' ) );
-	}
-
-	/**
-	 * @param ServicesFront $services_front Services front.
-	 *
-	 * @return void
-	 */
-	private function register_services( ServicesFront $services_front ): void {
-		add_shortcode( 'example_home_featured_service', array( $services_front, 'render_featured_service_shortcode' ) );
-		add_shortcode( 'example_services', array( $services_front, 'render_all_services_shortcode' ) );
-		add_shortcode( 'example_footer_services', array( $services_front, 'render_footer_services_shortcode' ) );
+	private function register_portfolio( PortfolioFront $portfolio_front ): void {
+		add_shortcode( 'example_portfolio', array( $portfolio_front, 'shortcode_all_portfolio' ) );
+		add_shortcode( 'example_all_portfolio', array( $portfolio_front, 'shortcode_all_portfolio' ) );
 	}
 }

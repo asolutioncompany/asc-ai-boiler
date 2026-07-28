@@ -1,10 +1,6 @@
 <?php
 /**
- * Thin boiler core: text domain, plugin paths, lifecycle hooks, theme shell, and admin bootstrap.
- *
- * Public front-end layout uses {@see ThemeShell} (minimal PHP template plus header/footer filters). Product
- * layers supply partial markup via those filters. In the dashboard, {@see \ASC\AI_BOILER\Admin\Admin} owns Import /
- * Export and partial CPT admin helpers. The partial CPT is registered via {@see RegisterPartials}.
+ * Content Synchronization Tool Core: text domain, plugin paths, lifecycle hooks, and admin bootstrap.
  *
  * @package asc-ai-boiler
  */
@@ -30,8 +26,6 @@ class Core {
 
 	private function __construct() {
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
-		add_action( 'init', array( RegisterPartials::class, 'register' ), 5 );
-		ThemeShell::register();
 		if ( is_admin() ) {
 			new BoilerAdmin();
 		}
@@ -66,7 +60,6 @@ class Core {
 	 * @return void
 	 */
 	public static function activate(): void {
-		RegisterPartials::register();
 	}
 
 	public static function deactivate(): void {

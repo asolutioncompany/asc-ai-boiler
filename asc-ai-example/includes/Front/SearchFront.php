@@ -2,9 +2,7 @@
 /**
  * Search results, archive, and 404 rendering.
  *
- * Replaces the boiler's stub output via {@see ThemeShell::FILTER_MAIN}.
- *
- * @package asc-ai-boiler
+ * @package asc-ai-example
  */
 
 declare( strict_types = 1 );
@@ -15,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use ASC\AI_BOILER\Core\ThemeShell;
+use ASC\AI_EXAMPLE\Core\ThemeShell;
 use ASC\AI_EXAMPLE\Core\ArchiveConfig;
 use ASC\AI_EXAMPLE\Core\CoreSettings;
 
@@ -63,7 +61,7 @@ class SearchFront {
 	}
 
 	/**
-	 * @param mixed $markup Accumulated filter value (null until a handler sets it).
+	 * @param mixed $markup Accumulated filter value.
 	 *
 	 * @return string|null String to override the main body; null to let the boiler stub run.
 	 */
@@ -122,7 +120,7 @@ class SearchFront {
 
 	private function render_archive(): string {
 		$title = get_the_archive_title();
-		$heading = '<h1 class="example-page-title">' . $title . '</h1>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_the_archive_title() returns sanitized HTML.
+		$heading = '<h1 class="example-page-title">' . $title . '</h1>';
 
 		if ( ! have_posts() ) {
 			return '<section class="example-full-content">'
@@ -148,7 +146,7 @@ class SearchFront {
 		ob_start();
 
 		echo '<section class="example-full-content">';
-		echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- heading is pre-escaped above.
+		echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo '<div class="example-section example-card-section example-archive-listing-card-section">';
 		echo '<div class="example-card-section-content">';
 		echo '<div class="example-card-grid">';
@@ -186,11 +184,13 @@ class SearchFront {
 		}
 
 		$date_markup = '<p class="example-post-entry-date">' . esc_html( (string) get_the_date( '', $post_id ) ) . '</p>';
+		$tags_markup = Front::get_pill_markup( $post_id );
 
 		return '<article class="example-card example-blog-card">'
 			. '<div class="example-card-body">'
 			. '<a class="example-card-media" href="' . esc_url( $permalink ) . '" tabindex="-1">' . $media_markup . '</a>'
 			. '<div class="example-card-content example-card--light">'
+			. $tags_markup
 			. '<h3 class="example-card-title"><a href="' . esc_url( $permalink ) . '" tabindex="-1">' . esc_html( $title ) . '</a></h3>'
 			. $date_markup
 			. '<div class="example-card-cta">' . Front::read_more_button_html( $permalink ) . '</div>'

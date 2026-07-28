@@ -5,8 +5,9 @@ PHP, HTML, CSS, and JS code style for asc-ai-boiler. Guidelines, not strict rule
 ## Indentation and formatting
 
 - Tabs, not spaces
-- No column alignment in arrays
+- No column alignment in arrays, array key-value pairs (=>), or variable assignments (=)
 - WordPress coding standards spacing: spaces inside parens for control structures and function calls
+- Maximum of one consecutive blank line (no double or multiple blank lines)
 
 ## Operators and conditionals
 

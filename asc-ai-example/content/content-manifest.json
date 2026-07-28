@@ -1,6 +1,6 @@
 {
     "manifest_version": 1,
-    "exported_at": "2026-07-10T16:31:47+00:00",
+    "exported_at": "2026-07-23T12:00:00+00:00",
     "types": {
         "partials": [
             {
@@ -80,17 +80,6 @@
             },
             {
                 "post_type": "page",
-                "title": "Projects",
-                "slug": "featured-work",
-                "filename": "featured-work.html",
-                "date_gmt": "2026-06-03T12:00:00+00:00",
-                "excerpt": "featured-work.txt",
-                "meta_description": "featured-work.txt",
-                "social_title": "Projects - Fast WordPress",
-                "x_title": "Projects - Fast WordPress"
-            },
-            {
-                "post_type": "page",
                 "title": "Home",
                 "slug": "home",
                 "filename": "home.html",
@@ -102,17 +91,6 @@
             },
             {
                 "post_type": "page",
-                "title": "Our Services",
-                "slug": "our-services",
-                "filename": "our-services.html",
-                "date_gmt": "2026-06-03T12:00:00+00:00",
-                "excerpt": "our-services.txt",
-                "meta_description": "our-services.txt",
-                "social_title": "Our Services - Fast WordPress",
-                "x_title": "Our Services - Fast WordPress"
-            },
-            {
-                "post_type": "page",
                 "title": "Page Not Found",
                 "slug": "page-not-found",
                 "filename": "page-not-found.html",
@@ -121,6 +99,17 @@
                 "meta_description": "page-not-found.txt",
                 "social_title": "Page Not Found - Fast WordPress",
                 "x_title": "Page Not Found - Fast WordPress"
+            },
+            {
+                "post_type": "page",
+                "title": "Portfolio",
+                "slug": "portfolio",
+                "filename": "portfolio.html",
+                "date_gmt": "2026-06-03T12:00:00+00:00",
+                "excerpt": "portfolio.txt",
+                "meta_description": "portfolio.txt",
+                "social_title": "Portfolio - Fast WordPress",
+                "x_title": "Portfolio - Fast WordPress"
             },
             {
                 "post_type": "page",
@@ -187,55 +176,9 @@
                 ]
             }
         ],
-        "services": [
+        "portfolio": [
             {
-                "post_type": "example_service",
-                "title": "WordPress Help",
-                "slug": "help",
-                "filename": "help.html",
-                "date_gmt": "2026-05-31T12:00:00+00:00",
-                "excerpt": "help.txt",
-                "meta_description": "help.txt",
-                "social_title": "WordPress Help - Fast WordPress",
-                "x_title": "WordPress Help - Fast WordPress"
-            },
-            {
-                "post_type": "example_service",
-                "title": "WordPress Hosting",
-                "slug": "hosting",
-                "filename": "hosting.html",
-                "date_gmt": "2026-05-29T12:00:00+00:00",
-                "excerpt": "hosting.txt",
-                "meta_description": "hosting.txt",
-                "social_title": "WordPress Hosting - Fast WordPress",
-                "x_title": "WordPress Hosting - Fast WordPress"
-            },
-            {
-                "post_type": "example_service",
-                "title": "WordPress Maintenance",
-                "slug": "maintenance",
-                "filename": "maintenance.html",
-                "date_gmt": "2026-05-30T12:00:00+00:00",
-                "excerpt": "maintenance.txt",
-                "meta_description": "maintenance.txt",
-                "social_title": "WordPress Maintenance - Fast WordPress",
-                "x_title": "WordPress Maintenance - Fast WordPress"
-            },
-            {
-                "post_type": "example_service",
-                "title": "WordPress Design",
-                "slug": "wordpress-design",
-                "filename": "wordpress-design.html",
-                "date_gmt": "2026-05-28T12:00:00+00:00",
-                "excerpt": "wordpress-design.txt",
-                "meta_description": "wordpress-design.txt",
-                "social_title": "WordPress Design - Fast WordPress",
-                "x_title": "WordPress Design - Fast WordPress"
-            }
-        ],
-        "projects": [
-            {
-                "post_type": "example_project",
+                "post_type": "example_portfolio",
                 "title": "Dog Groomer",
                 "slug": "dog-groomer",
                 "filename": "dog-groomer.html",
@@ -246,7 +189,7 @@
                 "x_title": "Dog Groomer - Fast WordPress"
             },
             {
-                "post_type": "example_project",
+                "post_type": "example_portfolio",
                 "title": "Landscaping Company",
                 "slug": "landscaping-company",
                 "filename": "landscaping-company.html",
@@ -257,7 +200,7 @@
                 "x_title": "Landscaping Company - Fast WordPress"
             },
             {
-                "post_type": "example_project",
+                "post_type": "example_portfolio",
                 "title": "Pool Service Company",
                 "slug": "pool-service-company",
                 "filename": "pool-service-company.html",
@@ -272,10 +215,42 @@
     "media": [
         {
             "filename": "blog-default.jpg",
-            "title": "Blog post",
-            "alt": "Blog post",
+            "title": "Blog",
+            "alt": "Blog",
             "caption": "",
-            "description": "Blog post",
+            "description": "Blog",
+            "mime": "image/jpeg"
+        },
+        {
+            "filename": "projects-default.jpg",
+            "title": "Project",
+            "alt": "Project",
+            "caption": "",
+            "description": "Project",
+            "mime": "image/jpeg"
+        },
+        {
+            "filename": "project-dog-groomer.jpg",
+            "title": "Dog Groomer Website Project",
+            "alt": "Dog Groomer Website Project",
+            "caption": "",
+            "description": "Dog Groomer Website Project",
+            "mime": "image/jpeg"
+        },
+        {
+            "filename": "project-landscaping.jpg",
+            "title": "Landscaping Company Website Project",
+            "alt": "Landscaping Company Website Project",
+            "caption": "",
+            "description": "Landscaping Company Website Project",
+            "mime": "image/jpeg"
+        },
+        {
+            "filename": "project-pool-service.jpg",
+            "title": "Pool Service Company Website Project",
+            "alt": "Pool Service Company Website Project",
+            "caption": "",
+            "description": "Pool Service Company Website Project",
             "mime": "image/jpeg"
         },
         {
@@ -311,67 +286,19 @@
             "mime": "image/jpeg"
         },
         {
-            "filename": "project-dog-groomer.jpg",
-            "title": "Dog Grooming Company",
-            "alt": "Dog Grooming Company",
+            "filename": "about-us.jpg",
+            "title": "About Us Illustration",
+            "alt": "About Us Illustration",
             "caption": "",
-            "description": "Dog Grooming Company",
+            "description": "About Us Illustration",
             "mime": "image/jpeg"
         },
         {
-            "filename": "project-landscaping.jpg",
-            "title": "Landscaping Company",
-            "alt": "Landscaping Company",
+            "filename": "contact-us.jpg",
+            "title": "Contact Us Illustration",
+            "alt": "Contact Us Illustration",
             "caption": "",
-            "description": "Landscaping Company",
-            "mime": "image/jpeg"
-        },
-        {
-            "filename": "project-pool-service.jpg",
-            "title": "Pool Service Company",
-            "alt": "Pool Service Company",
-            "caption": "",
-            "description": "Pool Service Company",
-            "mime": "image/jpeg"
-        },
-        {
-            "filename": "projects-default.jpg",
-            "title": "WordPress Project",
-            "alt": "WordPress Project",
-            "caption": "",
-            "description": "WordPress Project",
-            "mime": "image/jpeg"
-        },
-        {
-            "filename": "service-design.png",
-            "title": "WordPress Design",
-            "alt": "WordPress Design",
-            "caption": "",
-            "description": "WordPress Design",
-            "mime": "image/png"
-        },
-        {
-            "filename": "service-hosting.png",
-            "title": "WordPress Hosting",
-            "alt": "WordPress Hosting",
-            "caption": "",
-            "description": "WordPress Hosting",
-            "mime": "image/png"
-        },
-        {
-            "filename": "service-maintenance.png",
-            "title": "WordPress Maintenance",
-            "alt": "WordPress Maintenance",
-            "caption": "",
-            "description": "WordPress Maintenance",
-            "mime": "image/png"
-        },
-        {
-            "filename": "services-default.jpg",
-            "title": "WordPress Service",
-            "alt": "WordPress Service",
-            "caption": "",
-            "description": "WordPress Service",
+            "description": "Contact Us Illustration",
             "mime": "image/jpeg"
         }
     ],
@@ -381,6 +308,12 @@
             "target": "setting",
             "option": "example_site_settings",
             "key": "image_blog_default_id"
+        },
+        {
+            "media_filename": "projects-default.jpg",
+            "target": "setting",
+            "option": "example_site_settings",
+            "key": "image_portfolio_default_id"
         },
         {
             "media_filename": "blog-design.jpg",
@@ -403,32 +336,20 @@
         {
             "media_filename": "project-dog-groomer.jpg",
             "target": "featured",
-            "post_type": "example_project",
+            "post_type": "example_portfolio",
             "slug": "dog-groomer"
         },
         {
             "media_filename": "project-landscaping.jpg",
             "target": "featured",
-            "post_type": "example_project",
+            "post_type": "example_portfolio",
             "slug": "landscaping-company"
         },
         {
             "media_filename": "project-pool-service.jpg",
             "target": "featured",
-            "post_type": "example_project",
+            "post_type": "example_portfolio",
             "slug": "pool-service-company"
-        },
-        {
-            "media_filename": "projects-default.jpg",
-            "target": "setting",
-            "option": "example_site_settings",
-            "key": "image_projects_default_id"
-        },
-        {
-            "media_filename": "services-default.jpg",
-            "target": "setting",
-            "option": "example_site_settings",
-            "key": "image_services_default_id"
         }
     ]
 }

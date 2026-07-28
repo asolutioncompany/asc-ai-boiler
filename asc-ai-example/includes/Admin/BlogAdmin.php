@@ -2,7 +2,7 @@
 /**
  * Blog Admin Class
  *
- * @package asc-ai-boiler
+ * @package asc-ai-example
  * @since 1.0.0
  */
 

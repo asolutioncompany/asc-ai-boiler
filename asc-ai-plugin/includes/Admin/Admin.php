@@ -82,10 +82,10 @@ class Admin {
 		$localized = array(
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
 			'sync' => array(
-				'nonce' => wp_create_nonce( ContentSync::nonce_action() ),
-				'import_action' => ContentSync::AJAX_ACTION_IMPORT_BATCH,
-				'export_action' => ContentSync::AJAX_ACTION_EXPORT_BATCH,
-				'detect_action' => ContentSync::AJAX_ACTION_DETECT_DIFFERENCES,
+				'nonce' => wp_create_nonce( SyncAjaxHandler::nonce_action() ),
+				'import_action' => SyncAjaxHandler::AJAX_ACTION_IMPORT_BATCH,
+				'export_action' => SyncAjaxHandler::AJAX_ACTION_EXPORT_BATCH,
+				'detect_action' => SyncAjaxHandler::AJAX_ACTION_DETECT_DIFFERENCES,
 				'batch_size' => SyncConfig::CONTENT_SYNC_BATCH_SIZE,
 				'import_auto_confirm' => SyncConfig::is_development_mode(),
 				'strings' => array(
@@ -102,6 +102,14 @@ class Admin {
 					'detect_fail' => __( 'Could not compare content: %s', \ASC_AI_PLUGIN_DOMAIN ),
 					'detect_none' => __( 'No differences found. Published WordPress content matches plugin export files (HTML content, titles, slugs, categories, tags, excerpts, meta descriptions, publication date, and media library files).', \ASC_AI_PLUGIN_DOMAIN ),
 					'detect_heading' => __( 'Differences', \ASC_AI_PLUGIN_DOMAIN ),
+					'pages_scanned' => __( 'Pages Scanned', \ASC_AI_PLUGIN_DOMAIN ),
+					'partials_scanned' => __( 'Partials Scanned', \ASC_AI_PLUGIN_DOMAIN ),
+					'posts_scanned' => __( 'Posts & CPTs Scanned', \ASC_AI_PLUGIN_DOMAIN ),
+					'images_scanned' => __( 'Images Scanned', \ASC_AI_PLUGIN_DOMAIN ),
+					'import_needed' => __( 'Import Needed', \ASC_AI_PLUGIN_DOMAIN ),
+					'export_needed' => __( 'Export Needed', \ASC_AI_PLUGIN_DOMAIN ),
+					'review_needed' => __( 'Review Needed', \ASC_AI_PLUGIN_DOMAIN ),
+					'minor_sync' => __( 'Minor Sync', \ASC_AI_PLUGIN_DOMAIN ),
 				),
 			),
 		);

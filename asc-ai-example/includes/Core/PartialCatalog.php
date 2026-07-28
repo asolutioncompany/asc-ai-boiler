@@ -1,8 +1,8 @@
 <?php
 /**
- * Example reserved partial keys (logical values for {@see \ASC\AI_BOILER\Core\RegisterPartials::META_PARTIAL_KEY}).
+ * Minimum example reserved partial keys.
  *
- * @package asc-ai-boiler
+ * @package asc-ai-example
  */
 
 declare( strict_types = 1 );
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Product-layer partial shell catalog (keys map to {@see \ASC\AI_BOILER\Core\RegisterPartials::META_PARTIAL_KEY} values).
+ * Product-layer partial shell catalog.
  */
 final class PartialCatalog {
 

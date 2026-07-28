@@ -1,10 +1,8 @@
 <?php
 /**
- * Post meta keys and query fragments shared by the front end and admin save handlers.
+ * Post meta keys shared by the front end and admin save handlers.
  *
- * Not UI: front templates query these keys; editors set them in the dashboard.
- *
- * @package asc-ai-boiler
+ * @package asc-ai-example
  */
 
 declare( strict_types = 1 );
@@ -16,23 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Example site custom post meta (primary tag, project gallery).
+ * Custom post meta keys and helpers.
  */
 class PostMeta {
-
-	/**
-	 * Primary fixed-tag selection (services, projects, blog).
-	 *
-	 * @var string
-	 */
-	public const PRIMARY_TAG_META_KEY = '_example_site_primary_tag';
-
-	/**
-	 * Additional photos for projects (stored as a comma-separated list of attachment IDs).
-	 *
-	 * @var string
-	 */
-	public const PROJECT_GALLERY_META_KEY = '_example_site_project_gallery';
 
 	/**
 	 * Optional blog single-post CTA button label.
@@ -49,47 +33,47 @@ class PostMeta {
 	public const BLOG_CTA_LINK_URL_META_KEY = '_example_blog_cta_link_url';
 
 	/**
-	 * Maximum number of additional photos (beyond the featured image) per project.
+	 * Portfolio post gallery attachment IDs (comma-separated).
 	 *
-	 * @var int
+	 * @var string
 	 */
-	public const PROJECT_GALLERY_MAX_PHOTOS = 5;
+	public const PORTFOLIO_GALLERY_META_KEY = '_example_portfolio_gallery';
 
 	/**
-	 * Parse a stored gallery meta value into a clamped list of attachment IDs.
+	 * Maximum number of photos allowed in the portfolio gallery meta box.
+	 */
+	public const PORTFOLIO_GALLERY_MAX_PHOTOS = 6;
+
+	/**
+	 * Parse comma-separated attachment IDs or an array of values into a list of positive integers.
 	 *
-	 * @param mixed $raw Stored meta value.
+	 * @param mixed $raw Stored meta value or raw input.
 	 *
 	 * @return list<int>
 	 */
-	public static function parse_project_gallery_attachment_ids( mixed $raw ): array {
+	public static function parse_portfolio_gallery_attachment_ids( mixed $raw ): array {
 		if ( is_array( $raw ) ) {
-			$raw_string = implode( ',', $raw );
-		} else {
-			$raw_string = (string) $raw;
+			$raw = implode( ',', $raw );
 		}
 
-		if ( '' === trim( $raw_string ) ) {
+		if ( ! is_string( $raw ) || '' === trim( $raw ) ) {
 			return array();
 		}
 
+		$parts = explode( ',', $raw );
 		$ids = array();
-		$parts = explode( ',', $raw_string );
+
 		foreach ( $parts as $part ) {
 			$id = absint( trim( $part ) );
-			if ( $id <= 0 ) {
-				continue;
-			}
-			if ( in_array( $id, $ids, true ) ) {
-				continue;
-			}
-			$ids[] = $id;
-			if ( count( $ids ) >= self::PROJECT_GALLERY_MAX_PHOTOS ) {
-				break;
+			if ( $id > 0 && ! in_array( $id, $ids, true ) ) {
+				$ids[] = $id;
 			}
 		}
 
-		return $ids;
-	}
+		if ( count( $ids ) > self::PORTFOLIO_GALLERY_MAX_PHOTOS ) {
+			$ids = array_slice( $ids, 0, self::PORTFOLIO_GALLERY_MAX_PHOTOS );
+		}
 
+		return array_values( $ids );
+	}
 }

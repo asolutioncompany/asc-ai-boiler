@@ -20,6 +20,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class SyncConfig {
 
+	private static function bool_to_option_val( bool $enabled ): string {
+		if ( $enabled ) {
+			return '1';
+		}
+		return '0';
+	}
+
 	/**
 	 * Relative path prefix for synced HTML under the plugin (e.g. `content/pages/home.html`).
 	 *
@@ -151,7 +158,7 @@ final class SyncConfig {
 	public static function set_export_cleanup( bool $enabled ): void {
 		update_option(
 			self::OPTION_EXPORT_CLEANUP,
-			$enabled ? '1' : '0'
+			self::bool_to_option_val( $enabled )
 		);
 	}
 
@@ -172,7 +179,7 @@ final class SyncConfig {
 	public static function set_import_cleanup( bool $enabled ): void {
 		update_option(
 			self::OPTION_IMPORT_CLEANUP,
-			$enabled ? '1' : '0'
+			self::bool_to_option_val( $enabled )
 		);
 	}
 
@@ -198,7 +205,7 @@ final class SyncConfig {
 	public static function set_development_mode( bool $enabled ): void {
 		update_option(
 			self::OPTION_DEVELOPMENT_MODE,
-			$enabled ? '1' : '0'
+			self::bool_to_option_val( $enabled )
 		);
 		delete_option( 'example_site_development_mode' );
 	}
@@ -220,7 +227,7 @@ final class SyncConfig {
 	public static function set_yoast_sync( bool $enabled ): void {
 		update_option(
 			self::OPTION_YOAST_SYNC,
-			$enabled ? '1' : '0'
+			self::bool_to_option_val( $enabled )
 		);
 	}
 
@@ -239,7 +246,7 @@ final class SyncConfig {
 	 * @return void
 	 */
 	public static function set_pages_sync_enabled( bool $enabled ): void {
-		update_option( self::OPTION_SYNC_PAGES, $enabled ? '1' : '0' );
+		update_option( self::OPTION_SYNC_PAGES, self::bool_to_option_val( $enabled ) );
 	}
 
 	/**
@@ -257,7 +264,7 @@ final class SyncConfig {
 	 * @return void
 	 */
 	public static function set_partials_sync_enabled( bool $enabled ): void {
-		update_option( self::OPTION_SYNC_PARTIALS, $enabled ? '1' : '0' );
+		update_option( self::OPTION_SYNC_PARTIALS, self::bool_to_option_val( $enabled ) );
 	}
 
 	/**
@@ -275,7 +282,7 @@ final class SyncConfig {
 	 * @return void
 	 */
 	public static function set_posts_sync_enabled( bool $enabled ): void {
-		update_option( self::OPTION_SYNC_POSTS, $enabled ? '1' : '0' );
+		update_option( self::OPTION_SYNC_POSTS, self::bool_to_option_val( $enabled ) );
 	}
 
 	/**
@@ -293,7 +300,7 @@ final class SyncConfig {
 	 * @return void
 	 */
 	public static function set_custom_post_types_sync_enabled( bool $enabled ): void {
-		update_option( self::OPTION_SYNC_CUSTOM_POST_TYPES, $enabled ? '1' : '0' );
+		update_option( self::OPTION_SYNC_CUSTOM_POST_TYPES, self::bool_to_option_val( $enabled ) );
 	}
 
 	/**
@@ -311,7 +318,7 @@ final class SyncConfig {
 	 * @return void
 	 */
 	public static function set_media_sync_enabled( bool $enabled ): void {
-		update_option( self::OPTION_SYNC_MEDIA, $enabled ? '1' : '0' );
+		update_option( self::OPTION_SYNC_MEDIA, self::bool_to_option_val( $enabled ) );
 	}
 
 	/**
@@ -329,7 +336,7 @@ final class SyncConfig {
 	 * @return void
 	 */
 	public static function set_sync_page_enabled( bool $enabled ): void {
-		update_option( self::OPTION_ENABLE_SYNC_PAGE, $enabled ? '1' : '0' );
+		update_option( self::OPTION_ENABLE_SYNC_PAGE, self::bool_to_option_val( $enabled ) );
 	}
 
 	/**
@@ -368,7 +375,7 @@ final class SyncConfig {
 		}
 
 		$slug = self::get_companion_slug();
-		if ( '' === $slug ) {
+		if ( '' === $slug || 1 !== preg_match( '/^[a-z0-9\-]+$/', $slug ) ) {
 			return null;
 		}
 
@@ -390,14 +397,14 @@ final class SyncConfig {
 		}
 
 		$paths = array(
-			'companion_slug'  => $slug,
-			'content_dir'     => trailingslashit( $plugin_dir . '/' . self::CONTENT_RELATIVE_ROOT ),
-			'content_url'     => trailingslashit( plugins_url( $slug ) . '/' . self::CONTENT_RELATIVE_ROOT ),
-			'media_dir'       => trailingslashit( $plugin_dir . '/' . self::CONTENT_RELATIVE_ROOT . 'media' ),
-			'media_url'       => trailingslashit( plugins_url( $slug ) . '/' . self::CONTENT_RELATIVE_ROOT . 'media' ),
+			'companion_slug' => $slug,
+			'content_dir' => trailingslashit( $plugin_dir . '/' . self::CONTENT_RELATIVE_ROOT ),
+			'content_url' => trailingslashit( plugins_url( $slug ) . '/' . self::CONTENT_RELATIVE_ROOT ),
+			'media_dir' => trailingslashit( $plugin_dir . '/' . self::CONTENT_RELATIVE_ROOT . 'media' ),
+			'media_url' => trailingslashit( plugins_url( $slug ) . '/' . self::CONTENT_RELATIVE_ROOT . 'media' ),
 			'other_media_dir' => trailingslashit( $plugin_dir . '/' . self::CONTENT_RELATIVE_ROOT . 'other-media' ),
 			'other_media_url' => trailingslashit( plugins_url( $slug ) . '/' . self::CONTENT_RELATIVE_ROOT . 'other-media' ),
-			'is_active'       => $is_active,
+			'is_active' => $is_active,
 		);
 
 		set_transient( self::TRANSIENT_COMPANION_PATHS, $paths, DAY_IN_SECONDS );
@@ -452,7 +459,10 @@ final class SyncConfig {
 	 * @return bool
 	 */
 	private static function is_enabled( string $option_key, bool $default ): bool {
-		$fallback = $default ? '1' : '0';
+		$fallback = '0';
+		if ( $default ) {
+			$fallback = '1';
+		}
 		return '1' === (string) get_option( $option_key, $fallback );
 	}
 }

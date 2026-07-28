@@ -14,8 +14,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use ASC\AI_BOILER\Core\RegisterPartials;
-
 /**
  * Admin interface pages for aS.c Boiler Settings and static sync operations.
  */
@@ -80,14 +78,13 @@ class SettingsPage {
 	 * Constructor.
 	 */
 	public function __construct() {
-		add_filter( RegisterPartials::FILTER_ADMIN_MENU_PARENT, static fn(): string => self::SETTINGS_PAGE_SLUG );
 		add_action( 'admin_menu', array( $this, 'register_menu' ), 10 );
 		add_action( 'admin_post_' . self::SAVE_FORM_ACTION, array( $this, 'handle_save_sync_settings' ) );
 
 		if ( SyncConfig::is_sync_page_enabled() ) {
-			add_action( 'wp_ajax_' . ContentSync::AJAX_ACTION_IMPORT_BATCH, array( ContentSync::class, 'handle_ajax_import_batch' ) );
-			add_action( 'wp_ajax_' . ContentSync::AJAX_ACTION_EXPORT_BATCH, array( ContentSync::class, 'handle_ajax_export_batch' ) );
-			add_action( 'wp_ajax_' . ContentSync::AJAX_ACTION_DETECT_DIFFERENCES, array( ContentSync::class, 'handle_ajax_detect_differences' ) );
+			add_action( 'wp_ajax_' . SyncAjaxHandler::AJAX_ACTION_IMPORT_BATCH, array( SyncAjaxHandler::class, 'handle_ajax_import_batch' ) );
+			add_action( 'wp_ajax_' . SyncAjaxHandler::AJAX_ACTION_EXPORT_BATCH, array( SyncAjaxHandler::class, 'handle_ajax_export_batch' ) );
+			add_action( 'wp_ajax_' . SyncAjaxHandler::AJAX_ACTION_DETECT_DIFFERENCES, array( SyncAjaxHandler::class, 'handle_ajax_detect_differences' ) );
 		}
 	}
 
@@ -100,8 +97,8 @@ class SettingsPage {
 		$parent_slug = self::SETTINGS_PAGE_SLUG;
 
 		$settings_hook = add_menu_page(
-			__( 'aS.c Boiler', \ASC_AI_PLUGIN_DOMAIN ),
-			__( 'aS.c Boiler', \ASC_AI_PLUGIN_DOMAIN ),
+			__( 'aS.c AI Boiler', \ASC_AI_PLUGIN_DOMAIN ),
+			__( 'aS.c AI Boiler', \ASC_AI_PLUGIN_DOMAIN ),
 			'manage_options',
 			$parent_slug,
 			array( $this, 'render_settings_page' ),
@@ -197,7 +194,14 @@ class SettingsPage {
 		SyncConfig::set_import_cleanup( isset( $_POST[ self::POST_IMPORT_CLEANUP ] ) );
 		SyncConfig::set_development_mode( isset( $_POST[ self::POST_DEVELOPMENT_MODE ] ) );
 		SyncConfig::set_yoast_sync( isset( $_POST[ self::POST_YOAST_SYNC ] ) );
-		SyncConfig::set_companion_slug( isset( $_POST[ self::POST_COMPANION_SLUG ] ) ? sanitize_text_field( wp_unslash( $_POST[ self::POST_COMPANION_SLUG ] ) ) : '' );
+		$companion_slug_input = '';
+		if ( isset( $_POST[ self::POST_COMPANION_SLUG ] ) ) {
+			$companion_slug_input = sanitize_text_field( wp_unslash( $_POST[ self::POST_COMPANION_SLUG ] ) );
+		}
+		SyncConfig::set_companion_slug( $companion_slug_input );
+
+		ContentManifest::invalidate_content_manifest_cache();
+		ContentSyncProfile::invalidate_cache();
 
 		$redirect_url = add_query_arg(
 			array(
@@ -220,23 +224,23 @@ class SettingsPage {
 			return;
 		}
 
-		$sync_pages             = SyncConfig::is_pages_sync_enabled();
-		$sync_partials          = SyncConfig::is_partials_sync_enabled();
-		$sync_posts             = SyncConfig::is_posts_sync_enabled();
+		$sync_pages = SyncConfig::is_pages_sync_enabled();
+		$sync_partials = SyncConfig::is_partials_sync_enabled();
+		$sync_posts = SyncConfig::is_posts_sync_enabled();
 		$sync_custom_post_types = SyncConfig::is_custom_post_types_sync_enabled();
-		$sync_media             = SyncConfig::is_media_sync_enabled();
-		$enable_sync_page       = SyncConfig::is_sync_page_enabled();
+		$sync_media = SyncConfig::is_media_sync_enabled();
+		$enable_sync_page = SyncConfig::is_sync_page_enabled();
 
-		$export_delete_orphans  = SyncConfig::is_export_cleanup();
-		$import_cleanup         = SyncConfig::is_import_cleanup();
-		$import_dev_mode        = SyncConfig::is_development_mode();
-		$yoast_sync             = SyncConfig::is_yoast_sync();
-		$companion_slug         = SyncConfig::get_companion_slug();
+		$export_delete_orphans = SyncConfig::is_export_cleanup();
+		$import_cleanup = SyncConfig::is_import_cleanup();
+		$import_dev_mode = SyncConfig::is_development_mode();
+		$yoast_sync = SyncConfig::is_yoast_sync();
+		$companion_slug = SyncConfig::get_companion_slug();
 
 		?>
 		<div class="wrap asc-ai-boiler-settings-page">
 			<div class="asc-ai-boiler-header">
-				<h1><?php esc_html_e( 'aS.c Boiler Settings', \ASC_AI_PLUGIN_DOMAIN ); ?></h1>
+				<h1><?php esc_html_e( 'aS.c AI Boiler Plugin Settings', \ASC_AI_PLUGIN_DOMAIN ); ?></h1>
 				<p class="description"><?php esc_html_e( 'Configure synchronization settings.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
 			</div>
 
@@ -443,12 +447,15 @@ class SettingsPage {
 
 		$import_cleanup = SyncConfig::is_import_cleanup();
 		$import_dev_mode = SyncConfig::is_development_mode();
-		$auto_confirm_attr = $import_dev_mode ? '1' : '0';
+		$auto_confirm_attr = '0';
+		if ( $import_dev_mode ) {
+			$auto_confirm_attr = '1';
+		}
 
 		?>
 		<div class="wrap asc-ai-boiler-settings-page">
 			<div class="asc-ai-boiler-header">
-				<h1><?php esc_html_e( 'aS.c Boiler Import / Export', \ASC_AI_PLUGIN_DOMAIN ); ?></h1>
+				<h1><?php esc_html_e( 'aS.c AI Boiler Plugin Import / Export', \ASC_AI_PLUGIN_DOMAIN ); ?></h1>
 				<p class="description"><?php esc_html_e( 'Synchronize WordPress database content with plugin workspace files.', \ASC_AI_PLUGIN_DOMAIN ); ?></p>
 			</div>
 

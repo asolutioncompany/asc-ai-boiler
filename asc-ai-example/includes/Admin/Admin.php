@@ -4,7 +4,7 @@
  *
  * Core admin class that maintains constants and initializes admin components.
  *
- * @package asc-ai-boiler
+ * @package asc-ai-example
  * @since 1.0.0
  */
 
@@ -16,9 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use ASC\AI_BOILER\Core\RegisterPartials;
-use ASC\AI_EXAMPLE\Core\RegisterProjects;
-use ASC\AI_EXAMPLE\Core\RegisterServices;
+use ASC\AI_EXAMPLE\Core\RegisterPartials;
+use ASC\AI_EXAMPLE\Core\RegisterPortfolio;
 
 /**
  * Admin Class
@@ -41,14 +40,13 @@ class Admin {
 	 */
 	private function init(): void {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
-		new ProjectsAdmin();
-		new ServicesAdmin();
+		new PortfolioAdmin();
 		new BlogAdmin();
 		new SettingsPage();
 	}
 
 	/**
-	 * Enqueue admin CSS/JS on the plugin settings page and on CPT/post edit screens (includes toggle UI).
+	 * Enqueue admin CSS/JS on the plugin settings page and on CPT/post edit screens.
 	 *
 	 * @return void
 	 */
@@ -58,11 +56,10 @@ class Admin {
 			return;
 		}
 
-		$on_example_settings_hub = ( $screen->id === 'toplevel_page_' . SettingsPage::PAGE_SLUG );
+		$on_settings_hub = ( $screen->id === 'toplevel_page_' . SettingsPage::PAGE_SLUG );
 
 		$edit_post_types = array(
-			RegisterProjects::POST_TYPE,
-			RegisterServices::POST_TYPE,
+			RegisterPortfolio::POST_TYPE,
 			RegisterPartials::POST_TYPE,
 			'post',
 		);
@@ -70,7 +67,7 @@ class Admin {
 		$on_edit_screen = in_array( $screen->post_type, $edit_post_types, true )
 			&& in_array( $screen->base, array( 'post', 'edit' ), true );
 
-		if ( ! $on_example_settings_hub && ! $on_edit_screen ) {
+		if ( ! $on_settings_hub && ! $on_edit_screen ) {
 			return;
 		}
 
@@ -94,15 +91,8 @@ class Admin {
 			true
 		);
 
-		$needs_media_library = $on_example_settings_hub;
-		if ( $on_edit_screen
-			&& RegisterProjects::POST_TYPE === $screen->post_type
-			&& 'post' === $screen->base
-		) {
-			$needs_media_library = true;
-		}
-
-		if ( $needs_media_library ) {
+		$needs_media = $on_settings_hub || ( $on_edit_screen && RegisterPortfolio::POST_TYPE === $screen->post_type && 'post' === $screen->base );
+		if ( $needs_media ) {
 			wp_enqueue_media();
 		}
 
@@ -117,5 +107,4 @@ class Admin {
 			$localized
 		);
 	}
-
 }

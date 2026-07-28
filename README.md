@@ -1,24 +1,18 @@
-# aS.c Boiler
+# aS.c AI Boiler Framework
 
-WordPress boilerplate plugin for AI-assisted site builds. Provides a partial-based layout system, content sync, custom post types, shortcodes, admin settings, and bundled assets.
+WordPress boilerplate framework for AI-assisted site builds. Features a decoupled architecture where site layer plugins (`aS.c AI Boiler Example`) operate completely standalone with their own theme shell and partials registry, while `aS.c AI Boiler Plugin` serves as an independent Content Synchronization Tool.
 
-Includes an example site layer (services, projects, blog) that demonstrates full usage of the boilerplate and can be used as a reference or starting point for new builds.
+Includes a standalone example site layer (`asc-ai-example`) featuring a Portfolio Custom Post Type (with featured image and additional photo gallery support), Blog, Pages, and Partials for testing and starting new website builds.
 
 ## Structure
 
 ```
-includes/Core/         boilerplate core: partial system, content sync, lifecycle
-includes/Admin/        boilerplate admin: settings, content sync UI
-includes/ExampleCore/  example site: post types, settings, sync profile
-includes/ExampleAdmin/ example site: admin screens
-includes/ExampleFront/ example site: front-end rendering, shortcodes
-content/               HTML content and media for content sync
-assets/                admin and front-end CSS/JS
-templates/             PHP templates for the theme shell
-scripts/               deployment and utility scripts
+asc-ai-theme/   aS.c AI Boiler Theme (bare minimum stub)
+asc-ai-plugin/  aS.c AI Boiler Plugin (Content Synchronization Tool: diffing, import/export, media sync)
+asc-ai-example/ aS.c AI Boiler Example (Standalone site layer: Portfolio CPT, blog, pages, partials registry, theme shell)
 ```
 
-See ARCH.md for architecture detail and STYLE.md for code style.
+See `ARCH.md` for architecture detail and `STYLE.md` for code style.
 
 ## Requirements
 
@@ -28,24 +22,24 @@ See ARCH.md for architecture detail and STYLE.md for code style.
 
 ## Setup
 
+Run composer install in plugin directories:
 ```bash
-composer install
+cd asc-ai-plugin && composer install
+cd ../asc-ai-example && composer install
 ```
 
-Activate the plugin in WordPress. Run content sync from the plugin settings page to import the example content.
+`asc-ai-example` (`aS.c AI Boiler Example`) can be activated in WordPress and will function fully on its own. When `asc-ai-plugin` (`aS.c AI Boiler Plugin`) is active, use the Content Sync settings in WP Admin to synchronize static content files with the database.
 
 ## Verification
 
 ```bash
-php -l <file>   # syntax check
+find . -name "*.php" -exec php -l {} +   # syntax check
 ```
-
-No build step. No test suite.
 
 ## Security Hardening
 
 ### Restricting Access to Raw Content Files
-The `content/` subdirectory in the `asc-ai-example` plugin contains raw `.html`, `.json`, and `.txt` files used by the sync system. If you sync drafts or private posts, these files could potentially be fetched directly by browsers bypassing WordPress permissions.
+The `content/` subdirectory in site layer plugins contains raw `.html`, `.json`, and `.txt` files used by the sync system. If you sync drafts or private posts, these files could potentially be fetched directly by browsers bypassing WordPress permissions.
 
 To prevent direct download of these files, it is recommended to configure your web server to block access to these extensions inside the content folder.
 
@@ -72,4 +66,3 @@ location ~* /wp-content/plugins/asc-ai-example/content/.*\.(html|json|txt)$ {
     log_not_found off;
 }
 ```
-

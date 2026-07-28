@@ -43,6 +43,16 @@ final class ContentMediaSync {
 	public const FILTER_OTHER_MEDIA_DIR = 'asc_ai_boiler_other_media_dir';
 
 	/**
+	 * @var array<string, int>|null
+	 */
+	private static $media_path_cache = null;
+
+	/**
+	 * @var array<string, mixed>|null
+	 */
+	private static $manifest_cache = null;
+
+	/**
 	 * Filter: override the public base URL of content/other-media/ (trailing slash).
 	 *
 	 * @var string
@@ -103,7 +113,10 @@ final class ContentMediaSync {
 	 */
 	public static function get_media_directory(): string {
 		$paths = SyncConfig::get_companion_paths();
-		$default = ( $paths && isset( $paths['media_dir'] ) ) ? $paths['media_dir'] : Core::get_instance()->get_plugin_path() . self::MEDIA_RELATIVE_DIR;
+		$default = Core::get_instance()->get_plugin_path() . self::MEDIA_RELATIVE_DIR;
+		if ( $paths && isset( $paths['media_dir'] ) ) {
+			$default = $paths['media_dir'];
+		}
 		return trailingslashit( (string) apply_filters( self::FILTER_MEDIA_DIR, $default ) );
 	}
 
@@ -147,7 +160,10 @@ final class ContentMediaSync {
 		}
 
 		$paths = SyncConfig::get_companion_paths();
-		$default = ( $paths && isset( $paths['media_url'] ) ) ? $paths['media_url'] : Core::get_instance()->get_plugin_url() . self::MEDIA_RELATIVE_DIR;
+		$default = Core::get_instance()->get_plugin_url() . self::MEDIA_RELATIVE_DIR;
+		if ( $paths && isset( $paths['media_url'] ) ) {
+			$default = $paths['media_url'];
+		}
 		$base = trailingslashit( (string) apply_filters( self::FILTER_MEDIA_URL, $default ) );
 
 		return esc_url( $base . $relative_path );
@@ -171,7 +187,10 @@ final class ContentMediaSync {
 	 */
 	public static function get_other_media_directory(): string {
 		$paths = SyncConfig::get_companion_paths();
-		$default = ( $paths && isset( $paths['other_media_dir'] ) ) ? $paths['other_media_dir'] : Core::get_instance()->get_plugin_path() . self::MEDIA_OTHER_RELATIVE_DIR;
+		$default = Core::get_instance()->get_plugin_path() . self::MEDIA_OTHER_RELATIVE_DIR;
+		if ( $paths && isset( $paths['other_media_dir'] ) ) {
+			$default = $paths['other_media_dir'];
+		}
 		return trailingslashit( (string) apply_filters( self::FILTER_OTHER_MEDIA_DIR, $default ) );
 	}
 
@@ -188,7 +207,10 @@ final class ContentMediaSync {
 			return '';
 		}
 		$paths = SyncConfig::get_companion_paths();
-		$default = ( $paths && isset( $paths['other_media_url'] ) ) ? $paths['other_media_url'] : Core::get_instance()->get_plugin_url() . self::MEDIA_OTHER_RELATIVE_DIR;
+		$default = Core::get_instance()->get_plugin_url() . self::MEDIA_OTHER_RELATIVE_DIR;
+		if ( $paths && isset( $paths['other_media_url'] ) ) {
+			$default = $paths['other_media_url'];
+		}
 		$base = trailingslashit( (string) apply_filters( self::FILTER_OTHER_MEDIA_URL, $default ) );
 		return esc_url( $base . $relative_path );
 	}
@@ -285,29 +307,52 @@ final class ContentMediaSync {
 		return dirname( rtrim( self::get_media_directory(), '/' ) ) . '/content-manifest.json';
 	}
 
+	private static function load_manifest(): array {
+		if ( null !== self::$manifest_cache ) {
+			return self::$manifest_cache;
+		}
+
+		$path = self::get_content_manifest_path();
+		if ( ! is_readable( $path ) ) {
+			self::$manifest_cache = array();
+			return self::$manifest_cache;
+		}
+
+		$json = file_get_contents( $path );
+		if ( false === $json || '' === $json ) {
+			self::$manifest_cache = array();
+			return self::$manifest_cache;
+		}
+
+		$data = json_decode( $json, true );
+		if ( ! is_array( $data ) ) {
+			self::$manifest_cache = array();
+			return self::$manifest_cache;
+		}
+
+		self::$manifest_cache = $data;
+		return self::$manifest_cache;
+	}
+
 	/**
 	 * Media rows from content-manifest.json (`media` top-level key).
 	 *
 	 * @return list<array<string, mixed>>
 	 */
 	public static function load_manifest_media_rows(): array {
-		$path = self::get_content_manifest_path();
-		if ( ! is_readable( $path ) ) {
-			return array();
-		}
+		$data = self::load_manifest();
 
-		$json = file_get_contents( $path );
-		if ( false === $json || '' === $json ) {
-			return array();
-		}
-
-		$data = json_decode( $json, true );
-		if ( ! is_array( $data ) || ! isset( $data['media'] ) || ! is_array( $data['media'] ) ) {
+		$raw_rows = array();
+		if ( isset( $data['types']['media'] ) && is_array( $data['types']['media'] ) ) {
+			$raw_rows = $data['types']['media'];
+		} elseif ( isset( $data['media'] ) && is_array( $data['media'] ) ) {
+			$raw_rows = $data['media'];
+		} else {
 			return array();
 		}
 
 		$rows = array();
-		foreach ( $data['media'] as $row ) {
+		foreach ( $raw_rows as $row ) {
 			if ( is_array( $row ) ) {
 				$rows[] = $row;
 			}
@@ -320,23 +365,22 @@ final class ContentMediaSync {
 	 * @return list<array<string, mixed>>
 	 */
 	public static function load_manifest_media_bindings(): array {
-		$path = self::get_content_manifest_path();
-		if ( ! is_readable( $path ) ) {
+		$data = self::load_manifest();
+		if ( array() === $data ) {
 			return self::filtered_media_bindings();
 		}
 
-		$json = file_get_contents( $path );
-		if ( false === $json || '' === $json ) {
-			return self::filtered_media_bindings();
-		}
-
-		$data = json_decode( $json, true );
-		if ( ! is_array( $data ) || ! isset( $data['media_bindings'] ) || ! is_array( $data['media_bindings'] ) ) {
+		$raw_bindings = array();
+		if ( isset( $data['types']['media_bindings'] ) && is_array( $data['types']['media_bindings'] ) ) {
+			$raw_bindings = $data['types']['media_bindings'];
+		} elseif ( isset( $data['media_bindings'] ) && is_array( $data['media_bindings'] ) ) {
+			$raw_bindings = $data['media_bindings'];
+		} else {
 			return self::filtered_media_bindings();
 		}
 
 		$rows = array();
-		foreach ( $data['media_bindings'] as $row ) {
+		foreach ( $raw_bindings as $row ) {
 			if ( is_array( $row ) ) {
 				$rows[] = $row;
 			}
@@ -395,7 +439,6 @@ final class ContentMediaSync {
 		self::ensure_media_directory_exists();
 
 		$rows_by_path = array();
-		$exported = 0;
 
 		foreach ( self::collect_attachment_ids_for_export() as $attachment_id ) {
 			$relative_path = trim( (string) get_post_meta( $attachment_id, self::META_MEDIA_PATH, true ) );
@@ -403,24 +446,9 @@ final class ContentMediaSync {
 				continue;
 			}
 
-			if ( self::export_attachment_to_media_path( $attachment_id, $relative_path, $messages ) ) {
-				$exported++;
-			}
+			self::export_attachment_to_media_path( $attachment_id, $relative_path, $messages );
 
 			$rows_by_path[ $relative_path ] = self::build_manifest_media_row_from_attachment( $attachment_id, $relative_path );
-		}
-
-		if ( $exported > 0 ) {
-			$messages[] = sprintf(
-				/* translators: %d: number of media files */
-				_n(
-					'Exported %d media file to content/media/.',
-					'Exported %d media files to content/media/.',
-					$exported,
-					\ASC_AI_PLUGIN_DOMAIN
-				),
-				$exported
-			);
 		}
 
 		ksort( $rows_by_path, SORT_STRING );
@@ -453,7 +481,10 @@ final class ContentMediaSync {
 				}
 
 				$filetype = wp_check_filetype( basename( $absolute ), null );
-				$mime = is_array( $filetype ) && isset( $filetype['type'] ) ? (string) $filetype['type'] : '';
+				$mime = '';
+				if ( is_array( $filetype ) && isset( $filetype['type'] ) ) {
+					$mime = (string) $filetype['type'];
+				}
 				if ( '' !== $mime ) {
 					$row['mime'] = $mime;
 				}
@@ -496,10 +527,10 @@ final class ContentMediaSync {
 				continue;
 			}
 
-			$target = isset( $binding['target'] ) ? trim( (string) $binding['target'] ) : '';
+			$target = trim( (string) ( $binding['target'] ?? '' ) );
 			if ( 'setting' === $target ) {
-				$option = isset( $binding['option'] ) ? (string) $binding['option'] : '';
-				$key = isset( $binding['key'] ) ? (string) $binding['key'] : '';
+				$option = (string) ( $binding['option'] ?? '' );
+				$key = (string) ( $binding['key'] ?? '' );
 				if ( '' === $option || '' === $key ) {
 					continue;
 				}
@@ -518,9 +549,9 @@ final class ContentMediaSync {
 						if ( '' !== $media_filename ) {
 							$bindings[] = array(
 								'media_filename' => $media_filename,
-								'target'         => 'setting',
-								'option'         => $option,
-								'key'            => $key,
+								'target' => 'setting',
+								'option' => $option,
+								'key' => $key,
 							);
 							continue;
 						}
@@ -534,41 +565,44 @@ final class ContentMediaSync {
 		// Dynamically collect featured image bindings for all synced post types
 		if ( class_exists( '\ASC\AI_BOILER\Admin\ContentSyncProfile' ) ) {
 			$sync_types = \ASC\AI_BOILER\Admin\ContentSyncProfile::sync_types();
-			foreach ( $sync_types as $type_key => $type_config ) {
-				$post_type = isset( $type_config['post_type'] ) ? (string) $type_config['post_type'] : '';
-				if ( '' === $post_type ) {
-					continue;
+			$post_types = array();
+			foreach ( $sync_types as $type_config ) {
+				$pt = (string) ( $type_config['post_type'] ?? '' );
+				if ( '' !== $pt ) {
+					$post_types[] = $pt;
 				}
+			}
 
-				$query = new \WP_Query(
-					array(
-						'post_type'           => $post_type,
-						'post_status'         => 'publish',
-						'posts_per_page'      => -1,
-						'no_found_rows'       => true,
-						'ignore_sticky_posts' => true,
-					)
+			if ( ! empty( $post_types ) ) {
+				global $wpdb;
+				$in_types = "'" . implode( "', '", array_map( 'esc_sql', $post_types ) ) . "'";
+				$results = $wpdb->get_results(
+					"
+					SELECT p.post_type, p.post_name, pm.meta_value AS thumbnail_id
+					FROM $wpdb->posts p
+					INNER JOIN $wpdb->postmeta pm ON p.ID = pm.post_id
+					WHERE p.post_type IN ($in_types)
+					AND p.post_status = 'publish'
+					AND pm.meta_key = '_thumbnail_id'
+					"
 				);
 
-				foreach ( $query->posts as $post ) {
-					if ( ! $post instanceof \WP_Post ) {
-						continue;
-					}
-
-					$thumbnail_id = (int) get_post_thumbnail_id( $post->ID );
-					if ( $thumbnail_id > 0 ) {
-						$media_filename = self::ensure_attachment_has_media_path( $thumbnail_id );
-						if ( '' !== $media_filename ) {
-							$bindings[] = array(
-								'media_filename' => $media_filename,
-								'target'         => 'featured',
-								'post_type'      => $post->post_type,
-								'slug'           => $post->post_name,
-							);
+				if ( is_array( $results ) ) {
+					foreach ( $results as $row ) {
+						$thumbnail_id = (int) $row->thumbnail_id;
+						if ( $thumbnail_id > 0 ) {
+							$media_filename = self::ensure_attachment_has_media_path( $thumbnail_id );
+							if ( '' !== $media_filename ) {
+								$bindings[] = array(
+									'media_filename' => $media_filename,
+									'target' => 'featured',
+									'post_type' => $row->post_type,
+									'slug' => $row->post_name,
+								);
+							}
 						}
 					}
 				}
-				wp_reset_postdata();
 			}
 		}
 
@@ -631,7 +665,7 @@ final class ContentMediaSync {
 		} else {
 			$attached = get_attached_file( $attachment_id );
 			if ( is_string( $attached ) && is_readable( $attached ) ) {
-				$existing_hash = md5_file( $attached );
+				$existing_hash = self::get_attachment_file_hash( $attachment_id, $attached );
 				if ( is_string( $existing_hash ) && $existing_hash !== $disk_hash ) {
 					if ( self::replace_attachment_file( $attachment_id, $absolute, $messages ) ) {
 						$changed = true;
@@ -672,7 +706,7 @@ final class ContentMediaSync {
 				continue;
 			}
 
-			$media_filename = isset( $binding['media_filename'] ) ? self::normalize_relative_path( (string) $binding['media_filename'] ) : '';
+			$media_filename = self::normalize_relative_path( (string) ( $binding['media_filename'] ?? '' ) );
 			if ( ! self::is_valid_media_relative_path( $media_filename ) ) {
 				continue;
 			}
@@ -682,7 +716,7 @@ final class ContentMediaSync {
 				continue;
 			}
 
-			$target = isset( $binding['target'] ) ? trim( (string) $binding['target'] ) : '';
+			$target = trim( (string) ( $binding['target'] ?? '' ) );
 			if ( 'setting' === $target ) {
 				if ( self::apply_setting_binding( $binding, $attachment_id, $messages ) ) {
 					$applied++;
@@ -701,11 +735,6 @@ final class ContentMediaSync {
 	}
 
 	/**
-	 * @param string $relative_path Path under content/media/.
-	 *
-	 * @return int Attachment ID or 0.
-	 */
-	/**
 	 * Compare content/media/ files against WordPress attachments and return rows in the same
 	 * shape as {@see \ASC\AI_BOILER\Admin\ContentSync::run_detect_content_differences()} differences.
 	 *
@@ -719,41 +748,62 @@ final class ContentMediaSync {
 
 		// 1. Check disk files vs WordPress database
 		foreach ( $disk_files as $relative_path ) {
-			$absolute      = self::resolve_media_file_path( $relative_path );
-			$display_path  = self::MEDIA_RELATIVE_DIR . $relative_path;
-			$file_mtime    = ( '' !== $absolute && is_file( $absolute ) ) ? filemtime( $absolute ) : false;
-			$file_iso      = false !== $file_mtime ? gmdate( 'c', (int) $file_mtime ) : '';
+			$absolute = self::resolve_media_file_path( $relative_path );
+			$display_path = self::MEDIA_RELATIVE_DIR . $relative_path;
+			$file_mtime = false;
+			if ( '' !== $absolute && is_file( $absolute ) ) {
+				$file_mtime = filemtime( $absolute );
+			}
+			$file_iso = '';
+			if ( false !== $file_mtime ) {
+				$file_iso = gmdate( 'c', (int) $file_mtime );
+			}
 			$attachment_id = self::find_attachment_id_by_media_path( $relative_path );
 
 			if ( $attachment_id <= 0 ) {
 				$differences[] = array(
-					'relative_path'    => $display_path,
-					'issues'           => array( __( 'Media file on disk has no matching attachment in the WordPress media library.', \ASC_AI_PLUGIN_DOMAIN ) ),
-					'suggestion'       => 'import',
-					'suggestion_note'  => __( 'Suggested: Import from plugin files to add this media file to WordPress.', \ASC_AI_PLUGIN_DOMAIN ),
+					'relative_path' => $display_path,
+					'issues' => array( __( 'Media file on disk has no matching attachment in the WordPress media library.', \ASC_AI_PLUGIN_DOMAIN ) ),
+					'suggestion' => 'import',
+					'suggestion_note' => __( 'Suggested: Import from plugin files to add this media file to WordPress.', \ASC_AI_PLUGIN_DOMAIN ),
 					'file_modified_gmt' => $file_iso,
-					'wp_modified_gmt'  => '',
+					'wp_modified_gmt' => '',
 				);
 				continue;
 			}
 
-			$disk_hash    = ( '' !== $absolute && is_readable( $absolute ) ) ? md5_file( $absolute ) : false;
-			$attached     = get_attached_file( $attachment_id );
-			$attach_hash  = ( is_string( $attached ) && is_readable( $attached ) ) ? md5_file( $attached ) : false;
+			$disk_hash = false;
+			if ( '' !== $absolute && is_readable( $absolute ) ) {
+				$disk_hash = md5_file( $absolute );
+			}
+			$attached = get_attached_file( $attachment_id );
+			$attach_hash = false;
+			if ( is_string( $attached ) && is_readable( $attached ) ) {
+				$attach_hash = self::get_attachment_file_hash( $attachment_id, $attached );
+			}
 
-			$file_mismatch = false !== $disk_hash && false !== $attach_hash && $disk_hash !== $attach_hash;
-			$wp_post       = get_post( $attachment_id );
-			$wp_ts         = $wp_post ? (int) get_post_modified_time( 'U', true, $wp_post ) : 0;
-			$wp_iso        = $wp_ts > 0 ? gmdate( 'c', $wp_ts ) : '';
+			$file_mismatch = false;
+			if ( false !== $disk_hash && false !== $attach_hash && $disk_hash !== $attach_hash ) {
+				$file_mismatch = true;
+			}
+			$wp_post = get_post( $attachment_id );
+			$wp_ts = 0;
+			if ( $wp_post instanceof WP_Post ) {
+				$wp_ts = (int) get_post_modified_time( 'U', true, $wp_post );
+			}
+			$wp_iso = '';
+			if ( $wp_ts > 0 ) {
+				$wp_iso = gmdate( 'c', $wp_ts );
+			}
 
 			if ( $file_mismatch ) {
 				$differences[] = array(
-					'relative_path'    => $display_path,
-					'issues'           => array( __( 'Media file on disk differs from the WordPress attachment (MD5 mismatch).', \ASC_AI_PLUGIN_DOMAIN ) ),
-					'suggestion'       => 'import',
-					'suggestion_note'  => __( 'Suggested: Import from plugin files to update this media attachment in WordPress.', \ASC_AI_PLUGIN_DOMAIN ),
+					'relative_path' => $display_path,
+					'issues' => array( __( 'Media file on disk differs from the WordPress attachment (MD5 mismatch).', \ASC_AI_PLUGIN_DOMAIN ) ),
+					'suggestion' => 'import',
+					'suggestion_note' => __( 'Suggested: Import from plugin files to update this media attachment in WordPress.', \ASC_AI_PLUGIN_DOMAIN ),
 					'file_modified_gmt' => $file_iso,
-					'wp_modified_gmt'  => $wp_iso,
+					'wp_modified_gmt' => $wp_iso,
 				);
 			} else {
 				// Check metadata differences
@@ -762,8 +812,8 @@ final class ContentMediaSync {
 
 				$meta_differ = false;
 				foreach ( array( 'title', 'alt', 'caption', 'description' ) as $key ) {
-					$wp_val = isset( $wp_row[ $key ] ) ? trim( (string) $wp_row[ $key ] ) : '';
-					$manifest_val = isset( $row[ $key ] ) ? trim( (string) $row[ $key ] ) : '';
+					$wp_val = trim( (string) ( $wp_row[ $key ] ?? '' ) );
+					$manifest_val = trim( (string) ( $row[ $key ] ?? '' ) );
 					if ( $wp_val !== $manifest_val ) {
 						$meta_differ = true;
 						break;
@@ -772,12 +822,12 @@ final class ContentMediaSync {
 
 				if ( $meta_differ ) {
 					$differences[] = array(
-						'relative_path'    => $display_path,
-						'issues'           => array( __( 'Manifest metadata (title, alt, caption, or description) differs from the WordPress attachment.', \ASC_AI_PLUGIN_DOMAIN ) ),
-						'suggestion'       => 'export',
-						'suggestion_note'  => __( 'Suggested: Export to plugin files to update the manifest with WordPress metadata.', \ASC_AI_PLUGIN_DOMAIN ),
+						'relative_path' => $display_path,
+						'issues' => array( __( 'Manifest metadata (title, alt, caption, or description) differs from the WordPress attachment.', \ASC_AI_PLUGIN_DOMAIN ) ),
+						'suggestion' => 'export',
+						'suggestion_note' => __( 'Suggested: Export to plugin files to update the manifest with WordPress metadata.', \ASC_AI_PLUGIN_DOMAIN ),
 						'file_modified_gmt' => $file_iso,
-						'wp_modified_gmt'  => $wp_iso,
+						'wp_modified_gmt' => $wp_iso,
 					);
 				}
 			}
@@ -792,18 +842,24 @@ final class ContentMediaSync {
 			}
 
 			if ( ! isset( $disk_files_indexed[ $relative_path ] ) ) {
-				$display_path  = self::MEDIA_RELATIVE_DIR . $relative_path;
-				$wp_post       = get_post( $attachment_id );
-				$wp_ts         = $wp_post ? (int) get_post_modified_time( 'U', true, $wp_post ) : 0;
-				$wp_iso        = $wp_ts > 0 ? gmdate( 'c', $wp_ts ) : '';
+				$display_path = self::MEDIA_RELATIVE_DIR . $relative_path;
+				$wp_post = get_post( $attachment_id );
+				$wp_ts = 0;
+				if ( $wp_post instanceof WP_Post ) {
+					$wp_ts = (int) get_post_modified_time( 'U', true, $wp_post );
+				}
+				$wp_iso = '';
+				if ( $wp_ts > 0 ) {
+					$wp_iso = gmdate( 'c', $wp_ts );
+				}
 
 				$differences[] = array(
-					'relative_path'    => $display_path,
-					'issues'           => array( __( 'Media attachment in WordPress has no matching file on disk.', \ASC_AI_PLUGIN_DOMAIN ) ),
-					'suggestion'       => 'export',
-					'suggestion_note'  => __( 'Suggested: Export to plugin files to write the missing media file to disk.', \ASC_AI_PLUGIN_DOMAIN ),
+					'relative_path' => $display_path,
+					'issues' => array( __( 'Media attachment in WordPress has no matching file on disk.', \ASC_AI_PLUGIN_DOMAIN ) ),
+					'suggestion' => 'export',
+					'suggestion_note' => __( 'Suggested: Export to plugin files to write the missing media file to disk.', \ASC_AI_PLUGIN_DOMAIN ),
 					'file_modified_gmt' => '',
-					'wp_modified_gmt'  => $wp_iso,
+					'wp_modified_gmt' => $wp_iso,
 				);
 			}
 		}
@@ -813,12 +869,12 @@ final class ContentMediaSync {
 		$manifest_bindings = self::load_manifest_media_bindings();
 		if ( wp_json_encode( $db_bindings ) !== wp_json_encode( $manifest_bindings ) ) {
 			$differences[] = array(
-				'relative_path'     => 'content-manifest.json',
-				'issues'            => array( __( 'Media bindings in manifest differ from the active settings and featured images in WordPress.', \ASC_AI_PLUGIN_DOMAIN ) ),
-				'suggestion'        => 'export',
-				'suggestion_note'   => __( 'Suggested: Export to plugin files to update the manifest media bindings.', \ASC_AI_PLUGIN_DOMAIN ),
+				'relative_path' => 'content-manifest.json',
+				'issues' => array( __( 'Media bindings in manifest differ from the active settings and featured images in WordPress.', \ASC_AI_PLUGIN_DOMAIN ) ),
+				'suggestion' => 'export',
+				'suggestion_note' => __( 'Suggested: Export to plugin files to update the manifest media bindings.', \ASC_AI_PLUGIN_DOMAIN ),
 				'file_modified_gmt' => '',
-				'wp_modified_gmt'   => '',
+				'wp_modified_gmt' => '',
 			);
 		}
 
@@ -831,32 +887,56 @@ final class ContentMediaSync {
 			return 0;
 		}
 
-		$query = new \WP_Query(
-			array(
-				'post_type' => 'attachment',
-				'post_status' => 'inherit',
-				'posts_per_page' => 1,
-				'fields' => 'ids',
-				'meta_key' => self::META_MEDIA_PATH,
-				'meta_value' => $relative_path,
-				'no_found_rows' => true,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-			)
-		);
-
-		if ( ! $query->have_posts() ) {
-			return 0;
+		if ( null === self::$media_path_cache ) {
+			self::$media_path_cache = array();
+			global $wpdb;
+			$results = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = %s",
+					self::META_MEDIA_PATH
+				)
+			);
+			
+			if ( is_array( $results ) ) {
+				foreach ( $results as $row ) {
+					if ( is_object( $row ) && isset( $row->post_id, $row->meta_value ) ) {
+						self::$media_path_cache[ (string) $row->meta_value ] = (int) $row->post_id;
+					}
+				}
+			}
 		}
 
-		$attachment_id = (int) $query->posts[0];
-		wp_reset_postdata();
+		return self::$media_path_cache[ $relative_path ] ?? 0;
+	}
 
-		if ( $attachment_id <= 0 ) {
-			return 0;
+	/**
+	 * Get the hash of an attachment file, caching it in post meta to avoid rehashing on every sync.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 * @param string $attached_path Absolute path to the file.
+	 *
+	 * @return string|false
+	 */
+	private static function get_attachment_file_hash( int $attachment_id, string $attached_path ) {
+		$mtime = filemtime( $attached_path );
+		if ( false === $mtime ) {
+			return md5_file( $attached_path );
 		}
 
-		return $attachment_id;
+		$cached_hash = get_post_meta( $attachment_id, '_asc_ai_boiler_media_hash', true );
+		$cached_mtime = get_post_meta( $attachment_id, '_asc_ai_boiler_media_mtime', true );
+
+		if ( (string) $mtime === (string) $cached_mtime && is_string( $cached_hash ) && '' !== $cached_hash ) {
+			return $cached_hash;
+		}
+
+		$hash = md5_file( $attached_path );
+		if ( is_string( $hash ) ) {
+			update_post_meta( $attachment_id, '_asc_ai_boiler_media_hash', $hash );
+			update_post_meta( $attachment_id, '_asc_ai_boiler_media_mtime', $mtime );
+		}
+
+		return $hash;
 	}
 
 	/**
@@ -929,9 +1009,15 @@ final class ContentMediaSync {
 	}
 
 	/**
+	 * Collect attachment IDs that should be exported.
+	 * 
+	 * WARNING: This method calls build_manifest_media_bindings_for_export(), 
+	 * which may write missing `_asc_ai_boiler_media_path` postmeta for featured 
+	 * and setting attachments as a side-effect.
+	 *
 	 * @return list<int>
 	 */
-	private static function collect_attachment_ids_for_export(): array {
+	public static function collect_attachment_ids_for_export(): array {
 		$ids = array();
 
 		// 1. Collect from updated bindings (possibly new ones from WP settings/posts)
@@ -941,10 +1027,10 @@ final class ContentMediaSync {
 				continue;
 			}
 
-			$target = isset( $binding['target'] ) ? trim( (string) $binding['target'] ) : '';
+			$target = trim( (string) ( $binding['target'] ?? '' ) );
 			if ( 'setting' === $target ) {
-				$option = isset( $binding['option'] ) ? (string) $binding['option'] : '';
-				$key = isset( $binding['key'] ) ? (string) $binding['key'] : '';
+				$option = (string) ( $binding['option'] ?? '' );
+				$key = (string) ( $binding['key'] ?? '' );
 				if ( '' === $option || '' === $key ) {
 					continue;
 				}
@@ -960,8 +1046,8 @@ final class ContentMediaSync {
 			}
 
 			if ( 'featured' === $target ) {
-				$post_type = isset( $binding['post_type'] ) ? trim( (string) $binding['post_type'] ) : '';
-				$slug = isset( $binding['slug'] ) ? trim( (string) $binding['slug'] ) : '';
+				$post_type = trim( (string) ( $binding['post_type'] ?? '' ) );
+				$slug = trim( (string) ( $binding['slug'] ?? '' ) );
 				if ( '' === $post_type || '' === $slug ) {
 					continue;
 				}
@@ -981,12 +1067,12 @@ final class ContentMediaSync {
 		// 2. Collect all other plugin-managed attachments from the database
 		$query = new \WP_Query(
 			array(
-				'post_type'              => 'attachment',
-				'post_status'            => 'inherit',
-				'posts_per_page'         => -1,
-				'fields'                 => 'ids',
-				'meta_key'               => self::META_MEDIA_PATH,
-				'no_found_rows'          => true,
+				'post_type' => 'attachment',
+				'post_status' => 'inherit',
+				'posts_per_page' => -1,
+				'fields' => 'ids',
+				'meta_key' => self::META_MEDIA_PATH,
+				'no_found_rows' => true,
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
 			)
@@ -1015,12 +1101,7 @@ final class ContentMediaSync {
 			return 0;
 		}
 
-		$file_contents = file_get_contents( $absolute );
-		if ( false === $file_contents ) {
-			return 0;
-		}
-
-		$date_gmt = isset( $manifest_row['date_gmt'] ) ? trim( (string) $manifest_row['date_gmt'] ) : '';
+		$date_gmt = trim( (string) ( $manifest_row['date_gmt'] ?? '' ) );
 		$time_arg = null;
 		$post_date_gmt = null;
 		$post_date = null;
@@ -1028,24 +1109,42 @@ final class ContentMediaSync {
 		if ( '' !== $date_gmt ) {
 			$ts = strtotime( $date_gmt );
 			if ( false !== $ts && $ts > 0 ) {
-				$time_arg      = date( 'Y/m', $ts );
+				$time_arg = date( 'Y/m', $ts );
 				$post_date_gmt = gmdate( 'Y-m-d H:i:s', $ts );
-				$post_date     = date( 'Y-m-d H:i:s', $ts );
+				$post_date = date( 'Y-m-d H:i:s', $ts );
 			}
 		}
 
-		$upload = wp_upload_bits( basename( $absolute ), null, $file_contents, $time_arg );
-		if ( ! is_array( $upload ) || ! empty( $upload['error'] ) ) {
+		$upload_dir = wp_upload_dir( $time_arg );
+		if ( ! is_array( $upload_dir ) || ! empty( $upload_dir['error'] ) ) {
+			$messages[] = sprintf(
+				/* translators: 1: relative media path, 2: error message */
+				__( 'Failed to import media %1$s: %2$s', \ASC_AI_PLUGIN_DOMAIN ),
+				self::MEDIA_RELATIVE_DIR . $relative_path,
+				$upload_dir['error'] ?? 'Unknown error'
+			);
+			return 0;
+		}
+
+		$filename = wp_unique_filename( $upload_dir['path'], basename( $absolute ) );
+		$destination = $upload_dir['path'] . '/' . $filename;
+
+		if ( ! copy( $absolute, $destination ) ) {
 			$messages[] = sprintf(
 				/* translators: %s: relative media path */
-				__( 'Failed to import media %s.', \ASC_AI_PLUGIN_DOMAIN ),
+				__( 'Failed to import media %s: could not copy file.', \ASC_AI_PLUGIN_DOMAIN ),
 				self::MEDIA_RELATIVE_DIR . $relative_path
 			);
 			return 0;
 		}
 
+		$upload = array( 'file' => $destination );
+
 		$filetype = wp_check_filetype( basename( $absolute ), null );
-		$mime = is_array( $filetype ) && isset( $filetype['type'] ) ? (string) $filetype['type'] : '';
+		$mime = '';
+		if ( is_array( $filetype ) && isset( $filetype['type'] ) ) {
+			$mime = (string) $filetype['type'];
+		}
 		if ( '' === $mime ) {
 			$messages[] = sprintf(
 				/* translators: %s: relative media path */
@@ -1058,12 +1157,12 @@ final class ContentMediaSync {
 		$title = self::manifest_title_for_row( $manifest_row, $relative_path );
 		$attachment_data = array(
 			'post_mime_type' => $mime,
-			'post_title'     => $title,
-			'post_status'    => 'inherit',
+			'post_title' => $title,
+			'post_status' => 'inherit',
 		);
 		if ( null !== $post_date_gmt ) {
 			$attachment_data['post_date_gmt'] = $post_date_gmt;
-			$attachment_data['post_date']     = $post_date;
+			$attachment_data['post_date'] = $post_date;
 		}
 
 		$attachment_id = wp_insert_attachment(
@@ -1119,6 +1218,8 @@ final class ContentMediaSync {
 		}
 
 		update_attached_file( $attachment_id, $destination );
+		delete_post_meta( $attachment_id, '_asc_ai_boiler_media_hash' );
+		delete_post_meta( $attachment_id, '_asc_ai_boiler_media_mtime' );
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $destination );
 		if ( is_array( $metadata ) ) {
@@ -1152,8 +1253,11 @@ final class ContentMediaSync {
 			wp_mkdir_p( $target_dir );
 		}
 
-		$source_hash = md5_file( $source );
-		$target_hash = is_file( $absolute ) ? md5_file( $absolute ) : false;
+		$source_hash = self::get_attachment_file_hash( $attachment_id, $source );
+		$target_hash = false;
+		if ( is_file( $absolute ) ) {
+			$target_hash = md5_file( $absolute );
+		}
 		if ( is_string( $source_hash ) && is_string( $target_hash ) && $source_hash === $target_hash ) {
 			update_post_meta( $attachment_id, self::META_MEDIA_PATH, $relative_path );
 			return false;
@@ -1181,19 +1285,27 @@ final class ContentMediaSync {
 	 */
 	private static function build_manifest_media_row_from_attachment( int $attachment_id, string $relative_path ): array {
 		$filetype = wp_check_filetype( basename( $relative_path ), null );
-		$mime = is_array( $filetype ) && isset( $filetype['type'] ) ? (string) $filetype['type'] : '';
+		$mime = '';
+		if ( is_array( $filetype ) && isset( $filetype['type'] ) ) {
+			$mime = (string) $filetype['type'];
+		}
 
 		$post = get_post( $attachment_id );
-		$title = $post ? (string) $post->post_title : '';
-		$caption = $post ? (string) $post->post_excerpt : '';
-		$description = $post ? (string) $post->post_content : '';
+		$title = '';
+		$caption = '';
+		$description = '';
+		if ( $post instanceof \WP_Post ) {
+			$title = (string) $post->post_title;
+			$caption = (string) $post->post_excerpt;
+			$description = (string) $post->post_content;
+		}
 		$alt = trim( (string) get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) );
 
 		$row = array(
-			'filename'    => $relative_path,
-			'title'       => $title,
-			'alt'         => $alt,
-			'caption'     => $caption,
+			'filename' => $relative_path,
+			'title' => $title,
+			'alt' => $alt,
+			'caption' => $caption,
 			'description' => $description,
 		);
 
@@ -1213,7 +1325,7 @@ final class ContentMediaSync {
 	 *
 	 * @return string Media relative path.
 	 */
-	private static function ensure_attachment_has_media_path( int $attachment_id ): string {
+	public static function ensure_attachment_has_media_path( int $attachment_id ): string {
 		$relative_path = trim( (string) get_post_meta( $attachment_id, self::META_MEDIA_PATH, true ) );
 		if ( '' !== $relative_path ) {
 			return $relative_path;
@@ -1239,8 +1351,8 @@ final class ContentMediaSync {
 	 * @return bool
 	 */
 	private static function apply_setting_binding( array $binding, int $attachment_id, array &$messages ): bool {
-		$option = isset( $binding['option'] ) ? (string) $binding['option'] : '';
-		$key = isset( $binding['key'] ) ? (string) $binding['key'] : '';
+		$option = (string) ( $binding['option'] ?? '' );
+		$key = (string) ( $binding['key'] ?? '' );
 		if ( '' === $option || '' === $key ) {
 			return false;
 		}
@@ -1250,7 +1362,7 @@ final class ContentMediaSync {
 			$settings = array();
 		}
 
-		$current = isset( $settings[ $key ] ) ? (int) $settings[ $key ] : 0;
+		$current = (int) ( $settings[ $key ] ?? 0 );
 		if ( $current === $attachment_id ) {
 			return false;
 		}
@@ -1276,8 +1388,8 @@ final class ContentMediaSync {
 	 * @return bool
 	 */
 	private static function apply_featured_binding( array $binding, int $attachment_id, array &$messages ): bool {
-		$post_type = isset( $binding['post_type'] ) ? trim( (string) $binding['post_type'] ) : '';
-		$slug = isset( $binding['slug'] ) ? trim( (string) $binding['slug'] ) : '';
+		$post_type = trim( (string) ( $binding['post_type'] ?? '' ) );
+		$slug = trim( (string) ( $binding['slug'] ?? '' ) );
 		if ( '' === $post_type || '' === $slug ) {
 			return false;
 		}
