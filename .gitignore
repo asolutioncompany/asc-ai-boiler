@@ -1,6 +1,8 @@
-# Claude Code
+# AI
 .claude/
 .vscode/
+.agents/
+.cursor/
 
 # Git merge/rebase artifacts
 *.orig
