@@ -47,7 +47,6 @@ class Front {
 	 */
 	private function init(): void {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_front_assets' ), 100 );
-		add_action( 'wp_head', array( $this, 'render_favicon' ) );
 		add_action( 'wp_footer', array( $this, 'render_scroll_top' ) );
 		add_filter( 'excerpt_length', array( $this, 'get_front_excerpt_length' ), 999 );
 		add_filter( 'body_class', array( $this, 'filter_body_class' ) );
@@ -402,13 +401,4 @@ class Front {
 		echo '<button type="button" class="asc-scroll-top" aria-label="' . esc_attr__( 'Scroll to top', 'asc-ai-boiler' ) . '"><span class="dashicons dashicons-arrow-up-alt2" aria-hidden="true"></span></button>';
 	}
 
-	/**
-	 * Output the SVG favicon in the header.
-	 *
-	 * @return void
-	 */
-	public function render_favicon(): void {
-		$svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><style>path { fill: #0b7285; } @media (prefers-color-scheme: dark) { path { fill: #67d8ef; } }</style><path d="M3.76 17.010h12.48c1.1-1.38 1.76-3.11 1.76-5.010 0-4.41-3.58-8-8-8s-8 3.59-8 8c0 1.9 0.66 3.63 1.76 5.010zM9 6c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1zM4 8c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1zM8.52 11.4c0.84-0.83 6.51-3.5 6.51-3.5s-2.66 5.68-3.49 6.51c-0.84 0.84-2.18 0.84-3.020 0-0.83-0.83-0.83-2.18 0-3.010zM3 13c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1zM9 13c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1zM15 13c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1z"/></svg>';
-		echo '<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,' . base64_encode( $svg ) . '">' . "\n";
-	}
 }
