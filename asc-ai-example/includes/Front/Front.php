@@ -47,6 +47,7 @@ class Front {
 	 */
 	private function init(): void {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_front_assets' ), 100 );
+		add_action( 'wp_head', array( $this, 'render_favicon' ) );
 		add_action( 'wp_footer', array( $this, 'render_scroll_top' ) );
 		add_filter( 'excerpt_length', array( $this, 'get_front_excerpt_length' ), 999 );
 		add_filter( 'body_class', array( $this, 'filter_body_class' ) );
@@ -401,4 +402,13 @@ class Front {
 		echo '<button type="button" class="asc-scroll-top" aria-label="' . esc_attr__( 'Scroll to top', 'asc-ai-boiler' ) . '"><span class="dashicons dashicons-arrow-up-alt2" aria-hidden="true"></span></button>';
 	}
 
+	/**
+	 * Output the SVG favicon in the header.
+	 *
+	 * @return void
+	 */
+	public function render_favicon(): void {
+		$url = plugin_dir_url( \ASC_AI_EXAMPLE_PLUGIN_FILE ) . 'content/other-media/performance.svg';
+		echo '<link rel="icon" type="image/svg+xml" href="' . esc_url( $url ) . '">' . "\n";
+	}
 }

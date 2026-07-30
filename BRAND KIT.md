@@ -22,33 +22,33 @@ This document defines the graphical styling, typography, and color schemes for t
 
 ## Color Scheme
 
-The site implements a dual-theme system (defaulting to light mode) using CSS variables.
+The site implements a theme system using CSS variables.
 
 ### Main Theme Colors
 
-| Variable | Description / Purpose | Light Theme Hex (Default) | Dark Theme Hex |
-| :--- | :--- | :--- | :--- |
-| `--example-bg` | Main page background | `#ffffff` | `#101418` |
-| `--example-surface` | Surfaces (cards, inputs, panels) | `#f2efef` | `#1a2028` |
-| `--example-muted-bg` | Hover states, secondary panels | `#dbdada` | `#2e3648` |
-| `--example-fg` | Main foreground / text | `#212121` | `#f8f8f2` |
-| `--example-muted` | Muted text, borders, placeholders | `#757575` | `#75715e` |
-| `--example-post-date` | Post date metadata | `#757575` | `#a8acb8` |
+| Variable | Description / Purpose | Hex Value |
+| :--- | :--- | :--- |
+| `--example-bg` | Main page background | `#ffffff` |
+| `--example-surface` | Surfaces (cards, inputs, panels) | `#f2efef` |
+| `--example-muted-bg` | Hover states, secondary panels | `#dbdada` |
+| `--example-fg` | Main foreground / text | `#212121` |
+| `--example-muted` | Muted text, borders, placeholders | `#757575` |
+| `--example-post-date` | Post date metadata | `#757575` |
 
 ### Accents & Utility Colors
 
-| Variable | Description / Purpose | Light Theme Hex (Default) | Dark Theme Hex |
-| :--- | :--- | :--- | :--- |
-| `--example-cyan` | Cyan border & highlights | `#0b7285` | `#67d8ef` |
-| `--example-green` | Green highlights / success status | `#2b8a3e` | `#a6e22c` |
-| `--example-purple` | Purple accent details | `#862e9c` | `#ae81ff` |
-| `--example-accent` | Accent pink/red details | `#d6336c` | `#f92472` |
-| `--example-focus` | Focus outline color | `#e8590c` | `#fd9621` |
-| `--example-brand-accent` | Brand Accent highlights | `#0b7285` | `#2abfe3` |
-| `--example-teal` | Deep Teal background panels | `#10738a` | `#175970` |
-| `--example-light-teal` | Light sky blue details | `#15aabf` | `#ade8f5` |
-| `--example-theme-toggle-bg` | Theme switcher background | `#ced5e0` | `#3a4048` |
-| `--example-cyan-border` | Cyan border style | `2px solid #67d8ef` | `2px solid var(--example-cyan)` |
+| Variable | Description / Purpose | Hex Value |
+| :--- | :--- | :--- |
+| `--example-cyan` | Cyan border & highlights | `#0b7285` |
+| `--example-green` | Green highlights / success status | `#2b8a3e` |
+| `--example-purple` | Purple accent details | `#862e9c` |
+| `--example-accent` | Accent pink/red details | `#d6336c` |
+| `--example-focus` | Focus outline color | `#e8590c` |
+| `--example-brand-accent` | Brand Accent highlights | `#0b7285` |
+| `--example-teal` | Deep Teal background panels | `#10738a` |
+| `--example-light-teal` | Light sky blue details | `#15aabf` |
+| `--example-theme-toggle-bg` | Theme switcher background | `#ced5e0` |
+| `--example-cyan-border` | Cyan border style | `2px solid #67d8ef` |
 
 ---
 
@@ -63,8 +63,7 @@ The site implements a dual-theme system (defaulting to light mode) using CSS var
 - **Border Radius:** `16px` (`--example-button-border-radius`)
 - **Ghost Button Border:** `2px solid transparent`
 - **Standard Button Border (Footer):** `2px solid var(--example-muted)`
-- **Hover Border (Light):** `2px solid #495057` (`--example-btn-hover-border`)
-- **Hover Border (Dark):** `2px solid var(--example-cyan)` (`--example-btn-hover-border`)
+- **Hover Border:** `2px solid #495057` (`--example-btn-hover-border`)
 
 ### Cards
 - **Border Radius:** `10px` (`--example-card-border-radius`)

@@ -1,6 +1,6 @@
 {
     "manifest_version": 1,
-    "exported_at": "2026-07-23T12:00:00+00:00",
+    "exported_at": "2026-07-30T05:02:05+00:00",
     "types": {
         "partials": [
             {
@@ -214,43 +214,19 @@
     },
     "media": [
         {
+            "filename": "about-us.jpg",
+            "title": "About Us Illustration",
+            "alt": "About Us Illustration",
+            "caption": "",
+            "description": "About Us Illustration",
+            "mime": "image/jpeg"
+        },
+        {
             "filename": "blog-default.jpg",
             "title": "Blog",
             "alt": "Blog",
             "caption": "",
             "description": "Blog",
-            "mime": "image/jpeg"
-        },
-        {
-            "filename": "projects-default.jpg",
-            "title": "Project",
-            "alt": "Project",
-            "caption": "",
-            "description": "Project",
-            "mime": "image/jpeg"
-        },
-        {
-            "filename": "project-dog-groomer.jpg",
-            "title": "Dog Groomer Website Project",
-            "alt": "Dog Groomer Website Project",
-            "caption": "",
-            "description": "Dog Groomer Website Project",
-            "mime": "image/jpeg"
-        },
-        {
-            "filename": "project-landscaping.jpg",
-            "title": "Landscaping Company Website Project",
-            "alt": "Landscaping Company Website Project",
-            "caption": "",
-            "description": "Landscaping Company Website Project",
-            "mime": "image/jpeg"
-        },
-        {
-            "filename": "project-pool-service.jpg",
-            "title": "Pool Service Company Website Project",
-            "alt": "Pool Service Company Website Project",
-            "caption": "",
-            "description": "Pool Service Company Website Project",
             "mime": "image/jpeg"
         },
         {
@@ -278,6 +254,14 @@
             "mime": "image/jpeg"
         },
         {
+            "filename": "contact-us.jpg",
+            "title": "Contact Us Illustration",
+            "alt": "Contact Us Illustration",
+            "caption": "",
+            "description": "Contact Us Illustration",
+            "mime": "image/jpeg"
+        },
+        {
             "filename": "hero.jpg",
             "title": "Fast WordPress Hero",
             "alt": "Fast WordPress Hero",
@@ -286,19 +270,51 @@
             "mime": "image/jpeg"
         },
         {
-            "filename": "about-us.jpg",
-            "title": "About Us Illustration",
-            "alt": "About Us Illustration",
+            "filename": "og-image.png",
+            "title": "Fast WordPress",
+            "alt": "Fast WordPress",
             "caption": "",
-            "description": "About Us Illustration",
+            "description": "Fast WordPress",
+            "mime": "image/png"
+        },
+        {
+            "filename": "performance.png",
+            "title": "Fast WordPress",
+            "alt": "Fast WordPress",
+            "caption": "",
+            "description": "Fast WordPress",
+            "mime": "image/png"
+        },
+        {
+            "filename": "project-dog-groomer.jpg",
+            "title": "Dog Groomer Website Project",
+            "alt": "Dog Groomer Website Project",
+            "caption": "",
+            "description": "Dog Groomer Website Project",
             "mime": "image/jpeg"
         },
         {
-            "filename": "contact-us.jpg",
-            "title": "Contact Us Illustration",
-            "alt": "Contact Us Illustration",
+            "filename": "project-landscaping.jpg",
+            "title": "Landscaping Company Website Project",
+            "alt": "Landscaping Company Website Project",
             "caption": "",
-            "description": "Contact Us Illustration",
+            "description": "Landscaping Company Website Project",
+            "mime": "image/jpeg"
+        },
+        {
+            "filename": "project-pool-service.jpg",
+            "title": "Pool Service Company Website Project",
+            "alt": "Pool Service Company Website Project",
+            "caption": "",
+            "description": "Pool Service Company Website Project",
+            "mime": "image/jpeg"
+        },
+        {
+            "filename": "projects-default.jpg",
+            "title": "Project",
+            "alt": "Project",
+            "caption": "",
+            "description": "Project",
             "mime": "image/jpeg"
         }
     ],
@@ -308,12 +324,6 @@
             "target": "setting",
             "option": "example_site_settings",
             "key": "image_blog_default_id"
-        },
-        {
-            "media_filename": "projects-default.jpg",
-            "target": "setting",
-            "option": "example_site_settings",
-            "key": "image_portfolio_default_id"
         },
         {
             "media_filename": "blog-design.jpg",
@@ -350,6 +360,12 @@
             "target": "featured",
             "post_type": "example_portfolio",
             "slug": "pool-service-company"
+        },
+        {
+            "media_filename": "projects-default.jpg",
+            "target": "setting",
+            "option": "example_site_settings",
+            "key": "image_portfolio_default_id"
         }
     ]
 }
