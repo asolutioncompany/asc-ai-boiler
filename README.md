@@ -72,10 +72,11 @@ cd ../asc-ai-example && composer install
 ## Starting a New Project
 
 When starting a new website project, it is highly recommended to:
+
 1. Create a dedicated repository for your new project.
-2. Soft-link this `asc-ai-boiler` framework repository into your project directory so the AI can reference the framework's architecture and code.
-3. Add the soft-link directory name to your project's `.gitignore` to prevent committing the framework into your site's repository.
-4. Have your AI assistant create your site layer plugin with your own slug name and website name, using `asc-ai-example` as a reference.
+2. Add the path to the `asc-ai-boiler` framework repository into your project directory so the AI can reference the framework's architecture and code.
+3. If you soft-link the framework repository in your project, add it your project's `.gitignore` to prevent committing the framework into your site's repository.
+4. Have your AI agent create your site layer plugin with your own slug name and website name, using `asc-ai-example` as a reference.
 
 ## Verification
 
