@@ -609,6 +609,16 @@ h4 {
 	font-family: var(--example-font);
 	font-size: 16px;
 	box-sizing: border-box;
+	min-width: 0;
+	appearance: none;
+	-webkit-appearance: none;
+}
+
+.example-header-search-input::-webkit-search-decoration,
+.example-header-search-input::-webkit-search-cancel-button,
+.example-header-search-input::-webkit-search-results-button,
+.example-header-search-input::-webkit-search-results-decoration {
+	-webkit-appearance: none;
 }
 
 .example-header-search-input:focus,
