@@ -4,6 +4,10 @@ WordPress boilerplate framework for AI-assisted site builds. Features a decouple
 
 Includes a standalone example site layer (`asc-ai-example`) featuring a Portfolio Custom Post Type (with featured image and additional photo gallery support), Blog, Pages, and Partials for testing and starting new website builds.
 
+## What's New in v1.1.2
+
+- **Automatic Social Media Images**: Automatically uses featured images as social media preview images (Open Graph & X/Twitter) for pages, posts, and custom post types when set to the standard 1200x627 resolution or matching aspect ratio (~1.91:1).
+
 ## Live Preview
 
 You can preview the framework in action by visiting the example site at [boiler.asolution.company](https://boiler.asolution.company).
@@ -23,7 +27,7 @@ You can preview the framework in action by visiting the example site at [boiler.
   - X Title (Twitter) (Yoast)
   - SEO Focus Keyphrase (Yoast)
   - Media alt, title, caption, and description
-  - Featured images
+  - Featured images (with automatic support for social media Open Graph & X images at 1200x627 or matching aspect ratio)
 - **CMS Flexibility**: The synchronization tool allows WordPress to still be used normally as a CMS to add and edit posts, pages, and media directly in the dashboard.
 
 ## Additional Notes
