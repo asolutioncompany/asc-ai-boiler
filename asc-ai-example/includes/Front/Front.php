@@ -46,8 +46,18 @@ class Front {
 	 * @return void
 	 */
 	private function init(): void {
+		add_action( 'after_setup_theme', array( self::class, 'register_social_image_size' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_front_assets' ), 100 );
 		add_action( 'wp_head', array( $this, 'render_favicon' ) );
+		add_action( 'wp_head', array( $this, 'render_social_image_meta' ), 5 );
+		add_action( 'wpseo_add_opengraph_images', array( $this, 'filter_yoast_opengraph_container' ), 10, 1 );
+		add_filter( 'wpseo_opengraph_image', array( $this, 'filter_yoast_og_image' ), 10, 1 );
+		add_filter( 'wpseo_opengraph_image_width', array( $this, 'filter_yoast_og_image_width' ), 10, 1 );
+		add_filter( 'wpseo_opengraph_image_height', array( $this, 'filter_yoast_og_image_height' ), 10, 1 );
+		add_filter( 'wpseo_opengraph_image_type', array( $this, 'filter_yoast_og_image_type' ), 10, 1 );
+		add_filter( 'wpseo_og_image_width', array( $this, 'filter_yoast_og_image_width' ), 10, 1 );
+		add_filter( 'wpseo_og_image_height', array( $this, 'filter_yoast_og_image_height' ), 10, 1 );
+		add_filter( 'wpseo_og_image_type', array( $this, 'filter_yoast_og_image_type' ), 10, 1 );
 		add_action( 'wp_footer', array( $this, 'render_scroll_top' ) );
 		add_filter( 'excerpt_length', array( $this, 'get_front_excerpt_length' ), 999 );
 		add_filter( 'body_class', array( $this, 'filter_body_class' ) );
@@ -175,7 +185,15 @@ class Front {
 	 */
 	public static function media_url_for_post( int $post_id, string $setting_key ): string {
 		if ( has_post_thumbnail( $post_id ) ) {
-			$url = wp_get_attachment_image_url( (int) get_post_thumbnail_id( $post_id ), 'full' );
+			$thumbnail_id = (int) get_post_thumbnail_id( $post_id );
+			if ( function_exists( 'wp_get_original_image_url' ) ) {
+				$url = wp_get_original_image_url( $thumbnail_id );
+				if ( is_string( $url ) && '' !== $url ) {
+					return esc_url( $url );
+				}
+			}
+
+			$url = wp_get_attachment_image_url( $thumbnail_id, 'full' );
 			if ( is_string( $url ) && '' !== $url ) {
 				return esc_url( $url );
 			}
@@ -410,5 +428,298 @@ class Front {
 	public function render_favicon(): void {
 		$url = plugin_dir_url( \ASC_AI_EXAMPLE_PLUGIN_FILE ) . 'content/other-media/performance.svg';
 		echo '<link rel="icon" type="image/svg+xml" href="' . esc_url( $url ) . '">' . "\n";
+	}
+
+	/**
+	 * Register custom image size for Open Graph / social media banner cards (1.91:1 aspect ratio).
+	 *
+	 * @return void
+	 */
+	public static function register_social_image_size(): void {
+		add_image_size( 'asc_social_og', 1200, 627, true );
+	}
+
+	/**
+	 * Get setting image key for a post type.
+	 *
+	 * @param string $post_type Post type slug.
+	 *
+	 * @return string
+	 */
+	private static function get_setting_key_for_post_type( string $post_type ): string {
+		if ( RegisterPortfolio::POST_TYPE === $post_type ) {
+			return CoreSettings::SETTING_IMAGE_PORTFOLIO;
+		}
+
+		return CoreSettings::SETTING_IMAGE_BLOG_DEFAULT;
+	}
+
+	/**
+	 * Build complete social image metadata array (url, width, height, mime type, attachment ID).
+	 *
+	 * @param int $post_id Post ID.
+	 *
+	 * @return array{url:string, width:int, height:int, type:string, id:int}|null
+	 */
+	public static function get_social_image_data( int $post_id ): ?array {
+		if ( $post_id <= 0 ) {
+			return null;
+		}
+
+		$post_type = (string) get_post_field( 'post_type', $post_id );
+		$setting_key = self::get_setting_key_for_post_type( $post_type );
+
+		$attachment_id = 0;
+		$url = '';
+		$width = 0;
+		$height = 0;
+		$type = '';
+
+		if ( has_post_thumbnail( $post_id ) ) {
+			$attachment_id = (int) get_post_thumbnail_id( $post_id );
+			if ( $attachment_id > 0 ) {
+				$src = wp_get_attachment_image_src( $attachment_id, 'asc_social_og' );
+				if ( is_array( $src ) && ! empty( $src[0] ) ) {
+					$url    = (string) $src[0];
+					$width  = (int) $src[1];
+					$height = (int) $src[2];
+				} elseif ( function_exists( 'wp_get_original_image_url' ) ) {
+					$orig_url = wp_get_original_image_url( $attachment_id );
+					if ( is_string( $orig_url ) && '' !== $orig_url ) {
+						$url = $orig_url;
+					}
+				}
+			}
+		}
+
+		if ( '' === $url ) {
+			$url = self::media_url_for_post( $post_id, $setting_key );
+			if ( '' !== $url && function_exists( 'attachment_url_to_postid' ) ) {
+				$att_id = (int) attachment_url_to_postid( $url );
+				if ( $att_id > 0 ) {
+					$attachment_id = $att_id;
+					$src = wp_get_attachment_image_src( $attachment_id, 'asc_social_og' );
+					if ( is_array( $src ) && ! empty( $src[0] ) ) {
+						$width  = (int) $src[1];
+						$height = (int) $src[2];
+					}
+				}
+			}
+		}
+
+		if ( '' === $url ) {
+			return null;
+		}
+
+		if ( $attachment_id > 0 ) {
+			if ( $width <= 0 || $height <= 0 ) {
+				$meta = wp_get_attachment_metadata( $attachment_id );
+				if ( is_array( $meta ) && ! empty( $meta['sizes']['asc_social_og'] ) ) {
+					$width  = (int) $meta['sizes']['asc_social_og']['width'];
+					$height = (int) $meta['sizes']['asc_social_og']['height'];
+				} elseif ( is_array( $meta ) && ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
+					$width  = (int) $meta['width'];
+					$height = (int) $meta['height'];
+				}
+			}
+
+			$mime = get_post_mime_type( $attachment_id );
+			if ( is_string( $mime ) && '' !== $mime ) {
+				$type = $mime;
+			}
+		}
+
+		if ( '' === $type ) {
+			$path = wp_parse_url( $url, PHP_URL_PATH );
+			if ( is_string( $path ) ) {
+				$ext = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
+				if ( 'jpg' === $ext || 'jpeg' === $ext ) {
+					$type = 'image/jpeg';
+				} elseif ( 'png' === $ext ) {
+					$type = 'image/png';
+				} elseif ( 'webp' === $ext ) {
+					$type = 'image/webp';
+				} elseif ( 'gif' === $ext ) {
+					$type = 'image/gif';
+				}
+			}
+		}
+
+		if ( '' === $type ) {
+			$type = 'image/jpeg';
+		}
+
+		return array(
+			'url'    => esc_url( $url ),
+			'width'  => $width,
+			'height' => $height,
+			'type'   => $type,
+			'id'     => $attachment_id,
+		);
+	}
+
+	/**
+	 * Effective social image URL for singular post/CPT.
+	 *
+	 * @param int $post_id Post ID.
+	 *
+	 * @return string
+	 */
+	public static function get_social_image_url( int $post_id ): string {
+		$data = self::get_social_image_data( $post_id );
+		return is_array( $data ) ? $data['url'] : '';
+	}
+
+	/**
+	 * Get width and height dimensions of post's featured image attachment.
+	 *
+	 * @param int $post_id Post ID.
+	 *
+	 * @return array{width:int, height:int}|null
+	 */
+	public static function get_social_image_dimensions( int $post_id ): ?array {
+		$data = self::get_social_image_data( $post_id );
+		if ( is_array( $data ) && $data['width'] > 0 && $data['height'] > 0 ) {
+			return array(
+				'width'  => $data['width'],
+				'height' => $data['height'],
+			);
+		}
+		return null;
+	}
+
+	/**
+	 * Output <meta name="image" property="og:image" content="..."> on wp_head.
+	 *
+	 * @return void
+	 */
+	public function render_social_image_meta(): void {
+		if ( ! is_singular() ) {
+			return;
+		}
+
+		$post_id = get_the_ID();
+		if ( ! $post_id ) {
+			return;
+		}
+
+		$image_data = self::get_social_image_data( (int) $post_id );
+		if ( is_array( $image_data ) && ! empty( $image_data['url'] ) ) {
+			echo '<meta name="image" property="og:image" content="' . esc_url( $image_data['url'] ) . '">' . "\n";
+		}
+	}
+
+	/**
+	 * Force Yoast SEO's OpenGraph image container to use the complete social image array.
+	 *
+	 * @param object $image_container Yoast SEO OpenGraph image container instance.
+	 *
+	 * @return void
+	 */
+	public function filter_yoast_opengraph_container( $image_container ): void {
+		if ( ! is_singular() || ! is_object( $image_container ) ) {
+			return;
+		}
+
+		$post_id = get_the_ID();
+		if ( ! $post_id ) {
+			return;
+		}
+
+		$image_data = self::get_social_image_data( (int) $post_id );
+		if ( is_array( $image_data ) && method_exists( $image_container, 'clear' ) && method_exists( $image_container, 'add_image' ) ) {
+			$image_container->clear();
+			$image_container->add_image( array(
+				'url'    => $image_data['url'],
+				'width'  => $image_data['width'],
+				'height' => $image_data['height'],
+				'type'   => $image_data['type'],
+				'id'     => $image_data['id'],
+			) );
+		}
+	}
+
+	/**
+	 * Filter Yoast SEO og:image URL on singular post/CPT pages.
+	 *
+	 * @param string $img_url Default image URL set by Yoast.
+	 *
+	 * @return string
+	 */
+	public function filter_yoast_og_image( string $img_url ): string {
+		if ( ! is_singular() ) {
+			return $img_url;
+		}
+
+		$post_id = get_the_ID();
+		if ( ! $post_id ) {
+			return $img_url;
+		}
+
+		$social_url = self::get_social_image_url( (int) $post_id );
+		return '' !== $social_url ? $social_url : $img_url;
+	}
+
+	/**
+	 * Filter Yoast SEO og:image:width on singular post/CPT pages.
+	 *
+	 * @param mixed $width Default width set by Yoast.
+	 *
+	 * @return mixed
+	 */
+	public function filter_yoast_og_image_width( $width ) {
+		if ( ! is_singular() ) {
+			return $width;
+		}
+
+		$post_id = get_the_ID();
+		if ( ! $post_id ) {
+			return $width;
+		}
+
+		$dims = self::get_social_image_dimensions( (int) $post_id );
+		return null !== $dims ? $dims['width'] : $width;
+	}
+
+	/**
+	 * Filter Yoast SEO og:image:height on singular post/CPT pages.
+	 *
+	 * @param mixed $height Default height set by Yoast.
+	 *
+	 * @return mixed
+	 */
+	public function filter_yoast_og_image_height( $height ) {
+		if ( ! is_singular() ) {
+			return $height;
+		}
+
+		$post_id = get_the_ID();
+		if ( ! $post_id ) {
+			return $height;
+		}
+
+		$dims = self::get_social_image_dimensions( (int) $post_id );
+		return null !== $dims ? $dims['height'] : $height;
+	}
+
+	/**
+	 * Filter Yoast SEO og:image:type on singular post/CPT pages.
+	 *
+	 * @param mixed $type Default MIME type set by Yoast.
+	 *
+	 * @return mixed
+	 */
+	public function filter_yoast_og_image_type( $type ) {
+		if ( ! is_singular() ) {
+			return $type;
+		}
+
+		$post_id = get_the_ID();
+		if ( ! $post_id ) {
+			return $type;
+		}
+
+		$data = self::get_social_image_data( (int) $post_id );
+		return is_array( $data ) && ! empty( $data['type'] ) ? $data['type'] : $type;
 	}
 }
