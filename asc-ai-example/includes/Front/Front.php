@@ -22,7 +22,7 @@ use ASC\AI_EXAMPLE\Core\ThemeShell;
 use ASC\AI_EXAMPLE\Core\ArchiveConfig;
 use ASC\AI_EXAMPLE\Core\CoreSettings;
 use ASC\AI_EXAMPLE\Core\PartialCatalog;
-
+use ASC\AI_EXAMPLE\Core\PostMeta;
 use ASC\AI_EXAMPLE\Core\RegisterPortfolio;
 
 /**
@@ -336,7 +336,16 @@ class Front {
 			return '';
 		}
 
-		return '<div class="example-tags-wrapper">'
+		$featured_markup = '';
+		$is_featured = '1' === (string) get_post_meta( $post_id, PostMeta::FEATURED_META_KEY, true );
+		if ( $is_featured ) {
+			$featured_markup = '<div class="example-featured-badge">'
+				. esc_html__( 'FEATURED', \ASC_AI_EXAMPLE_TEXT_DOMAIN )
+				. '</div>';
+		}
+
+		return $featured_markup
+			. '<div class="example-tags-wrapper">'
 			. '<a class="example-tag" href="' . esc_url( $primary_post_type_tag['href'] ) . '">' . esc_html( $primary_post_type_tag['label'] ) . '</a>'
 			. '</div>';
 	}

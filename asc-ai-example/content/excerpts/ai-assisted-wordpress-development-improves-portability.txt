@@ -1,0 +1,1 @@
+AI-assisted WordPress development replaces brittle database IDs with slug-based metadata and declarative manifests, delivering seamless cross-environment portability.

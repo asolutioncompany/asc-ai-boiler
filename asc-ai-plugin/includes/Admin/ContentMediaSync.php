@@ -822,11 +822,23 @@ final class ContentMediaSync {
 				}
 
 				if ( $meta_differ ) {
+					$manifest_path = ContentManifest::get_content_manifest_path();
+					$manifest_ts = is_file( $manifest_path ) ? (int) filemtime( $manifest_path ) : 0;
+					$effective_file_ts = max( $file_ts, $manifest_ts );
+
+					if ( $effective_file_ts >= $wp_ts ) {
+						$suggestion = 'import';
+						$suggestion_note = __( 'Suggested: Import from plugin files to apply metadata from content-manifest.json to WordPress.', \ASC_AI_PLUGIN_DOMAIN );
+					} else {
+						$suggestion = 'export';
+						$suggestion_note = __( 'Suggested: Export to plugin files to update content-manifest.json with WordPress metadata.', \ASC_AI_PLUGIN_DOMAIN );
+					}
+
 					$differences[] = array(
 						'relative_path' => $display_path,
 						'issues' => array( __( 'Manifest metadata (title, alt, caption, or description) differs from the WordPress attachment.', \ASC_AI_PLUGIN_DOMAIN ) ),
-						'suggestion' => 'export',
-						'suggestion_note' => __( 'Suggested: Export to plugin files to update the manifest with WordPress metadata.', \ASC_AI_PLUGIN_DOMAIN ),
+						'suggestion' => $suggestion,
+						'suggestion_note' => $suggestion_note,
 						'file_modified_gmt' => $file_iso,
 						'wp_modified_gmt' => $wp_iso,
 					);
@@ -869,13 +881,51 @@ final class ContentMediaSync {
 		$db_bindings = self::build_manifest_media_bindings_for_export();
 		$manifest_bindings = self::load_manifest_media_bindings();
 		if ( wp_json_encode( $db_bindings ) !== wp_json_encode( $manifest_bindings ) ) {
+			$manifest_path = ContentManifest::get_content_manifest_path();
+			$manifest_ts = is_file( $manifest_path ) ? (int) filemtime( $manifest_path ) : 0;
+			$manifest_iso = $manifest_ts > 0 ? gmdate( 'c', $manifest_ts ) : '';
+
+			// Determine if WordPress posts with bindings are newer than the manifest
+			$max_wp_ts = 0;
+			foreach ( $db_bindings as $b ) {
+				if ( ( $b['target'] ?? '' ) === 'featured' && ! empty( $b['post_type'] ) && ! empty( $b['slug'] ) ) {
+					$p = ContentSync::query_post_by_slug( (string) $b['post_type'], (string) $b['slug'], false );
+					if ( $p instanceof WP_Post ) {
+						$pts = (int) get_post_modified_time( 'U', true, $p );
+						if ( $pts > $max_wp_ts ) {
+							$max_wp_ts = $pts;
+						}
+					}
+				}
+			}
+
+			$wp_iso = $max_wp_ts > 0 ? gmdate( 'c', $max_wp_ts ) : '';
+
+			if ( $manifest_ts >= $max_wp_ts ) {
+				$suggestion = 'import';
+				$suggestion_note = sprintf(
+					/* translators: 1: manifest modified (ISO 8601), 2: WordPress modified (ISO 8601) */
+					__( 'Suggested: Import from plugin files — content-manifest.json (%1$s) contains updated media bindings to apply to WordPress (%2$s).', \ASC_AI_PLUGIN_DOMAIN ),
+					$manifest_iso,
+					$wp_iso ?: __( 'earlier', \ASC_AI_PLUGIN_DOMAIN )
+				);
+			} else {
+				$suggestion = 'export';
+				$suggestion_note = sprintf(
+					/* translators: 1: WordPress modified (ISO 8601), 2: manifest modified (ISO 8601) */
+					__( 'Suggested: Export to plugin files — WordPress (%1$s) has newer media bindings than content-manifest.json (%2$s).', \ASC_AI_PLUGIN_DOMAIN ),
+					$wp_iso,
+					$manifest_iso
+				);
+			}
+
 			$differences[] = array(
 				'relative_path' => 'content-manifest.json',
-				'issues' => array( __( 'Media bindings in manifest differ from the active settings and featured images in WordPress.', \ASC_AI_PLUGIN_DOMAIN ) ),
-				'suggestion' => 'export',
-				'suggestion_note' => __( 'Suggested: Export to plugin files to update the manifest media bindings.', \ASC_AI_PLUGIN_DOMAIN ),
-				'file_modified_gmt' => '',
-				'wp_modified_gmt' => '',
+				'issues' => array( __( 'Media bindings in content-manifest.json differ from active settings and featured images in WordPress.', \ASC_AI_PLUGIN_DOMAIN ) ),
+				'suggestion' => $suggestion,
+				'suggestion_note' => $suggestion_note,
+				'file_modified_gmt' => $manifest_iso,
+				'wp_modified_gmt' => $wp_iso,
 			);
 		}
 

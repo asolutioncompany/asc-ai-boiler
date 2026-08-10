@@ -1,1 +1,51 @@
-/* aS.c Minimum Example Admin Styles */
+/*!
+ * aS.c AI Boiler Example Admin Styles (settings page + post editor toggles)
+ */
+
+.example-featured-toggle {
+	display: inline-flex;
+	align-items: center;
+	cursor: pointer;
+	gap: 10px;
+	margin-bottom: 8px;
+}
+
+.example-featured-toggle input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.example-featured-toggle-slider {
+	position: relative;
+	width: 42px;
+	height: 24px;
+	border-radius: 24px;
+	background: #c3c4c7;
+	transition: background-color 0.2s ease;
+}
+
+.example-featured-toggle-slider::before {
+	content: '';
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 18px;
+	height: 18px;
+	border-radius: 18px;
+	background: #ffffff;
+	transition: transform 0.2s ease;
+}
+
+.example-featured-toggle input:checked + .example-featured-toggle-slider {
+	background: #2271b1;
+}
+
+.example-featured-toggle input:checked + .example-featured-toggle-slider::before {
+	transform: translateX(18px);
+}
+
+.example-featured-toggle-label {
+	font-size: 14px;
+	font-weight: 600;
+}

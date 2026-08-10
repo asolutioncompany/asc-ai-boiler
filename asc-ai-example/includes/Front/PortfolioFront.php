@@ -109,7 +109,7 @@ class PortfolioFront {
 				'large',
 				false,
 				array(
-					'class' => 'example-project-gallery-image',
+					'class' => 'example-portfolio-gallery-image',
 					'loading' => 'lazy',
 				)
 			);
@@ -117,9 +117,9 @@ class PortfolioFront {
 				continue;
 			}
 
-			$tile_classes = 'example-project-gallery-tile';
+			$tile_classes = 'example-portfolio-gallery-tile';
 			if ( $has_odd_remainder && $index === $last_index ) {
-				$tile_classes .= ' example-project-gallery-tile--full';
+				$tile_classes .= ' example-portfolio-gallery-tile--full';
 			}
 
 			$tiles_html .= '<div class="' . esc_attr( $tile_classes ) . '">' . $image_html . '</div>';
@@ -129,7 +129,7 @@ class PortfolioFront {
 			return '';
 		}
 
-		return '<div class="example-project-gallery">' . $tiles_html . '</div>';
+		return '<div class="example-portfolio-gallery">' . $tiles_html . '</div>';
 	}
 
 	/**
@@ -158,14 +158,14 @@ class PortfolioFront {
 
 		$query = new WP_Query(
 			array(
-				'post_type' => RegisterPortfolio::POST_TYPE,
-				'post_status' => 'publish',
-				'posts_per_page' => $per_page,
-				'paged' => $paged,
-				'orderby' => 'date',
-				'order' => 'DESC',
-				'no_found_rows' => false,
-				'update_post_meta_cache' => false,
+				'post_type'              => RegisterPortfolio::POST_TYPE,
+				'post_status'            => 'publish',
+				'posts_per_page'         => $per_page,
+				'paged'                  => $paged,
+				'orderby'                => 'date',
+				'order'                  => 'DESC',
+				'no_found_rows'          => false,
+				'update_post_meta_cache' => true,
 				'update_post_term_cache' => false,
 			)
 		);
@@ -175,6 +175,7 @@ class PortfolioFront {
 			wp_reset_postdata();
 			echo '<p class="example-archive-empty">' . esc_html__( 'No portfolio items found.', 'asc-ai-example' ) . '</p>';
 		} else {
+			PostMeta::sort_posts_featured_first_then_newest( $query->posts );
 			$max_pages = max( 1, (int) $query->max_num_pages );
 
 			echo '<div class="example-card-grid">';

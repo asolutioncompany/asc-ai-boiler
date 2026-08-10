@@ -107,4 +107,24 @@ class Admin {
 			$localized
 		);
 	}
+
+	/**
+	 * Render featured toggle HTML for post/CPT editor.
+	 *
+	 * @param bool $checked Whether featured toggle is enabled.
+	 *
+	 * @return string
+	 */
+	public static function get_featured_toggle_html( bool $checked ): string {
+		$checked_attr = '';
+		if ( $checked ) {
+			$checked_attr = ' checked="checked"';
+		}
+
+		return '<label class="example-featured-toggle" for="example_featured">'
+			. '<input type="checkbox" id="example_featured" name="example_featured" value="1"' . $checked_attr . ' />'
+			. '<span class="example-featured-toggle-slider" aria-hidden="true"></span>'
+			. '<span class="example-featured-toggle-label">' . esc_html__( 'Featured', 'asc-ai-example' ) . '</span>'
+			. '</label>';
+	}
 }

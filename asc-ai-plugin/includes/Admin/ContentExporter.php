@@ -43,6 +43,7 @@ final class ContentExporter {
 		$post_offset = max( 0, $post_offset );
 
 		if ( 0 === $type_index && 0 === $post_offset ) {
+			self::reset_normalized_count();
 			ContentManifest::invalidate_content_manifest_cache();
 		}
 
@@ -159,6 +160,19 @@ final class ContentExporter {
 			}
 			self::maybe_export_plugin_media( $messages );
 			ContentManifest::write_content_export_manifest( $messages );
+
+			if ( self::$normalized_count > 0 ) {
+				$messages[] = sprintf(
+					/* translators: %d: number of files */
+					_n(
+						'Normalized %d plugin file to canonical export form on disk.',
+						'Normalized %d plugin files to canonical export form on disk.',
+						self::$normalized_count,
+						\ASC_AI_PLUGIN_DOMAIN
+					),
+					self::$normalized_count
+				);
+			}
 		}
 
 		if ( $timestamp_touched_count > 0 ) {
@@ -230,6 +244,25 @@ final class ContentExporter {
 	}
 
 	/**
+	 * Total count of plugin files normalized on disk during the current batch run.
+	 *
+	 * @var int
+	 */
+	private static int $normalized_count = 0;
+
+	public static function reset_normalized_count(): void {
+		self::$normalized_count = 0;
+	}
+
+	public static function get_normalized_count(): int {
+		return self::$normalized_count;
+	}
+
+	public static function increment_normalized_count(): void {
+		self::$normalized_count++;
+	}
+
+	/**
 	 * Rewrite on-disk plugin HTML to canonical export form when raw bytes differ (BOM, CRLF, outer trim).
 	 *
 	 * @param string $type_key Content type key.
@@ -267,11 +300,7 @@ final class ContentExporter {
 			return false;
 		}
 
-		$messages[] = sprintf(
-			/* translators: %s: relative plugin path */
-			__( 'Normalized plugin file %s to canonical export form.', \ASC_AI_PLUGIN_DOMAIN ),
-			$relative_path
-		);
+		self::$normalized_count++;
 
 		return true;
 	}

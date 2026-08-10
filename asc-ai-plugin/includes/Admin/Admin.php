@@ -92,7 +92,7 @@ class Admin {
 				'strings' => array(
 					'import_starting' => __( 'Import starting…', \ASC_AI_PLUGIN_DOMAIN ),
 					'import_progress' => __( 'Importing: processed %1$s of %2$s plugin files…', \ASC_AI_PLUGIN_DOMAIN ),
-					'import_complete' => __( 'Import finished. %1$s posts/files updated out of %2$s scanned.', \ASC_AI_PLUGIN_DOMAIN ),
+					'import_complete' => __( 'Import complete: %1$s post(s) updated across %2$s scanned content files.', \ASC_AI_PLUGIN_DOMAIN ),
 					'export_starting' => __( 'Export starting…', \ASC_AI_PLUGIN_DOMAIN ),
 					'export_progress' => __( 'Export: +%1$s file(s), +%2$s manifest metadata refresh(es). Totals: %3$s files, %4$s metadata.', \ASC_AI_PLUGIN_DOMAIN ),
 					'export_complete' => __( 'Export finished. Wrote %s HTML file(s) and updated content-manifest.json.', \ASC_AI_PLUGIN_DOMAIN ),

@@ -29,6 +29,13 @@ final class ContentManifest {
 	private static ?array $content_manifest_types = null;
 
 	/**
+	 * Cached `post_meta` list from content-manifest.json.
+	 *
+	 * @var list<array<string, mixed>>|null
+	 */
+	private static ?array $content_manifest_post_meta = null;
+
+	/**
 	 * Absolute path to the content export manifest JSON (`content/content-manifest.json`).
 	 */
 	public static function get_content_manifest_path(): string {
@@ -36,12 +43,13 @@ final class ContentManifest {
 	}
 
 	/**
-	 * Drop cached manifest types and version (call after manifest file changes on disk).
+	 * Drop cached manifest types, post meta, and version (call after manifest file changes on disk).
 	 *
 	 * @return void
 	 */
 	public static function invalidate_content_manifest_cache(): void {
 		self::$content_manifest_types = null;
+		self::$content_manifest_post_meta = null;
 		ContentSyncProfile::invalidate_cache();
 	}
 
@@ -92,6 +100,51 @@ final class ContentManifest {
 		self::$content_manifest_types = $types;
 
 		return self::$content_manifest_types;
+	}
+
+	/**
+	 * Load and cache the `post_meta` section of content-manifest.json.
+	 *
+	 * @return list<array{post_type:string, slug:string, meta_key:string, meta_value:string}>
+	 */
+	public static function load_content_manifest_post_meta(): array {
+		if ( null !== self::$content_manifest_post_meta ) {
+			return self::$content_manifest_post_meta;
+		}
+
+		$path = self::get_content_manifest_path();
+		if ( ! is_readable( $path ) ) {
+			self::$content_manifest_post_meta = array();
+			return self::$content_manifest_post_meta;
+		}
+
+		$json = file_get_contents( $path );
+		if ( false === $json || '' === $json ) {
+			self::$content_manifest_post_meta = array();
+			return self::$content_manifest_post_meta;
+		}
+
+		$data = json_decode( $json, true );
+		if ( ! is_array( $data ) || ! isset( $data['post_meta'] ) || ! is_array( $data['post_meta'] ) ) {
+			self::$content_manifest_post_meta = array();
+			return self::$content_manifest_post_meta;
+		}
+
+		$out = array();
+		foreach ( $data['post_meta'] as $row ) {
+			if ( ! is_array( $row ) || empty( $row['post_type'] ) || empty( $row['slug'] ) || empty( $row['meta_key'] ) ) {
+				continue;
+			}
+			$out[] = array(
+				'post_type'  => sanitize_key( (string) $row['post_type'] ),
+				'slug'       => sanitize_title( (string) $row['slug'] ),
+				'meta_key'   => sanitize_key( (string) $row['meta_key'] ),
+				'meta_value' => (string) ( $row['meta_value'] ?? '' ),
+			);
+		}
+
+		self::$content_manifest_post_meta = $out;
+		return self::$content_manifest_post_meta;
 	}
 
 	/**
@@ -727,12 +780,20 @@ final class ContentManifest {
 			}
 		}
 
+		$post_meta_out = PostMetaSync::build_manifest_post_meta_rows();
+		if ( empty( $post_meta_out ) && empty( PostMetaSync::get_registered_meta_keys() ) ) {
+			if ( isset( $existing_manifest['post_meta'] ) && is_array( $existing_manifest['post_meta'] ) ) {
+				$post_meta_out = $existing_manifest['post_meta'];
+			}
+		}
+
 		$payload = array(
 			'manifest_version' => 1,
-			'exported_at' => gmdate( 'c' ),
-			'types' => $types_out,
-			'media' => $media_out,
-			'media_bindings' => $bindings_out,
+			'exported_at'      => gmdate( 'c' ),
+			'types'            => $types_out,
+			'media'            => $media_out,
+			'media_bindings'   => $bindings_out,
+			'post_meta'        => $post_meta_out,
 		);
 
 		$flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;

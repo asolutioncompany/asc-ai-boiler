@@ -174,6 +174,23 @@
                         "name": "Uncategorized"
                     }
                 ]
+            },
+            {
+                "post_type": "post",
+                "title": "How AI-Assisted WordPress Development Can Improve Portability",
+                "slug": "ai-assisted-wordpress-development-improves-portability",
+                "filename": "ai-assisted-wordpress-development-improves-portability.html",
+                "date_gmt": "2026-08-10T12:00:00+00:00",
+                "excerpt": "ai-assisted-wordpress-development-improves-portability.txt",
+                "meta_description": "ai-assisted-wordpress-development-improves-portability.txt",
+                "social_title": "How AI-Assisted WordPress Development Can Improve Portability - Fast WordPress",
+                "x_title": "How AI-Assisted WordPress Development Can Improve Portability - Fast WordPress",
+                "categories": [
+                    {
+                        "slug": "uncategorized",
+                        "name": "Uncategorized"
+                    }
+                ]
             }
         ],
         "portfolio": [
@@ -316,6 +333,62 @@
             "caption": "",
             "description": "Project",
             "mime": "image/jpeg"
+        },
+        {
+            "filename": "gallery-dog-groomer-1.png",
+            "title": "Dog Groomer Washing Station",
+            "alt": "Dog Groomer Washing Station",
+            "caption": "",
+            "description": "Dog Groomer Washing Station",
+            "mime": "image/png"
+        },
+        {
+            "filename": "gallery-dog-groomer-2.png",
+            "title": "Groomed Pet with Bandana",
+            "alt": "Groomed Pet with Bandana",
+            "caption": "",
+            "description": "Groomed Pet with Bandana",
+            "mime": "image/png"
+        },
+        {
+            "filename": "gallery-landscaping-1.png",
+            "title": "Residential Backyard Landscaping with Patio",
+            "alt": "Residential Backyard Landscaping with Patio",
+            "caption": "",
+            "description": "Residential Backyard Landscaping with Patio",
+            "mime": "image/png"
+        },
+        {
+            "filename": "gallery-landscaping-2.png",
+            "title": "Stone Retaining Wall Garden Design",
+            "alt": "Stone Retaining Wall Garden Design",
+            "caption": "",
+            "description": "Stone Retaining Wall Garden Design",
+            "mime": "image/png"
+        },
+        {
+            "filename": "gallery-pool-service-1.png",
+            "title": "Luxury Pool with Waterfall Feature",
+            "alt": "Luxury Pool with Waterfall Feature",
+            "caption": "",
+            "description": "Luxury Pool with Waterfall Feature",
+            "mime": "image/png"
+        },
+        {
+            "filename": "gallery-pool-service-2.png",
+            "title": "Modern Geometric Swimming Pool and Spa",
+            "alt": "Modern Geometric Swimming Pool and Spa",
+            "caption": "",
+            "description": "Modern Geometric Swimming Pool and Spa",
+            "mime": "image/png"
+        },
+        {
+            "filename": "blog-portability.jpg",
+            "title": "WordPress Metadata and Portability",
+            "alt": "WordPress Metadata and Portability",
+            "caption": "",
+            "description": "WordPress Metadata and Portability",
+            "mime": "image/jpeg"
         }
     ],
     "media_bindings": [
@@ -336,6 +409,12 @@
             "target": "featured",
             "post_type": "post",
             "slug": "ai-assisted-wordpress-development-improves-performance-and-security"
+        },
+        {
+            "media_filename": "blog-portability.jpg",
+            "target": "featured",
+            "post_type": "post",
+            "slug": "ai-assisted-wordpress-development-improves-portability"
         },
         {
             "media_filename": "blog-seo.jpg",
@@ -366,6 +445,38 @@
             "target": "setting",
             "option": "example_site_settings",
             "key": "image_portfolio_default_id"
+        }
+    ],
+    "post_meta": [
+        {
+            "post_type": "post",
+            "slug": "ai-assisted-wordpress-development-improves-portability",
+            "meta_key": "_example_featured",
+            "meta_value": "1"
+        },
+        {
+            "post_type": "example_portfolio",
+            "slug": "dog-groomer",
+            "meta_key": "_example_portfolio_gallery",
+            "meta_value": "gallery-dog-groomer-1.png,gallery-dog-groomer-2.png"
+        },
+        {
+            "post_type": "example_portfolio",
+            "slug": "landscaping-company",
+            "meta_key": "_example_portfolio_gallery",
+            "meta_value": "gallery-landscaping-1.png,gallery-landscaping-2.png"
+        },
+        {
+            "post_type": "example_portfolio",
+            "slug": "pool-service-company",
+            "meta_key": "_example_featured",
+            "meta_value": "1"
+        },
+        {
+            "post_type": "example_portfolio",
+            "slug": "pool-service-company",
+            "meta_key": "_example_portfolio_gallery",
+            "meta_value": "gallery-pool-service-1.png,gallery-pool-service-2.png"
         }
     ]
 }

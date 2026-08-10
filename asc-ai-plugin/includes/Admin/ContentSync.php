@@ -302,7 +302,7 @@ final class ContentSync {
 			);
 		}
 
-		$normalization_count = 0;
+		$normalization_counts_by_type = array();
 
 		foreach ( ContentImporter::collect_import_file_jobs() as $job ) {
 			$type_key = (string) $job['type'];
@@ -333,94 +333,81 @@ final class ContentSync {
 
 			$markup = self::read_content_markup( $type_key, $filename );
 			$body_differs = ! self::markup_is_in_sync( $markup, (string) $post->post_content );
-			$issues = array();
+			$content_issues = array();
 
 			if ( $body_differs ) {
-				$issues[] = __( 'Post body HTML differs from the plugin file (normalized comparison).', \ASC_AI_PLUGIN_DOMAIN );
+				$content_issues[] = __( 'Post body HTML differs from the plugin file (normalized comparison).', \ASC_AI_PLUGIN_DOMAIN );
 			}
 
 			$manifest_entry = ContentManifest::get_manifest_entry_for_file( $type_key, $filename, $post );
-			$issues = array_merge( $issues, self::describe_paired_manifest_drift_for_detect( $type_key, $post, $manifest_entry ) );
-			$issues = array_merge( $issues, CompanionFileSync::describe_companion_file_drift_for_detect( $type_key, $post, $filename ) );
-			$issues = array_merge( $issues, self::describe_featured_image_drift_for_detect( $post ) );
+			$content_issues = array_merge( $content_issues, self::describe_paired_manifest_metadata_drift_for_detect( $type_key, $post, $manifest_entry ) );
+			$content_issues = array_merge( $content_issues, CompanionFileSync::describe_companion_file_drift_for_detect( $type_key, $post, $filename ) );
+			$content_issues = array_merge( $content_issues, self::describe_featured_image_drift_for_detect( $post ) );
+			$content_issues = array_merge( $content_issues, PostMetaSync::describe_post_meta_drift_for_detect( (string) $post->post_type, (string) $post->post_name, (int) $post->ID ) );
 
 			$file_whitespace_drift = ContentExporter::plugin_file_needs_whitespace_normalization( $absolute, (string) $post->post_content );
+			$publication_date_drift = self::describe_publication_drift_for_detect( $post, $manifest_entry );
 
-			if ( array() === $issues ) {
-				if ( $file_whitespace_drift ) {
-					$normalization_count++;
+			$ft = filemtime( $absolute );
+			$file_ts = ( false !== $ft ) ? (int) $ft : 0;
+			$wp_ts = (int) get_post_modified_time( 'U', true, $post );
+
+			if ( empty( $content_issues ) ) {
+				if ( $file_whitespace_drift || ! empty( $publication_date_drift ) ) {
+					if ( ! isset( $normalization_counts_by_type[ $type_key ] ) ) {
+						$normalization_counts_by_type[ $type_key ] = 0;
+					}
+					$normalization_counts_by_type[ $type_key ]++;
 				}
 				continue;
 			}
 
-			$ft = filemtime( $absolute );
-			$file_ts = 0;
-			if ( false !== $ft ) {
-				$file_ts = (int) $ft;
+			$issues = $content_issues;
+			if ( ! empty( $publication_date_drift ) ) {
+				$issues = array_merge( $issues, $publication_date_drift );
 			}
-			$wp_ts = (int) get_post_modified_time( 'U', true, $post );
+
+			$effective_disk_ts = $file_ts;
+			$manifest_path = ContentManifest::get_content_manifest_path();
+			if ( is_file( $manifest_path ) ) {
+				$m_mtime = (int) filemtime( $manifest_path );
+				if ( $m_mtime > $effective_disk_ts ) {
+					$effective_disk_ts = $m_mtime;
+				}
+			}
 
 			$file_iso = '';
-			if ( $file_ts > 0 ) {
-				$file_iso = gmdate( 'c', $file_ts );
+			if ( $effective_disk_ts > 0 ) {
+				$file_iso = gmdate( 'c', $effective_disk_ts );
 			}
 			$wp_iso = '';
 			if ( $wp_ts > 0 ) {
 				$wp_iso = gmdate( 'c', $wp_ts );
 			}
 
-			if ( ! $body_differs ) {
-				$manifest_metadata_drift = ContentManifest::export_manifest_row_differs_from_post( $type_key, $filename, $post );
-				if ( $file_whitespace_drift || $manifest_metadata_drift ) {
-					$suggestion = 'export';
-					if ( $file_whitespace_drift && $manifest_metadata_drift ) {
-						$suggestion_note = __(
-							'Suggested: Export to plugin files — updates content-manifest.json and normalizes plugin HTML on disk. Plugin HTML already matches WordPress.',
-							\ASC_AI_PLUGIN_DOMAIN
-						);
-					} elseif ( $file_whitespace_drift ) {
-						$suggestion_note = __(
-							'Suggested: Export to plugin files — rewrites plugin HTML to canonical export form on disk.',
-							\ASC_AI_PLUGIN_DOMAIN
-						);
-					} else {
-						$suggestion_note = __(
-							'Suggested: Export to plugin files — updates content-manifest.json with latest metadata from WordPress. Plugin HTML already matches WordPress.',
-							\ASC_AI_PLUGIN_DOMAIN
-						);
-					}
-				} else {
-					$suggestion = 'export';
-					$suggestion_note = __(
-						'Suggested: Export to plugin files — updates content-manifest.json. Plugin HTML already matches WordPress.',
-						\ASC_AI_PLUGIN_DOMAIN
-					);
-				}
+			if ( $effective_disk_ts > $wp_ts ) {
+				$suggestion = 'import';
+				$suggestion_note = sprintf(
+					/* translators: 1: file/manifest modified (ISO 8601), 2: WordPress modified (ISO 8601) */
+					__( 'Suggested: Import from plugin files — plugin files or content manifest are newer (%1$s) than WordPress (%2$s).', \ASC_AI_PLUGIN_DOMAIN ),
+					$file_iso,
+					$wp_iso
+				);
+			} elseif ( $wp_ts > $effective_disk_ts ) {
+				$suggestion = 'export';
+				$suggestion_note = sprintf(
+					/* translators: 1: WordPress modified (ISO 8601), 2: file/manifest modified (ISO 8601) */
+					__( 'Suggested: Export to plugin files — WordPress is newer (%1$s) than plugin files or content manifest (%2$s).', \ASC_AI_PLUGIN_DOMAIN ),
+					$wp_iso,
+					$file_iso
+				);
 			} else {
 				$suggestion = 'unclear';
-				if ( $file_ts > $wp_ts ) {
-					$suggestion = 'import';
-					$suggestion_note = sprintf(
-						/* translators: 1: file modified (ISO 8601), 2: WordPress modified (ISO 8601) */
-						__( 'Suggested: Import from plugin files — the export file is newer (%1$s) than WordPress (%2$s).', \ASC_AI_PLUGIN_DOMAIN ),
-						$file_iso,
-						$wp_iso
-					);
-				} elseif ( $wp_ts > $file_ts ) {
-					$suggestion = 'export';
-					$suggestion_note = sprintf(
-						/* translators: 1: WordPress modified (ISO 8601), 2: file modified (ISO 8601) */
-						__( 'Suggested: Export to plugin files — WordPress is newer (%1$s) than the export file (%2$s).', \ASC_AI_PLUGIN_DOMAIN ),
-						$wp_iso,
-						$file_iso
-					);
-				} else {
-					$suggestion_note = sprintf(
-						/* translators: %s: ISO 8601 datetime (both sides match) */
-						__( 'Post body or manifest fields differ, but last modified times match (%s). Review and choose export or import.', \ASC_AI_PLUGIN_DOMAIN ),
-						$file_iso
-					);
-				}
+				$suggestion_note = sprintf(
+					/* translators: %s: ISO 8601 datetime (both sides match) */
+					__( 'Content or metadata differs, but last modified times match (%s). Review and choose export or import.', \ASC_AI_PLUGIN_DOMAIN ),
+					$file_iso
+				);
 			}
 
 			$differences[] = array(
@@ -449,25 +436,35 @@ final class ContentSync {
 			}
 		}
 
-		if ( $normalization_count > 0 ) {
+		$total_normalization_count = array_sum( $normalization_counts_by_type );
+		if ( $total_normalization_count > 0 ) {
+			$sync_types = ContentSyncProfile::sync_types();
+			$breakdown_parts = array();
+			foreach ( $normalization_counts_by_type as $tk => $cnt ) {
+				$label = strtolower( (string) ( $sync_types[ $tk ]['label'] ?? $tk ) );
+				$breakdown_parts[] = sprintf( '%d %s', $cnt, $label );
+			}
+			$breakdown_str = implode( ', ', $breakdown_parts );
+
 			$minor_issues = array();
 			$minor_issues[] = sprintf(
-				/* translators: %d: number of files */
+				/* translators: 1: total file count, 2: breakdown string (e.g. 2 pages, 3 posts) */
 				_n(
-					'%d file needs whitespace/formatting normalization on disk.',
-					'%d files need whitespace/formatting normalization on disk.',
-					$normalization_count,
+					'%1$d file (%2$s) needs formatting normalization on disk or publication date sync.',
+					'%1$d files (%2$s) need formatting normalization on disk or publication date sync.',
+					$total_normalization_count,
 					\ASC_AI_PLUGIN_DOMAIN
 				),
-				$normalization_count
+				$total_normalization_count,
+				$breakdown_str
 			);
 
 			$differences[] = array(
-				'relative_path' => __( 'Minor File Adjustments', \ASC_AI_PLUGIN_DOMAIN ),
+				'relative_path' => __( 'Minor Formatting / Date Normalization', \ASC_AI_PLUGIN_DOMAIN ),
 				'is_minor_summary' => true,
 				'issues' => $minor_issues,
-				'suggestion' => 'import',
-				'suggestion_note' => __( 'Suggested: Run import to normalize plugin HTML files on disk. (No content, metadata, or featured image differences)', \ASC_AI_PLUGIN_DOMAIN ),
+				'suggestion' => 'export',
+				'suggestion_note' => __( 'Suggested: Run export to normalize on-disk formatting and synchronize publication dates. (No content, metadata, or featured image differences)', \ASC_AI_PLUGIN_DOMAIN ),
 				'file_modified_gmt' => '',
 				'wp_modified_gmt' => '',
 			);
@@ -542,6 +539,41 @@ final class ContentSync {
 	}
 
 	/**
+	 * Manifest metadata drift for a paired file/post excluding publication date.
+	 *
+	 * @param string $type_key Content type key.
+	 * @param WP_Post $post Post.
+	 * @param array<string, mixed>|null $manifest_entry Row when present.
+	 *
+	 * @return list<string>
+	 */
+	private static function describe_paired_manifest_metadata_drift_for_detect(
+		string $type_key,
+		WP_Post $post,
+		?array $manifest_entry
+	): array {
+		if ( null === $manifest_entry ) {
+			return array();
+		}
+
+		$desired = ContentManifest::build_export_manifest_row_from_post( $type_key, $post );
+		if ( null === $desired ) {
+			return array();
+		}
+
+		$lines = array();
+		if ( ContentManifest::manifest_row_metadata_snapshot_for_compare( $desired )
+			!== ContentManifest::manifest_row_metadata_snapshot_for_compare( $manifest_entry ) ) {
+			$lines[] = __(
+				'content-manifest.json metadata for this file does not match WordPress (title, slug, filename, categories, tags, excerpt, meta description, social title, x title, or focus keyphrase).',
+				\ASC_AI_PLUGIN_DOMAIN
+			);
+		}
+
+		return $lines;
+	}
+
+	/**
 	 * Publication time drift for detect when manifest lists date_gmt (no writes).
 	 *
 	 * @param WP_Post $post Post.
@@ -564,7 +596,7 @@ final class ContentSync {
 			return array();
 		}
 
-		return array( __( 'Publication date (GMT) differs between WordPress and the export manifest.', \ASC_AI_PLUGIN_DOMAIN ) );
+		return array( __( 'Publication date (GMT) differs between WordPress and content-manifest.json.', \ASC_AI_PLUGIN_DOMAIN ) );
 	}
 
 	/**

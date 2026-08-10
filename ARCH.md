@@ -44,6 +44,7 @@ Namespaces:
 `Admin\ContentSync`          handles content sync AJAX/logic
 `Admin\ContentSyncProfile`   base profile builder driven by manifest and filter hooks
 `Admin\ContentMediaSync`     syncs media between content/media/ and WP media library
+`Admin\PostMetaSync`         syncs custom post meta between WordPress and content-manifest.json
 `Admin\SyncConfig`          sync configuration data
 
 ### Filter Hooks (String-Based)
@@ -56,6 +57,7 @@ Namespaces:
 - `'asc_ai_boiler_other_media_url'` — public URL of static other-media directory
 - `'asc_ai_boiler_content_sync_profile'` — content types, cpt shell map, and page body maps
 - `'asc_ai_boiler_media_bindings'` — manifest media bindings
+- `'asc_ai_boiler_post_meta_sync_keys'` — custom post meta sync keys and types ('raw' / 'slug')
 
 ## asc-ai-example (aS.c AI Boiler Example — Standalone Example Site Layer)
 
@@ -66,7 +68,7 @@ Runs 100% standalone without requiring `asc-ai-plugin` to be active.
 
 Namespaces:
 - `Core\`    site lifecycle, ThemeShell document bypass, Partials CPT registry (`RegisterPartials`, `PartialStore`), Portfolio CPT (`RegisterPortfolio`), media helpers
-- `Admin\`   example site settings UI, Portfolio gallery meta box (`PortfolioAdmin`), blog customizations
+- `Admin\`   example site settings UI, Portfolio gallery meta box & Featured toggle (`PortfolioAdmin`), blog customizations & Featured toggle (`BlogAdmin`)
 - `Front\`   front-end rendering, Portfolio single layout & gallery mosaic (`PortfolioFront`), shortcodes, archive pagination
 
 ### Key Core Classes
@@ -75,7 +77,7 @@ Namespaces:
 `Core\RegisterPartials`   registers `asc_boiler_partial` CPT and Partials admin menu (position 56, before aS.c Boiler)
 `Core\PartialStore`       queries and caches partial posts by `_asc_ai_boiler_partial_key`
 `Core\RegisterPortfolio`  registers `example_portfolio` CPT (`/portfolio/`) with REST API and taxonomy support
-`Core\PostMeta`           defines portfolio gallery meta key `_example_portfolio_gallery` and parsing helpers
+`Core\PostMeta`           defines featured flag `_example_featured`, portfolio gallery meta key `_example_portfolio_gallery`, and parsing helpers
 `Core\ThemeShell`         front-end ThemeShell bypass, document rendering (inline without template files), and layout filter hooks
 `Core\Media`              site media path and URL resolution
-`Core\BoilerIntegration`  registers sync profile and content path filter callbacks for the sync tool
+`Core\BoilerIntegration`  registers sync profile, custom post meta keys, and content path filter callbacks for the sync tool

@@ -19,6 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use ASC\AI_EXAMPLE\Core\ArchiveConfig;
 use ASC\AI_EXAMPLE\Core\CoreSettings;
 use ASC\AI_EXAMPLE\Core\PartialCatalog;
+use ASC\AI_EXAMPLE\Core\PostMeta;
 use WP_Query;
 
 /**
@@ -41,13 +42,13 @@ class BlogFront {
 		$limit = ArchiveConfig::HOME_BLOG_LIMIT;
 		$query = new WP_Query(
 			array(
-				'post_type' => 'post',
-				'post_status' => 'publish',
-				'posts_per_page' => $limit,
-				'orderby' => 'date',
-				'order' => 'DESC',
-				'no_found_rows' => false,
-				'update_post_meta_cache' => false,
+				'post_type'              => 'post',
+				'post_status'            => 'publish',
+				'posts_per_page'         => $limit,
+				'orderby'                => 'date',
+				'order'                  => 'DESC',
+				'no_found_rows'          => false,
+				'update_post_meta_cache' => true,
 				'update_post_term_cache' => true,
 			)
 		);
@@ -56,6 +57,8 @@ class BlogFront {
 			wp_reset_postdata();
 			return '';
 		}
+
+		PostMeta::sort_posts_featured_first_then_newest( $query->posts );
 
 		ob_start();
 		echo '<div class="example-card-grid">';
@@ -94,14 +97,14 @@ class BlogFront {
 
 		$query = new WP_Query(
 			array(
-				'post_type' => 'post',
-				'post_status' => 'publish',
-				'posts_per_page' => $per_page,
-				'paged' => $paged,
-				'orderby' => 'date',
-				'order' => 'DESC',
-				'no_found_rows' => false,
-				'update_post_meta_cache' => false,
+				'post_type'              => 'post',
+				'post_status'            => 'publish',
+				'posts_per_page'         => $per_page,
+				'paged'                  => $paged,
+				'orderby'                => 'date',
+				'order'                  => 'DESC',
+				'no_found_rows'          => false,
+				'update_post_meta_cache' => true,
 				'update_post_term_cache' => true,
 			)
 		);
@@ -111,6 +114,7 @@ class BlogFront {
 			wp_reset_postdata();
 			echo '<p class="example-archive-empty">' . esc_html__( 'No posts found.', \ASC_AI_EXAMPLE_TEXT_DOMAIN ) . '</p>';
 		} else {
+			PostMeta::sort_posts_featured_first_then_newest( $query->posts );
 			$max_pages = max( 1, (int) $query->max_num_pages );
 
 			echo '<div class="example-card-grid">';

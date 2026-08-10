@@ -1,0 +1,1 @@
+Discover how slug-based custom post meta synchronization and declarative content manifests enable true cross-environment portability in modern WordPress.

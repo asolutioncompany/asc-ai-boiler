@@ -28,12 +28,33 @@ final class BoilerIntegration {
 		ContentSyncProfile::register();
 		MediaBindings::register();
 		add_filter( 'asc_ai_boiler_sync_content_type_keys', array( self::class, 'append_sync_content_type_keys' ), 10, 1 );
+		add_filter( 'asc_ai_boiler_post_meta_sync_keys', array( self::class, 'register_post_meta_sync_keys' ), 10, 1 );
 		add_filter( 'asc_ai_boiler_content_dir', array( self::class, 'filter_content_dir' ) );
 		add_filter( 'asc_ai_boiler_content_url', array( self::class, 'filter_content_url' ) );
 		add_filter( 'asc_ai_boiler_media_dir', array( self::class, 'filter_media_dir' ) );
 		add_filter( 'asc_ai_boiler_media_url', array( self::class, 'filter_media_url' ) );
 		add_filter( 'asc_ai_boiler_other_media_dir', array( self::class, 'filter_other_media_dir' ) );
 		add_filter( 'asc_ai_boiler_other_media_url', array( self::class, 'filter_other_media_url' ) );
+	}
+
+	/**
+	 * Register example custom post meta keys for content synchronization.
+	 *
+	 * @param list<array{meta_key:string, post_types:list<string>, type:string}> $keys Registered key configs.
+	 * @return list<array{meta_key:string, post_types:list<string>, type:string}>
+	 */
+	public static function register_post_meta_sync_keys( array $keys ): array {
+		$keys[] = array(
+			'meta_key'   => PostMeta::FEATURED_META_KEY,
+			'post_types' => array( 'post', RegisterPortfolio::POST_TYPE ),
+			'type'       => 'raw',
+		);
+		$keys[] = array(
+			'meta_key'   => PostMeta::PORTFOLIO_GALLERY_META_KEY,
+			'post_types' => array( RegisterPortfolio::POST_TYPE ),
+			'type'       => 'slug',
+		);
+		return $keys;
 	}
 
 	/**

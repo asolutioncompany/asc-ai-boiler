@@ -52,6 +52,7 @@ final class ContentImporter {
 		$offset = max( 0, $offset );
 
 		if ( 0 === $offset ) {
+			ContentExporter::reset_normalized_count();
 			ContentManifest::invalidate_content_manifest_cache();
 			ContentSync::ensure_partial_posts_from_manifest();
 		}
@@ -61,8 +62,23 @@ final class ContentImporter {
 			if ( $offset > 0 && $confirmed ) {
 				self::maybe_run_import_cleanup( $confirmed, $messages );
 				self::maybe_import_plugin_media( $messages );
+				PostMetaSync::import_post_meta_from_manifest( $messages );
 				YoastSync::sync_all_yoast_social_meta( $messages );
 				ContentManifest::maybe_normalize_content_manifest_from_wordpress( $messages );
+
+				if ( ContentExporter::get_normalized_count() > 0 ) {
+					$norm_count = ContentExporter::get_normalized_count();
+					$messages[] = sprintf(
+						/* translators: %d: number of files */
+						_n(
+							'Normalized %d plugin file to canonical export form on disk.',
+							'Normalized %d plugin files to canonical export form on disk.',
+							$norm_count,
+							\ASC_AI_PLUGIN_DOMAIN
+						),
+						$norm_count
+					);
+				}
 			}
 
 			return array(
@@ -99,8 +115,23 @@ final class ContentImporter {
 		if ( $done && $confirmed && $total_jobs > 0 ) {
 			self::maybe_run_import_cleanup( $confirmed, $messages );
 			self::maybe_import_plugin_media( $messages );
+			PostMetaSync::import_post_meta_from_manifest( $messages );
 			YoastSync::sync_all_yoast_social_meta( $messages );
 			ContentManifest::maybe_normalize_content_manifest_from_wordpress( $messages );
+
+			if ( ContentExporter::get_normalized_count() > 0 ) {
+				$norm_count = ContentExporter::get_normalized_count();
+				$messages[] = sprintf(
+					/* translators: %d: number of files */
+					_n(
+						'Normalized %d plugin file to canonical export form on disk.',
+						'Normalized %d plugin files to canonical export form on disk.',
+						$norm_count,
+						\ASC_AI_PLUGIN_DOMAIN
+					),
+					$norm_count
+				);
+			}
 		}
 
 		return array(
@@ -392,7 +423,6 @@ final class ContentImporter {
 		return $content_changed || $title_slug_changed || $taxonomy_changed || $timestamps_changed
 			|| ! $existed_before
 			|| $shell_meta_repaired
-			|| $file_normalized
 			|| $companion_changed;
 	}
 
@@ -501,9 +531,7 @@ final class ContentImporter {
 		}
 
 		if ( '' !== $markup && is_file( ContentSync::resolve_content_file_path( $type_key, $filename ) ) ) {
-			if ( ContentExporter::maybe_normalize_plugin_file_on_disk( $type_key, $filename, $markup, $messages ) ) {
-				$changed = true;
-			}
+			ContentExporter::maybe_normalize_plugin_file_on_disk( $type_key, $filename, $markup, $messages );
 		}
 
 		return $changed;
