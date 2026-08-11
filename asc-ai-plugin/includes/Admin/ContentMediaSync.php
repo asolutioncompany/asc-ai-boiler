@@ -957,7 +957,27 @@ final class ContentMediaSync {
 			}
 		}
 
-		return self::$media_path_cache[ $relative_path ] ?? 0;
+		if ( isset( self::$media_path_cache[ $relative_path ] ) && self::$media_path_cache[ $relative_path ] > 0 ) {
+			return self::$media_path_cache[ $relative_path ];
+		}
+
+		// Fallback: search by _wp_attached_file or filename in case attachment exists without custom meta
+		global $wpdb;
+		$filename = basename( $relative_path );
+		$att_id = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_wp_attached_file' AND (meta_value = %s OR meta_value LIKE %s) ORDER BY post_id DESC LIMIT 1",
+				$filename,
+				'%/' . $wpdb->esc_like( $filename )
+			)
+		);
+		if ( $att_id > 0 ) {
+			self::$media_path_cache[ $relative_path ] = $att_id;
+			update_post_meta( $att_id, self::META_MEDIA_PATH, $relative_path );
+			return $att_id;
+		}
+
+		return 0;
 	}
 
 	/**
@@ -1231,6 +1251,9 @@ final class ContentMediaSync {
 		}
 
 		update_post_meta( $attachment_id, self::META_MEDIA_PATH, $relative_path );
+		if ( is_array( self::$media_path_cache ) ) {
+			self::$media_path_cache[ $relative_path ] = $attachment_id;
+		}
 		self::apply_manifest_metadata_to_attachment( $attachment_id, $manifest_row );
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, (string) $upload['file'] );
@@ -1387,6 +1410,9 @@ final class ContentMediaSync {
 			$basename = basename( $file );
 			if ( '' !== $basename ) {
 				update_post_meta( $attachment_id, self::META_MEDIA_PATH, $basename );
+				if ( is_array( self::$media_path_cache ) ) {
+					self::$media_path_cache[ $basename ] = $attachment_id;
+				}
 				return $basename;
 			}
 		}
@@ -1445,7 +1471,10 @@ final class ContentMediaSync {
 			return false;
 		}
 
-		$post = get_page_by_path( $slug, OBJECT, $post_type );
+		$post = ContentSync::query_post_by_slug( $post_type, $slug, false );
+		if ( ! $post instanceof \WP_Post ) {
+			$post = get_page_by_path( $slug, OBJECT, $post_type );
+		}
 		if ( ! $post instanceof \WP_Post ) {
 			return false;
 		}

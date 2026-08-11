@@ -4,12 +4,16 @@ WordPress boilerplate framework for AI-assisted site builds. Features a decouple
 
 Includes a standalone example site layer (`asc-ai-example`) featuring a Portfolio Custom Post Type (with featured image and additional photo gallery support), Blog, Pages, and Partials for testing and starting new website builds.
 
+## What's New in v1.2.1
+
+- **Reliable Media Binding & Featured Images**: Resolved an issue where newly imported media attachments were not bound to posts during import due to in-memory cache timing, and improved post lookups across standard posts and custom post types.
+
 ## What's New in v1.2.0
 
 - **Custom Post Meta Synchronization**: Added support for synchronizing custom post meta fields via `content-manifest.json` and the `asc_ai_boiler_post_meta_sync_keys` filter hook, supporting both raw values (`raw`) and portable comma-delimited media/post slug lists (`slug`).
 - **Featured Post Settings**: Added Featured post settings toggle for Portfolio and Blog post types in `asc-ai-example` with mutually exclusive selection per post type.
-- **Normalization Summaries**: Normalization messages during import and export are now summarized by total count rather than logging an entry for every individual file.
-- **Noise Reduction in Detect Differences**: Differences only alert on individual items with actual content changes, while minor timestamp adjustments and whitespace normalizations are summarized by post type count.
+- **Normalization Summaries & Accurate Counters**: Normalization messages during import and export are now summarized by total count rather than logging an entry for every individual file, and on-disk file formatting normalizations are cleanly separated from post update counters.
+- **Noise Reduction in Detect Differences**: Differences only alert on individual items with actual content changes, eliminating false-positive timestamp alerts when content and formatting are in sync.
 
 ## Live Preview
 
