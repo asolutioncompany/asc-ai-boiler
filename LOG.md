@@ -10,6 +10,7 @@ Running log of architectural and design decisions. Newest entries at top.
 - **[asc-ai-plugin] Improvement**: Noise reduction in Detect Differences: file modification timestamp differences and whitespace/formatting normalizations are now summarized with a count breakdown by post type rather than generating individual difference alerts, keeping focus only on actual content changes.
 - **[asc-ai-example] Feature**: Added Featured post settings toggle for Portfolio and Blog post types with mutually exclusive selection per post type.
 - **[asc-ai-example] Content**: Updated content manifest with custom post meta entries for featured posts and portfolio project photo galleries.
+- **[asc-ai-theme] Version Bump**: Bumped theme version to 1.2.0 in `style.css`.
 
 ---
 
