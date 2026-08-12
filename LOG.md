@@ -7,6 +7,7 @@ Running log of architectural and design decisions. Newest entries at top.
 - **[asc-ai-example] Feature**: Added `[example_theme_toggle]` shortcode rendering accessible sun/moon SVG controls for placement inside header, footer, or navigation drawer partials.
 - **[asc-ai-example] Assets**: Added dark mode CSS custom property overrides and theme toggle styles in `front.css`, and client-side cookie toggle handler in `front.js`.
 - **[asc-ai-example] Docs**: Updated `BRAND KIT.md` with dark mode palette specifications and created `THEME_TOGGLE.md` with full caching guidance and Nginx FastCGI configuration examples.
+- **[asc-ai-example] Content**: Updated home page hero summary message to align with agency starter branding and added an FAQ entry highlighting the framework's built-in theme toggle, server-side caching mechanics, and AI-assisted removal prompt.
 - **[asc-ai-plugin] Improvement**: Minor Formatting & Date Normalization sync suggestions in Detect Differences now dynamically align with major sync suggestions. If all major syncs suggest Import, minor sync suggests Import; if all suggest Export, it suggests Export; if both Import and Export are suggested, it suggests Export and merging with new plugin files.
 
 ---
