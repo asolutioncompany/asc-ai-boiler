@@ -459,12 +459,37 @@ final class ContentSync {
 				$breakdown_str
 			);
 
+			// Align minor sync suggestion with major sync suggestions.
+			$has_major_import = false;
+			$has_major_export = false;
+			foreach ( $differences as $d ) {
+				if ( empty( $d['is_minor_summary'] ) ) {
+					$s = $d['suggestion'] ?? '';
+					if ( 'import' === $s ) {
+						$has_major_import = true;
+					} elseif ( 'export' === $s ) {
+						$has_major_export = true;
+					}
+				}
+			}
+
+			if ( $has_major_import && $has_major_export ) {
+				$minor_suggestion = 'export';
+				$minor_note = __( 'Suggested: Export to plugin files and merge with new plugin files. (Both import and export are suggested across major differences)', \ASC_AI_PLUGIN_DOMAIN );
+			} elseif ( $has_major_import ) {
+				$minor_suggestion = 'import';
+				$minor_note = __( 'Suggested: Import from plugin files to apply changes to WordPress. (Minor formatting/date normalization on disk)', \ASC_AI_PLUGIN_DOMAIN );
+			} else {
+				$minor_suggestion = 'export';
+				$minor_note = __( 'Suggested: Run export to normalize on-disk formatting and synchronize publication dates. (No content, metadata, or featured image differences)', \ASC_AI_PLUGIN_DOMAIN );
+			}
+
 			$differences[] = array(
 				'relative_path' => __( 'Minor Formatting / Date Normalization', \ASC_AI_PLUGIN_DOMAIN ),
 				'is_minor_summary' => true,
 				'issues' => $minor_issues,
-				'suggestion' => 'export',
-				'suggestion_note' => __( 'Suggested: Run export to normalize on-disk formatting and synchronize publication dates. (No content, metadata, or featured image differences)', \ASC_AI_PLUGIN_DOMAIN ),
+				'suggestion' => $minor_suggestion,
+				'suggestion_note' => $minor_note,
 				'file_modified_gmt' => '',
 				'wp_modified_gmt' => '',
 			);
