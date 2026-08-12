@@ -335,10 +335,58 @@
 		});
 	}
 
+	function initThemeToggle() {
+		var COOKIE_NAME = 'asc_cookie';
+		var LIGHT = 'asc-light';
+		var DARK = 'asc-dark';
+
+		function getCookie(name) {
+			var match = document.cookie.match('(?:^|; )' + name + '=([^;]*)');
+			return match ? decodeURIComponent(match[1]) : null;
+		}
+
+		function setCookie(name, value) {
+			var expires = new Date();
+			expires.setFullYear(expires.getFullYear() + 1);
+			document.cookie = name + '=' + encodeURIComponent(value) + '; path=/; expires=' + expires.toUTCString() + '; SameSite=Lax';
+		}
+
+		function applyTheme(theme) {
+			var isLight = theme === LIGHT;
+			document.body.classList.toggle('example-site-light', isLight);
+			document.body.classList.toggle('example-site-dark', !isLight);
+			document.querySelectorAll('.example-theme-toggle-btn--light').forEach(function (btn) {
+				btn.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+			});
+			document.querySelectorAll('.example-theme-toggle-btn--dark').forEach(function (btn) {
+				btn.setAttribute('aria-pressed', isLight ? 'false' : 'true');
+			});
+		}
+
+		var current = getCookie(COOKIE_NAME);
+		if (current !== LIGHT && current !== DARK) {
+			setCookie(COOKIE_NAME, DARK);
+			current = DARK;
+		}
+		applyTheme(current);
+
+		document.addEventListener('click', function (e) {
+			var btn = e.target.closest('.example-theme-toggle-btn--light, .example-theme-toggle-btn--dark');
+			if (!btn) {
+				return;
+			}
+			var theme = btn.classList.contains('example-theme-toggle-btn--light') ? LIGHT : DARK;
+			setCookie(COOKIE_NAME, theme);
+			applyTheme(theme);
+		});
+	}
+
 	$(document).ready(function () {
 		initHeaderNav();
 		initHeaderSearch();
 		initSkipLinkFocus();
+		initThemeToggle();
 		initScrollTop();
 	});
 })(jQuery);
+

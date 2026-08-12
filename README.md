@@ -4,6 +4,11 @@ WordPress boilerplate framework for AI-assisted site builds. Features a decouple
 
 Includes a standalone example site layer (`asc-ai-example`) featuring a Portfolio Custom Post Type (with featured image and additional photo gallery support), Blog, Pages, and Partials for testing and starting new website builds.
 
+## What's New in v1.3.0
+
+- **Theme Toggle & Dark Mode Support**: Added cookie-persisted light/dark theme toggle to `asc-ai-example` defaulting to dark mode. The theme cookie (`asc_cookie`) is evaluated server-side in PHP to prevent flash-of-wrong-theme on page loads, and a reusable `[example_theme_toggle]` shortcode provides accessible sun/moon SVG controls.
+- **Cache Compatibility & Guidance**: Added documentation and Nginx FastCGI configuration guidelines (`THEME_TOGGLE.md`) for ensuring page caches partition cached HTML responses by theme.
+
 ## What's New in v1.2.1
 
 - **Reliable Media Binding & Featured Images**: Resolved an issue where newly imported media attachments were not bound to posts during import due to in-memory cache timing, and improved post lookups across standard posts and custom post types.
@@ -56,6 +61,7 @@ Understanding how static content files interact with WordPress is key to a smoot
 - **Source Control is Crucial**: The synchronization tool makes its best recommendations for importing and exporting, but it may not always make the correct guess. Disabling the import/export of an item could cause data loss if data is simultaneously exported and imported. Putting your content under source control protects against these edge cases; if a WordPress administrator makes a mistake or overwrites content, they can simply revert the files via version control and re-import from the plugin files.
 - **Performance Optimization**: The synchronization tool itself can be deactivated in production environments to make the website lean and eliminate unnecessary backend overhead.
 - **Custom Design Advantages**: Building a custom design with this framework significantly reduces the overhead of loading bloated features that might never be used, allowing for full customizations and improved page load speeds.
+- **Theme Toggle & Server Caching**: The framework supports cookie-based light/dark theme toggling (`asc_cookie`). When using full-page caching solutions (Nginx FastCGI, Varnish, Redis page cache), the cache key must be partitioned by the theme cookie to prevent serving cached pages in the wrong theme. See `THEME_TOGGLE.md` for complete configuration details.
 
 ## Limitations
 

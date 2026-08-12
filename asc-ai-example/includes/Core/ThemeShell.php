@@ -108,8 +108,13 @@ final class ThemeShell {
 	}
 
 	public static function render_document(): void {
+		$raw = (string) ( $_COOKIE['asc_cookie'] ?? $_COOKIE['asc-cookie'] ?? '' );
+		$color_scheme = 'dark';
+		if ( 'asc-light' === $raw ) {
+			$color_scheme = 'light';
+		}
 		?><!DOCTYPE html>
-<html <?php language_attributes(); ?>>
+<html <?php language_attributes(); ?> style="color-scheme: <?php echo $color_scheme; ?>">
 <head>
 <meta charset="<?php bloginfo( 'charset' ); ?>">
 <meta name="viewport" content="width=device-width, initial-scale=1">

@@ -2,6 +2,13 @@
 
 Running log of architectural and design decisions. Newest entries at top.
 
+### Version 1.3.0
+- **[asc-ai-example] Feature**: Added light/dark theme toggle with cookie-based body classes (`example-site-dark` / `example-site-light`), defaulting to dark theme. The theme cookie (`asc_cookie`) is evaluated server-side in PHP during `body_class` and `ThemeShell::render_document()` rendering to eliminate flash-of-wrong-theme on page load.
+- **[asc-ai-example] Feature**: Added `[example_theme_toggle]` shortcode rendering accessible sun/moon SVG controls for placement inside header, footer, or navigation drawer partials.
+- **[asc-ai-example] Assets**: Added dark mode CSS custom property overrides and theme toggle styles in `front.css`, and client-side cookie toggle handler in `front.js`.
+- **[asc-ai-example] Docs**: Updated `BRAND KIT.md` with dark mode palette specifications and created `THEME_TOGGLE.md` with full caching guidance and Nginx FastCGI configuration examples.
+- **[asc-ai-plugin] Improvement**: Minor Formatting & Date Normalization sync suggestions in Detect Differences now dynamically align with major sync suggestions. If all major syncs suggest Import, minor sync suggests Import; if all suggest Export, it suggests Export; if both Import and Export are suggested, it suggests Export and merging with new plugin files.
+
 ---
 
 ### Version 1.2.1

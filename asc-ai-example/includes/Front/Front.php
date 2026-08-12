@@ -131,7 +131,12 @@ class Front {
 	 * @return string[]
 	 */
 	public function filter_body_class( array $classes ): array {
-		$classes[] = 'asc-site-light';
+		$raw = (string) ( $_COOKIE['asc_cookie'] ?? $_COOKIE['asc-cookie'] ?? '' );
+		$theme_class = 'example-site-dark';
+		if ( 'asc-light' === $raw ) {
+			$theme_class = 'example-site-light';
+		}
+		$classes[] = $theme_class;
 		return $classes;
 	}
 

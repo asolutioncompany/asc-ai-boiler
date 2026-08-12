@@ -78,6 +78,27 @@ Namespaces:
 `Core\PartialStore`       queries and caches partial posts by `_asc_ai_boiler_partial_key`
 `Core\RegisterPortfolio`  registers `example_portfolio` CPT (`/portfolio/`) with REST API and taxonomy support
 `Core\PostMeta`           defines featured flag `_example_featured`, portfolio gallery meta key `_example_portfolio_gallery`, and parsing helpers
-`Core\ThemeShell`         front-end ThemeShell bypass, document rendering (inline without template files), and layout filter hooks
+`Core\ThemeShell`         front-end ThemeShell bypass, document rendering with cookie-aware `<html>` `color-scheme` inline styling, and layout filter hooks
 `Core\Media`              site media path and URL resolution
 `Core\BoilerIntegration`  registers sync profile, custom post meta keys, and content path filter callbacks for the sync tool
+
+### Key Front Classes
+
+`Front\Front`               front-end asset enqueuing, cookie-based body class filtering (`filter_body_class`), pill markup, and button helpers
+`Front\SiteFront`           site layer layout wrappers, logo rendering, and `[example_theme_toggle]` shortcode renderer
+`Front\RegisterShortcodes`  registers shortcodes (`[example_home_url]`, `[example_theme_toggle]`, `[example_all_blogs]`, `[example_portfolio]`, etc.)
+`Front\BlogFront`           blog archive grid and single post rendering
+`Front\PortfolioFront`      portfolio archive grid, single project layout, and photo mosaic gallery rendering
+`Front\SearchFront`         search result templates and custom query handlers
+
+### Theme System & Theme Toggle Architecture
+
+1. **State Persistence**: 1-year cookie named `asc_cookie` storing `asc-dark` (default) or `asc-light`.
+2. **Server-Side Rendering (FOUC Prevention)**:
+   - `Front::filter_body_class()` evaluates `$_COOKIE['asc_cookie']` and applies `example-site-dark` (default) or `example-site-light` to `<body>`.
+   - `ThemeShell::render_document()` injects `style="color-scheme: dark"` or `style="color-scheme: light"` onto `<html>`.
+3. **Markup & Shortcode**: `[example_theme_toggle]` renders accessible button group with SVG sun/moon icons.
+4. **Client-Side Toggle**: `assets/front/front.js` (`initThemeToggle()`) syncs cookie state, toggles body classes, and manages `aria-pressed`.
+5. **Styles**: `assets/front/front.css` uses CSS custom properties defined in `body` (light) and overridden in `body.example-site-dark`.
+6. **Server Caching**: Nginx FastCGI cache partitioned using `$asc_theme` cookie map variable.
+

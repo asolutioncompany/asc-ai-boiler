@@ -57,6 +57,8 @@ class RegisterShortcodes {
 
 		add_shortcode( 'example_home_cta_request_quote', array( $call_to_action, 'render_home_cta_request_quote_shortcode' ) );
 		add_shortcode( 'example_cta', array( $call_to_action, 'render_cta_shortcode' ) );
+
+		add_shortcode( 'example_theme_toggle', array( $site_front, 'render_theme_toggle_shortcode' ) );
 	}
 
 	/**

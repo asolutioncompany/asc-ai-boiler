@@ -22,33 +22,38 @@ This document defines the graphical styling, typography, and color schemes for t
 
 ## Color Scheme
 
-The site implements a theme system using CSS variables.
+The site implements a dual-theme (light and dark) system using CSS custom properties (variables), defaulting to **dark mode** on initial visit.
 
-### Main Theme Colors
+### Theme Colors
 
-| Variable | Description / Purpose | Hex Value |
-| :--- | :--- | :--- |
-| `--example-bg` | Main page background | `#ffffff` |
-| `--example-surface` | Surfaces (cards, inputs, panels) | `#f2efef` |
-| `--example-muted-bg` | Hover states, secondary panels | `#dbdada` |
-| `--example-fg` | Main foreground / text | `#212121` |
-| `--example-muted` | Muted text, borders, placeholders | `#757575` |
-| `--example-post-date` | Post date metadata | `#757575` |
+| Variable | Description / Purpose | Light Mode Value | Dark Mode Value (Default) |
+| :--- | :--- | :--- | :--- |
+| `--example-bg` | Main page background | `#ffffff` | `#080d15` |
+| `--example-surface` | Surfaces (cards, inputs, panels) | `#f2efef` | `#0f1724` |
+| `--example-muted-bg` | Hover states, secondary panels | `#dbdada` | `#172335` |
+| `--example-fg` | Main foreground / text | `#212121` | `#f0f6fc` |
+| `--example-muted` | Muted text, borders, placeholders | `#757575` | `#889bb0` |
+| `--example-post-date` | Post date metadata | `#757575` | `#889bb0` |
 
 ### Accents & Utility Colors
 
-| Variable | Description / Purpose | Hex Value |
-| :--- | :--- | :--- |
-| `--example-cyan` | Cyan border & highlights | `#0b7285` |
-| `--example-green` | Green highlights / success status | `#2b8a3e` |
-| `--example-purple` | Purple accent details | `#862e9c` |
-| `--example-accent` | Accent pink/red details | `#d6336c` |
-| `--example-focus` | Focus outline color | `#e8590c` |
-| `--example-brand-accent` | Brand Accent highlights | `#0b7285` |
-| `--example-teal` | Deep Teal background panels | `#10738a` |
-| `--example-light-teal` | Light sky blue details | `#15aabf` |
-| `--example-theme-toggle-bg` | Theme switcher background | `#ced5e0` |
-| `--example-cyan-border` | Cyan border style | `2px solid #67d8ef` |
+| Variable | Description / Purpose | Light Mode Value | Dark Mode Value (Default) |
+| :--- | :--- | :--- | :--- |
+| `--example-cyan` | Cyan border & highlights | `#0b7285` | `#0891b2` |
+| `--example-green` | Green highlights / success status | `#2b8a3e` | `#3fb950` |
+| `--example-purple` | Purple accent details | `#862e9c` | `#bc8cff` |
+| `--example-accent` | Accent pink/red details | `#d6336c` | `#f778ba` |
+| `--example-focus` | Focus outline color | `#e8590c` | `#f0883e` |
+| `--example-brand-accent` | Brand Accent highlights | `#0b7285` | `#0891b2` |
+| `--example-teal` | Button & Control background | `#10738a` | `#0891b2` |
+| `--example-light-teal` | Light sky blue details | `#15aabf` | `#22d3ee` |
+| `--example-theme-toggle-bg` | Theme switcher background | `#ced5e0` | `#172335` |
+| `--example-tag-bg` | Tag and badge background | `#dbdada` | `#080d15` |
+| `--example-tag-border` | Tag and badge borders | `#adb5bd` | `#253952` |
+| `--example-card-bg` | Card container background | `#ffffff` | `#18263a` |
+| `--example-card-border` | Card container borders | `#dee2e6` | `#243b5a` |
+| `--example-cyan-border` | Cyan border style | `2px solid #67d8ef` | `2px solid #0891b2` |
+| `--example-btn-hover-border` | Button hover outline | `2px solid #495057` | `2px solid #3b5373` |
 
 ---
 
