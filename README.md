@@ -1,24 +1,27 @@
 # aS.c AI Boiler Framework
 
-WordPress boilerplate framework for AI-assisted site builds. Features a decoupled architecture where site layer plugins (`aS.c AI Boiler Example`) operate completely standalone with their own theme shell and partials registry, while `aS.c AI Boiler Plugin` serves as an independent Content Synchronization Tool. It is shipped with a minimum theme `aS.c AI Boiler Theme` but is compatible with others and page builers.
+aS.c AI Boiler is a WordPress framework for building custom websites with an AI-assisted desktop workflow. It stores site content and configuration in source-controlled files while preserving WordPress as the content management system.
 
-Includes a standalone example site layer (`asc-ai-example`) featuring a Portfolio Custom Post Type (with featured image and additional photo gallery support), Blog, Pages, and Partials for testing and starting new website builds.
+The framework separates reusable content synchronization from project-specific design. Each site layer owns its presentation, post types, templates, and content files. The synchronization plugin moves content and metadata between those files and the WordPress database without requiring direct database edits.
 
-## What's New in v1.3.0
+## Packages
 
-- **Theme Toggle & Dark Mode Support**: Added cookie-persisted light/dark theme toggle to `asc-ai-example` defaulting to dark mode. The theme cookie (`asc_cookie`) is evaluated server-side in PHP to prevent flash-of-wrong-theme on page loads, and a reusable `[example_theme_toggle]` shortcode provides accessible sun/moon SVG controls.
-- **Cache Compatibility & Guidance**: Added documentation and Nginx FastCGI configuration guidelines (`THEME_TOGGLE.md`) for ensuring page caches partition cached HTML responses by theme.
+| Package | Purpose |
+|---|---|
+| `asc-ai-plugin` | Imports, exports, backs up, and compares WordPress content, media, custom metadata, and SEO data. It can remain inactive on production sites when synchronization is not needed. |
+| `asc-ai-example` | Provides a standalone reference site layer with its own theme shell, pages, blog, Portfolio post type, partials, content manifest, and front-end design. Use it as the starting point for a project-specific site layer. |
+| `asc-ai-theme` | Provides the minimum WordPress theme files required to run the example site layer. Site layers can also run with other themes or page builders. |
 
-## What's New in v1.2.1
+The example site layer and content synchronization plugin work independently. A project can use the site layer without activating the synchronization plugin on every request.
 
-- **Reliable Media Binding & Featured Images**: Resolved an issue where newly imported media attachments were not bound to posts during import due to in-memory cache timing, and improved post lookups across standard posts and custom post types.
+See [`ARCH.md`](ARCH.md) for detailed architecture and [`STYLE.md`](STYLE.md) for project code style.
 
-## What's New in v1.2.0
+## How It Works
 
-- **Custom Post Meta Synchronization**: Added support for synchronizing custom post meta fields via `content-manifest.json` and the `asc_ai_boiler_post_meta_sync_keys` filter hook, supporting both raw values (`raw`) and portable comma-delimited media/post slug lists (`slug`).
-- **Featured Post Settings**: Added Featured post settings toggle for Portfolio and Blog post types in `asc-ai-example` with mutually exclusive selection per post type.
-- **Normalization Summaries & Accurate Counters**: Normalization messages during import and export are now summarized by total count rather than logging an entry for every individual file, and on-disk file formatting normalizations are cleanly separated from post update counters.
-- **Noise Reduction in Detect Differences**: Differences only alert on individual items with actual content changes, eliminating false-positive timestamp alerts when content and formatting are in sync.
+1. Create a project-specific site layer from `asc-ai-example`.
+2. Build the design and content locally with your preferred AI development tools, then import the content files into WordPress.
+3. Continue editing through either the project files or the WordPress dashboard. Use difference detection before importing or exporting changes in either direction.
+4. Commit the portable site layer, content manifest, and content files to source control. Deploy the site layer without requiring the synchronization plugin to remain active.
 
 ## Live Preview
 
@@ -32,16 +35,44 @@ You can preview the framework in action by visiting the example site at [boiler.
 - **Metadata Management**: Define essential metadata alongside your content to drastically reduce setup time. The content synchronization tool supports:
   - Title & Slug
   - Categories & Tags
+  - Primary Category (Yoast)
   - Excerpt
   - Publication Date
   - Custom Post Meta (raw values and portable slug/media lists)
   - SEO Meta Description (Yoast)
+  - Social Description (OpenGraph) (Yoast)
+  - X Description (Twitter) (Yoast)
   - Social Title (OpenGraph) (Yoast)
   - X Title (Twitter) (Yoast)
   - SEO Focus Keyphrase (Yoast)
+  - Category and tag names and descriptions
   - Media alt, title, caption, and description
   - Featured images (with automatic support for social media Open Graph & X images at 1200x627 or matching aspect ratio)
 - **CMS Flexibility**: The synchronization tool allows WordPress to still be used normally as a CMS to add and edit posts, pages, and media directly in the dashboard.
+
+## Categories, Tags, and Archive Pages
+
+Use categories for broad content sections. A post or custom post type can have several categories, but its `primary_category` identifies the main category for SEO providers such as Yoast. Use tags for narrower topics that connect related content across categories.
+
+The example site renders Blog and Portfolio as navigation pills that link to their main listing pages. They are not WordPress taxonomy terms and do not create tag archives. Category pills appear after the listing-page pill, with the primary category first. Category archives include both blog posts and Portfolio entries.
+
+The top-level `taxonomies` object in `content-manifest.json` stores source-controlled category and tag names and descriptions. Import creates missing declared terms and updates declared values. A missing taxonomy row or field preserves the existing WordPress value. An empty declared description clears it. Export writes terms assigned to synchronized content, and Detect Differences compares declared values with WordPress.
+
+```json
+{
+    "taxonomies": {
+        "category": [
+            {
+                "slug": "small-business",
+                "name": "Small Business",
+                "description": "Websites and local search guidance for small businesses."
+            }
+        ]
+    }
+}
+```
+
+The example category archive header uses a full-width, borderless surface like the About Us page. Its centered flex layout is limited to 800px. A compact left column identifies the archive as a Blog Topic or Portfolio Category. The larger right column shows the category name as the page heading followed by the synced WordPress description. Use `[example_taxonomy_description]` without attributes on a category archive, or provide a term on a custom layout, such as `[example_taxonomy_description taxonomy="category" slug="small-business"]`.
 
 ## Content Synchronization Mechanics
 
@@ -61,7 +92,7 @@ Understanding how static content files interact with WordPress is key to a smoot
 - **Source Control is Crucial**: The synchronization tool makes its best recommendations for importing and exporting, but it may not always make the correct guess. Disabling the import/export of an item could cause data loss if data is simultaneously exported and imported. Putting your content under source control protects against these edge cases; if a WordPress administrator makes a mistake or overwrites content, they can simply revert the files via version control and re-import from the plugin files.
 - **Performance Optimization**: The synchronization tool itself can be deactivated in production environments to make the website lean and eliminate unnecessary backend overhead.
 - **Custom Design Advantages**: Building a custom design with this framework significantly reduces the overhead of loading bloated features that might never be used, allowing for full customizations and improved page load speeds.
-- **Theme Toggle & Server Caching**: The framework supports cookie-based light/dark theme toggling (`asc_cookie`). When using full-page caching solutions (Nginx FastCGI, Varnish, Redis page cache), the cache key must be partitioned by the theme cookie to prevent serving cached pages in the wrong theme. See `THEME_TOGGLE.md` for complete configuration details.
+- **Theme Toggle & Server Caching**: The framework supports cookie-based light/dark theme toggling (`asc_cookie`). When using full-page caching solutions (Nginx FastCGI, Varnish, Redis page cache), the cache key must be partitioned by the theme cookie to prevent serving cached pages in the wrong theme. See [`THEME_TOGGLE.md`](THEME_TOGGLE.md) for configuration details and a copy-ready prompt that removes light/dark theme switching and its cache variation for a fixed-theme site.
 
 ## Limitations
 
@@ -70,21 +101,13 @@ Understanding how static content files interact with WordPress is key to a smoot
 - **Explicit Reviews Required**: AI output should not be trusted blindly. It is recommended to do explicit reviews for maintainability, performance, security, accessibility, and other architectural standards.
 - **Time Investment**: Using AI to develop a custom site is still a time-consuming process that requires constant testing, iteration, and guidance.
 
-## Structure
-
-```
-asc-ai-theme/   aS.c AI Boiler Theme (bare minimum stub)
-asc-ai-plugin/  aS.c AI Boiler Plugin (Content Synchronization Tool: diffing, import/export, media sync)
-asc-ai-example/ aS.c AI Boiler Example (Standalone site layer: Portfolio CPT, blog, pages, partials registry, theme shell)
-```
-
-See `ARCH.md` for architecture detail and `STYLE.md` for code style.
-
 ## Requirements
 
 - WordPress 5.0+ (Tested up to 7.0.2)
 - PHP 8.1+ (Tested up to 8.3)
 - Composer (for autoloader)
+
+Yoast SEO is the recommended SEO plugin. The content synchronization tool includes a Yoast provider for importing, exporting, and comparing the provider-neutral SEO fields declared in `content-manifest.json`.
 
 ## Setup
 
@@ -106,11 +129,15 @@ When starting a new website project, it is highly recommended to:
 3. If you soft-link the framework repository in your project, add it your project's `.gitignore` to prevent committing the framework into your site's repository.
 4. Have your AI agent create your site layer plugin with your own slug name and website name, using `asc-ai-example` as a reference.
 
+Copy-ready prompts for site-layer setup and content manifest generation are available in `PROMPTS.md`.
+
 ## Verification
 
 ```bash
 find . -name "*.php" -exec php -l {} +   # syntax check
 ```
+
+The first automated integration tests live in `tests/asc-ai-plugin/`, outside the deployable `asc-ai-plugin/` directory. They require PHPUnit and the WordPress test library. Set `WP_TESTS_DIR` to the WordPress test library path, then run `phpunit -c phpunit.xml.dist`. Continue manual WordPress and Yoast testing for full admin and indexable behavior.
 
 ## Security Hardening
 
@@ -147,3 +174,30 @@ location ~* /wp-content/plugins/asc-ai-example/content/.*\.(html|json|txt)$ {
     log_not_found off;
 }
 ```
+
+## Release Notes
+
+### What's New in v1.4.0 (In Development)
+
+- **Provider-Neutral SEO Sync**: Made the content manifest SEO contract independent of any SEO plugin and added Yoast SEO as the first provider.
+- **Complete Yoast Metadata Import**: Fixed import, export, and difference detection for all declared Yoast metadata. Added portable primary-category synchronization by category slug.
+- **Complete Example Metadata**: Extended the example site to demonstrate every current content-manifest metadata feature, including SEO descriptions, social and X metadata, focus keyphrases, taxonomy descriptions, categories, tags, primary categories, custom post metadata, and media relationships.
+- **Reusable Project Prompts**: Added prompts for creating a project-specific site layer, generating complete content manifest metadata, and removing light/dark mode switching for a fixed-theme site.
+- **Category Archives**: Added manifest-backed category descriptions, linked category pills, combined post and Portfolio archive grids, and two-column archive headers with reusable description output. Blog and Portfolio navigation pills link to their main listing pages.
+- **Front-End Performance and Accessibility**: Removed front-end jQuery and Dashicons font dependencies, rendered required Dashicons paths as inline SVG, added responsive hero image output, corrected contextual card heading levels, improved link names, and increased dark-mode contrast.
+
+### What's New in v1.3.0
+
+- **Theme Toggle and Dark Mode Support**: Added a cookie-persisted light/dark theme toggle to `asc-ai-example` that defaults to dark mode. PHP evaluates the theme cookie (`asc_cookie`) on the server to prevent a flash of the wrong theme. The reusable `[example_theme_toggle]` shortcode provides accessible inline theme controls.
+- **Cache Compatibility and Guidance**: Added documentation and Nginx FastCGI configuration guidelines (`THEME_TOGGLE.md`) for ensuring page caches partition cached HTML responses by theme.
+
+### What's New in v1.2.1
+
+- **Reliable Media Binding and Featured Images**: Resolved an issue where newly imported media attachments were not bound to posts during import due to in-memory media cache timing. Improved post lookups across standard posts and custom post types.
+
+### What's New in v1.2.0
+
+- **Custom Post Meta Synchronization**: Added support for synchronizing custom post meta fields through `content-manifest.json` and the `asc_ai_boiler_post_meta_sync_keys` filter. The sync supports raw values and portable comma-delimited media or post slug lists.
+- **Featured Post Settings**: Added a Featured post setting for Portfolio and Blog post types in `asc-ai-example`, with one featured item per post type.
+- **Normalization Summaries and Accurate Counters**: Summarized normalization messages and separated file formatting changes from WordPress post update counters.
+- **Noise Reduction in Difference Alerts**: Limited individual difference alerts to content changes and grouped timestamp or whitespace normalization notices.

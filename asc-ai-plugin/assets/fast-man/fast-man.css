@@ -1,0 +1,1159 @@
+/**
+ * aS.c Fast-Man Stylesheet
+ *
+ * Scoped and prefixed with asc-fm- to prevent collisions with WordPress or theme styles.
+ * Uses ASC surfaces (background, border, border radius) with no container backdrops,
+ * preserving inner surfaces for Meet the Characters cards.
+ */
+
+/* Hidden SVG filter container */
+.asc-fm-svg-filters {
+	position: absolute;
+	width: 0;
+	height: 0;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+/* Stage Layout */
+.asc-fm-stage {
+	--asc-fm-button-orange: var(--asc-button-orange, #d4580a);
+	--asc-fm-button-font-size: var(--asc-button-font-size, 18px);
+	--asc-fm-button-font-weight: var(--asc-button-font-weight, 600);
+	--asc-fm-button-line-height: var(--asc-button-line-height, 1.2);
+	--asc-fm-button-letter-spacing: var(--asc-button-letter-spacing, 0);
+	--asc-fm-button-border-radius: var(--asc-button-border-radius, 16px);
+	--asc-fm-button-ghost-border: var(--asc-button-ghost-border, 2px solid transparent);
+	--asc-fm-button-pad-x: var(--asc-button-pad-x, 16px);
+	--asc-fm-button-pad-y: var(--asc-button-pad-y, 8px);
+	--asc-fm-button-text-nudge: var(--asc-button-text-nudge, 0px);
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	width: 100%;
+	max-width: 1000px;
+	margin: 20px 0;
+	box-sizing: border-box;
+}
+
+@media screen and (max-width: 1050px) {
+	.asc-fm-stage {
+		--asc-fm-button-font-size: 17px;
+		--asc-fm-button-pad-x: 14px;
+		--asc-fm-button-pad-y: 6px;
+		--asc-fm-button-border-radius: 14px;
+	}
+}
+
+@media screen and (max-width: 900px) {
+	.asc-fm-stage {
+		--asc-fm-button-font-size: 15px;
+		--asc-fm-button-pad-x: 12px;
+		--asc-fm-button-pad-y: 5px;
+		--asc-fm-button-border-radius: 12px;
+	}
+}
+
+/* Board and Cards - Flat ASC Surfaces, No Backdrops */
+.asc-fm-board,
+.asc-fm-card {
+	background-color: var(--asc-surface);
+	border: 1px solid var(--asc-card-border);
+	border-radius: var(--asc-card-border-radius);
+	box-shadow: none;
+	box-sizing: border-box;
+}
+
+.asc-fm-board {
+	position: relative;
+	min-height: 0;
+	overflow: hidden;
+	padding: 30px;
+}
+
+.asc-fm-card {
+	padding: 16px;
+}
+
+.asc-fm-card h2 {
+	margin: 0 0 10px 0;
+	font-family: var(--asc-font-heading);
+	font-size: 18px;
+	line-height: 1.2;
+	color: var(--asc-fg);
+}
+
+/* Difficulty and Audio Rows (inside board below control deck) */
+.asc-fm-difficulty-row,
+.asc-fm-audio-row {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 20px;
+	margin: 0 0 16px 0;
+	font-family: var(--asc-font-body);
+	font-size: 15px;
+	color: var(--asc-fg);
+}
+
+.asc-fm-difficulty-label,
+.asc-fm-audio-label {
+	font-weight: 600;
+	color: var(--asc-fg);
+}
+
+.asc-fm-difficulty-options,
+.asc-fm-audio-options {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 20px;
+}
+
+.asc-fm-difficulty-options label,
+.asc-fm-audio-options label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+	color: var(--asc-fg);
+	font-family: var(--asc-font-body);
+	font-size: 15px;
+	user-select: none;
+}
+
+.asc-fm-difficulty-options input,
+.asc-fm-audio-options input {
+	accent-color: var(--asc-button-orange);
+	margin: 0;
+	cursor: pointer;
+}
+
+/* Bonus Guide (horizontal row below game board) */
+.asc-fm-bonus-guide {
+	width: 100%;
+}
+
+.asc-fm-bonus-guide h2 {
+	margin: 0 0 14px 0;
+	font-family: var(--asc-font-heading);
+	font-size: 18px;
+	line-height: 1.2;
+	color: #99eff7;
+}
+
+.asc-fm-bonus-list {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: 20px;
+}
+
+.asc-fm-bonus-list span {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	gap: 6px;
+	padding: 12px 8px;
+	background: rgba(255, 255, 255, 0.03);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	border-radius: 8px;
+	color: var(--asc-fg);
+	font-size: 14px;
+	box-sizing: border-box;
+}
+
+.asc-fm-bonus-list b {
+	display: grid;
+	place-items: center;
+	width: 44px;
+	height: 36px;
+	padding: 0;
+}
+
+.asc-fm-bonus-list b img {
+	width: 32px;
+	height: 32px;
+	box-sizing: border-box;
+	padding: 3px;
+	object-fit: contain;
+}
+
+.asc-fm-bonus-list em {
+	font-style: normal;
+	color: var(--asc-muted);
+	font-size: 13px;
+}
+
+.asc-fm-bonus-list strong {
+	color: var(--asc-button-orange);
+	font-variant-numeric: tabular-nums;
+	font-weight: 700;
+	font-size: 15px;
+}
+
+/* Maze Board */
+.asc-fm-maze {
+	position: relative;
+	display: grid;
+	width: 100%;
+	aspect-ratio: 25 / 17;
+	margin: 0 0 16px 0;
+	border: 0;
+	border-radius: 8px;
+	background-color: var(--asc-artic-bg);
+	touch-action: none;
+	user-select: none;
+	overflow: hidden;
+}
+
+.asc-fm-maze.asc-fm-phone {
+	aspect-ratio: 13 / 21;
+	width: min(100%, calc((100svh - 320px) * 13 / 21));
+	max-width: 100%;
+	margin: 12px auto;
+}
+
+.asc-fm-cell {
+	position: relative;
+	display: grid;
+	place-items: center;
+	min-width: 0;
+	min-height: 0;
+}
+
+/* Maze Wall Geometry and Themes */
+.asc-fm-wall {
+	--asc-fm-wall-fill: #5000c0;
+	--asc-fm-wall-shade: #200090;
+	background:
+		radial-gradient(circle at top left, var(--asc-fm-wall-shade) 0px, var(--asc-fm-wall-shade) 7px, transparent 7px) top left / var(--asc-fm-wall-inner-tl) var(--asc-fm-wall-inner-tl) no-repeat,
+		radial-gradient(circle at top right, var(--asc-fm-wall-shade) 0px, var(--asc-fm-wall-shade) 7px, transparent 7px) top right / var(--asc-fm-wall-inner-tr) var(--asc-fm-wall-inner-tr) no-repeat,
+		radial-gradient(circle at bottom right, var(--asc-fm-wall-shade) 0px, var(--asc-fm-wall-shade) 7px, transparent 7px) bottom right / var(--asc-fm-wall-inner-br) var(--asc-fm-wall-inner-br) no-repeat,
+		radial-gradient(circle at bottom left, var(--asc-fm-wall-shade) 0px, var(--asc-fm-wall-shade) 7px, transparent 7px) bottom left / var(--asc-fm-wall-inner-bl) var(--asc-fm-wall-inner-bl) no-repeat,
+		linear-gradient(var(--asc-fm-wall-shade), var(--asc-fm-wall-shade)) top / 100% var(--asc-fm-wall-top) no-repeat,
+		linear-gradient(var(--asc-fm-wall-shade), var(--asc-fm-wall-shade)) right / var(--asc-fm-wall-right) 100% no-repeat,
+		linear-gradient(var(--asc-fm-wall-shade), var(--asc-fm-wall-shade)) bottom / 100% var(--asc-fm-wall-bottom) no-repeat,
+		linear-gradient(var(--asc-fm-wall-shade), var(--asc-fm-wall-shade)) left / var(--asc-fm-wall-left) 100% no-repeat,
+		var(--asc-fm-wall-fill);
+	border: 0;
+	box-shadow: none;
+}
+
+.asc-fm-maze[data-map-theme="cyan"] .asc-fm-wall,
+.asc-fm-maze[data-map-theme="blue"] .asc-fm-wall {
+	--asc-fm-wall-fill: #0040b0;
+	--asc-fm-wall-shade: #002090;
+}
+
+.asc-fm-maze[data-map-theme="green"] .asc-fm-wall {
+	--asc-fm-wall-fill: #009060;
+	--asc-fm-wall-shade: #007040;
+}
+
+.asc-fm-maze[data-map-theme="purple"] .asc-fm-wall {
+	--asc-fm-wall-fill: #5000c0;
+	--asc-fm-wall-shade: #200090;
+}
+
+.asc-fm-maze[data-map-theme="red"] .asc-fm-wall {
+	--asc-fm-wall-fill: #700020;
+	--asc-fm-wall-shade: #900040;
+}
+
+/* Collectibles */
+.asc-fm-pellet::after {
+	content: "";
+	width: 4px;
+	height: 4px;
+	border-radius: 50%;
+	background: #fff7df;
+}
+
+.asc-fm-cell:has(.asc-fm-pill),
+.asc-fm-cell.asc-fm-pill,
+.asc-fm-cell.pill {
+	box-sizing: border-box;
+	padding: 6px;
+}
+
+.asc-fm-cell .asc-fm-pill,
+.asc-fm-pill {
+	position: static;
+	display: block;
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	max-width: 100%;
+	max-height: 100%;
+	padding: 0;
+	object-fit: contain;
+	filter: none;
+	animation: asc-fm-pulse 1.5s ease-in-out infinite alternate;
+}
+
+/* Fast-Man Sprite */
+.asc-fm-maze>.asc-fm-fastman {
+	position: absolute;
+	z-index: 2;
+	pointer-events: none;
+	background: transparent;
+	border: 0;
+	border-radius: 0;
+	filter: url(#asc-fm-character-edge);
+	object-fit: contain;
+	transform-origin: center;
+	transform: rotate(var(--asc-fm-facing, 0deg)) scaleX(var(--asc-fm-flip, 1));
+}
+
+.asc-fm-maze>.asc-fm-fastman.asc-fm-is-moving,
+body.asc-fm-fast-mode .asc-fm-maze>.asc-fm-fastman.asc-fm-is-moving {
+	animation: asc-fm-fastman-swagger 0.32s ease-in-out infinite alternate;
+}
+
+.asc-fm-maze>.asc-fm-fastman.asc-fm-is-hit {
+	animation: asc-fm-fastman-hit 0.65s linear;
+}
+
+/* Bot Sprites */
+.asc-fm-agent {
+	position: absolute;
+	z-index: 2;
+	pointer-events: none;
+	object-fit: contain;
+	padding: 1px;
+	border: 0;
+	transform: scaleX(0.78);
+	transform-origin: center;
+	filter:
+		drop-shadow(1px 0 #050817) drop-shadow(-1px 0 #050817) drop-shadow(0 1px #050817) drop-shadow(0 -1px #050817);
+}
+
+.asc-fm-agent.asc-fm-bot-blue {
+	color: #00cfff;
+}
+
+.asc-fm-agent.asc-fm-bot-purple {
+	color: #a855f7;
+}
+
+.asc-fm-agent.asc-fm-bot-green {
+	color: #087f5b;
+}
+
+.asc-fm-agent.asc-fm-is-vulnerable {
+	filter:
+		sepia(1) saturate(8) hue-rotate(338deg) brightness(1.12) drop-shadow(1px 0 #050817) drop-shadow(-1px 0 #050817) drop-shadow(0 1px #050817) drop-shadow(0 -1px #050817);
+}
+
+.asc-fm-power-warning .asc-fm-agent.asc-fm-is-vulnerable {
+	animation: asc-fm-power-flash 1s steps(2, end) infinite;
+}
+
+/* Bonus Items and Popups */
+.asc-fm-bonus-item {
+	position: absolute;
+	z-index: 2;
+	box-sizing: border-box;
+	object-fit: contain;
+	padding: 3px;
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+}
+
+.asc-fm-points-popup {
+	position: absolute;
+	z-index: 5;
+	width: 9%;
+	color: #fff7df;
+	font-weight: 900;
+	text-align: center;
+	text-shadow: 0 1px 3px #000;
+	pointer-events: none;
+	animation: asc-fm-points-rise 0.8s ease-out forwards;
+}
+
+/* HUD and Controls */
+.asc-fm-run-hud {
+	display: flex;
+	justify-content: space-between;
+	gap: 20px;
+	flex-wrap: wrap;
+	font-family: var(--asc-font-body);
+	font-size: 15px;
+	font-variant-numeric: tabular-nums;
+	color: var(--asc-fg);
+	margin: 0 0 12px 0;
+}
+
+.asc-fm-run-hud strong,
+.asc-fm-run-hud .asc-fm-score {
+	color: var(--asc-button-orange);
+	font-weight: 700;
+}
+
+.asc-fm-status {
+	margin: 4px 0;
+	color: var(--asc-muted);
+	font-family: var(--asc-font-body);
+	font-size: 14px;
+	min-height: 20px;
+}
+
+.asc-fm-status:empty {
+	display: none;
+	min-height: 0;
+	margin: 0;
+}
+
+.asc-fm-control-deck {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	align-items: center;
+	gap: 20px;
+	margin: 0 0 24px 0;
+}
+
+.asc-fm-control-actions,
+.asc-fm-control-new {
+	display: flex;
+	gap: 20px;
+}
+
+/* Bottom Status Bar (2-column: run-status on left, power-time on right) */
+.asc-fm-status-bar {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	align-items: center;
+	gap: 20px;
+	margin: 8px 0 0 0;
+}
+
+.asc-fm-status-bar #asc-fm-run-status {
+	margin: 0;
+	text-align: left;
+}
+
+.asc-fm-status-bar #asc-fm-power-time {
+	margin: 0;
+	text-align: right;
+	white-space: nowrap;
+	font-weight: 600;
+	color: #99eff7;
+}
+
+/* Game Board Buttons (styled like ASC Orange Buttons) */
+.asc-fm-button-orange,
+.asc-fm-control-actions button,
+.asc-fm-control-new button,
+.asc-fm-game-over button {
+	font-family: var(--asc-font-body, 'Source Sans 3', system-ui, sans-serif);
+	font-size: var(--asc-fm-button-font-size);
+	font-weight: var(--asc-fm-button-font-weight);
+	line-height: var(--asc-fm-button-line-height);
+	letter-spacing: var(--asc-fm-button-letter-spacing);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	border-radius: var(--asc-fm-button-border-radius);
+	border: var(--asc-fm-button-ghost-border);
+	margin: 0;
+	color: var(--asc-fg, #e6edf3);
+	padding-top: calc(var(--asc-fm-button-pad-y) + var(--asc-fm-button-text-nudge));
+	padding-bottom: max(0px, calc(var(--asc-fm-button-pad-y) - var(--asc-fm-button-text-nudge)));
+	padding-left: var(--asc-fm-button-pad-x);
+	padding-right: var(--asc-fm-button-pad-x);
+	background-color: var(--asc-fm-button-orange);
+	cursor: pointer;
+	text-decoration: none;
+	transition: none;
+}
+
+.asc-fm-control-actions button,
+.asc-fm-control-new button {
+	flex: 1;
+}
+
+.asc-fm-button-orange:hover,
+.asc-fm-button-orange:focus,
+.asc-fm-button-orange:focus-visible,
+.asc-fm-button-orange:active,
+.asc-fm-control-actions button:hover,
+.asc-fm-control-actions button:focus,
+.asc-fm-control-actions button:focus-visible,
+.asc-fm-control-actions button:active,
+.asc-fm-control-new button:hover,
+.asc-fm-control-new button:focus,
+.asc-fm-control-new button:focus-visible,
+.asc-fm-control-new button:active,
+.asc-fm-game-over button:hover,
+.asc-fm-game-over button:focus,
+.asc-fm-game-over button:focus-visible,
+.asc-fm-game-over button:active {
+	border: 2px solid var(--asc-fg, #e6edf3);
+	opacity: 0.9;
+	outline: none;
+}
+
+.asc-fm-button-orange:disabled,
+.asc-fm-control-deck button:disabled,
+.asc-fm-game-over button:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+	border: 2px solid transparent;
+}
+
+/* Overlays (Game Over, Hit, Bonus) */
+.asc-fm-stage [hidden],
+.asc-fm-game-over[hidden],
+.asc-fm-death-message[hidden],
+.asc-fm-bonus-life-message[hidden],
+[hidden] {
+	display: none !important;
+}
+
+.asc-fm-game-over {
+	position: absolute;
+	z-index: 10;
+	top: 0;
+	left: 0;
+	right: 0;
+	display: flex;
+	flex-wrap: wrap;
+	text-align: center;
+	justify-content: center;
+	align-items: center;
+	gap: 20px;
+	padding: 14px 18px;
+	color: #fff7df;
+	background-color: rgba(12, 18, 28, 0.94);
+	border-bottom: 3px solid var(--asc-button-orange);
+	font-family: var(--asc-font-heading);
+	font-size: clamp(16px, 2.2vw, 22px);
+	font-weight: 800;
+	letter-spacing: 0.06em;
+}
+
+.asc-fm-bonus-life-message {
+	position: absolute;
+	z-index: 9;
+	top: 18%;
+	left: 0;
+	right: 0;
+	color: #fff7df;
+	font-family: var(--asc-font-heading);
+	font-size: clamp(16px, 3vw, 24px);
+	font-weight: 900;
+	letter-spacing: 0.08em;
+	text-align: center;
+	text-shadow: 0 0 8px #f97316, 0 2px 3px #000;
+	pointer-events: none;
+	animation: asc-fm-bonus-life 2.5s ease-out forwards;
+}
+
+.asc-fm-bonus-life-message.asc-fm-is-persistent {
+	animation: none;
+	opacity: 0.92;
+	transform: scale(1);
+}
+
+.asc-fm-death-message {
+	position: absolute;
+	z-index: 9;
+	top: 18%;
+	left: 0;
+	right: 0;
+	color: #fff7df;
+	font-family: var(--asc-font-heading);
+	font-size: clamp(16px, 3vw, 24px);
+	font-weight: 900;
+	letter-spacing: 0.08em;
+	text-align: center;
+	text-shadow: 0 0 8px #0891b2, 0 2px 3px #000;
+	pointer-events: none;
+	animation: asc-fm-death-message 0.35s ease-out forwards;
+}
+
+/* Intermission Cutscene Overlay */
+.asc-fm-cutscene {
+	position: absolute;
+	z-index: 15;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	background-color: var(--asc-artic-bg, #0c121c);
+	border-radius: var(--asc-card-border-radius);
+	overflow: hidden;
+	opacity: 1;
+	transition: opacity 0.4s ease-out;
+}
+
+.asc-fm-cutscene.asc-fm-cutscene-fading {
+	opacity: 0;
+}
+
+.asc-fm-cutscene-skip {
+	position: absolute;
+	top: 16px;
+	right: 16px;
+	z-index: 20;
+	padding: 6px 14px;
+	font-family: var(--asc-font-body);
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--asc-muted, #8fa7c7);
+	background: rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.16);
+	border-radius: 6px;
+	cursor: pointer;
+	transition: color 0.15s, background-color 0.15s;
+}
+
+.asc-fm-cutscene-skip:hover {
+	color: #fff;
+	background: rgba(255, 255, 255, 0.18);
+}
+
+.asc-fm-cutscene-stage {
+	position: relative;
+	width: 100%;
+	height: 140px;
+	overflow: hidden;
+}
+
+.asc-fm-cutscene-actor {
+	position: absolute;
+	top: 50%;
+	margin-top: -32px;
+	width: 64px;
+	height: 64px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+	opacity: 0;
+	left: -120px;
+}
+
+.asc-fm-cutscene-actor img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	filter: url(#asc-fm-character-edge-preview);
+}
+
+.asc-fm-cutscene-actor img.asc-fm-is-vulnerable {
+	filter:
+		sepia(1) saturate(8) hue-rotate(338deg) brightness(1.12)
+		drop-shadow(1px 0 #050817) drop-shadow(-1px 0 #050817) drop-shadow(0 1px #050817) drop-shadow(0 -1px #050817);
+}
+
+.asc-fm-cutscene.asc-fm-cutscene-active .asc-fm-cutscene-actor img {
+	animation: asc-fm-cutscene-wobble 0.28s ease-in-out infinite alternate;
+}
+
+@keyframes asc-fm-cutscene-wobble {
+	from {
+		transform: translateY(0) rotate(-1.5deg);
+	}
+	to {
+		transform: translateY(-2.5px) rotate(1.5deg);
+	}
+}
+
+/* Groovy accentuated bounce and wobble for bots dancing at center stage */
+@keyframes asc-fm-cutscene-wobble-groove {
+	0% {
+		transform: translateY(0) rotate(-5deg) scale(0.96);
+	}
+	50% {
+		transform: translateY(-9px) rotate(0deg) scale(1.05);
+	}
+	100% {
+		transform: translateY(0) rotate(5deg) scale(0.96);
+	}
+}
+
+.asc-fm-cutscene.asc-fm-cutscene-active .asc-fm-cs-linker-enter img,
+.asc-fm-cutscene.asc-fm-cutscene-active .asc-fm-cs-miner-enter img {
+	animation: asc-fm-cutscene-wobble-groove 0.38s ease-in-out infinite alternate;
+}
+
+@keyframes asc-fm-cs-cross-right {
+	0% {
+		opacity: 1;
+		left: -90px;
+	}
+	99% {
+		opacity: 1;
+		left: calc(100% + 50px);
+	}
+	100% {
+		opacity: 0;
+		left: calc(100% + 50px);
+	}
+}
+
+@keyframes asc-fm-cs-cross-left {
+	0% {
+		opacity: 1;
+		left: calc(100% + 50px);
+	}
+	99% {
+		opacity: 1;
+		left: -90px;
+	}
+	100% {
+		opacity: 0;
+		left: -90px;
+	}
+}
+
+@keyframes asc-fm-cs-linker-center {
+	0% {
+		opacity: 1;
+		left: calc(100% + 50px);
+	}
+	100% {
+		opacity: 1;
+		left: calc(50% - 50px);
+	}
+}
+
+@keyframes asc-fm-cs-miner-center {
+	0% {
+		opacity: 1;
+		left: calc(100% + 120px);
+	}
+	100% {
+		opacity: 1;
+		left: calc(50% + 15px);
+	}
+}
+
+/* Act 1: Creative Man runs right followed by Blue and Purple bots with generous spacing */
+.asc-fm-cutscene.asc-fm-cutscene-active .asc-fm-cs-hero-run {
+	transform: scaleX(-1);
+	animation: asc-fm-cs-cross-right 4.8s linear 0.4s forwards;
+}
+
+.asc-fm-cutscene.asc-fm-cutscene-active .asc-fm-cs-crawler-chase {
+	transform: scaleX(-1);
+	animation: asc-fm-cs-cross-right 4.8s linear 1.4s forwards;
+}
+
+.asc-fm-cutscene.asc-fm-cutscene-active .asc-fm-cs-scanner-chase {
+	transform: scaleX(-1);
+	animation: asc-fm-cs-cross-right 4.8s linear 2.1s forwards;
+}
+
+.asc-fm-cutscene.asc-fm-cutscene-active .asc-fm-cs-spammer-chase {
+	transform: scaleX(-1);
+	animation: asc-fm-cs-cross-right 4.8s linear 2.8s forwards;
+}
+
+.asc-fm-cutscene.asc-fm-cutscene-active .asc-fm-cs-hacker-chase {
+	transform: scaleX(-1);
+	animation: asc-fm-cs-cross-right 4.8s linear 3.5s forwards;
+}
+
+/* Act 2: Orange bots flee left, chased by Fast Man with clear gap */
+.asc-fm-cutscene.asc-fm-cutscene-active .asc-fm-cs-crawler-flee {
+	transform: scaleX(1);
+	animation: asc-fm-cs-cross-left 5.0s linear 9.0s forwards;
+}
+
+.asc-fm-cutscene.asc-fm-cutscene-active .asc-fm-cs-scanner-flee {
+	transform: scaleX(1);
+	animation: asc-fm-cs-cross-left 5.0s linear 9.7s forwards;
+}
+
+.asc-fm-cutscene.asc-fm-cutscene-active .asc-fm-cs-spammer-flee {
+	transform: scaleX(1);
+	animation: asc-fm-cs-cross-left 5.0s linear 10.4s forwards;
+}
+
+.asc-fm-cutscene.asc-fm-cutscene-active .asc-fm-cs-hacker-flee {
+	transform: scaleX(1);
+	animation: asc-fm-cs-cross-left 5.0s linear 11.1s forwards;
+}
+
+.asc-fm-cutscene.asc-fm-cutscene-active .asc-fm-cs-fastman-chase {
+	transform: scaleX(1);
+	animation: asc-fm-cs-cross-left 4.2s linear 11.8s forwards;
+}
+
+/* Act 3: Green bots enter stage right, stop at center stage, and hold pose */
+.asc-fm-cutscene.asc-fm-cutscene-active .asc-fm-cs-linker-enter {
+	transform: scaleX(1);
+	animation: asc-fm-cs-linker-center 2.8s ease-out 16.8s forwards;
+}
+
+.asc-fm-cutscene.asc-fm-cutscene-active .asc-fm-cs-miner-enter {
+	transform: scaleX(1);
+	animation: asc-fm-cs-miner-center 2.8s ease-out 17.5s forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.asc-fm-cutscene.asc-fm-cutscene-active .asc-fm-cutscene-actor,
+	.asc-fm-cutscene.asc-fm-cutscene-active .asc-fm-cutscene-actor img {
+		animation-duration: 0.01s !important;
+		animation-delay: 0s !important;
+	}
+}
+
+.asc-fm-maze.asc-fm-board-flash {
+	animation: asc-fm-board-flash 550ms ease-out;
+}
+
+/* Phone-specific reserved HUD rows */
+.asc-fm-reserved {
+	grid-column: 1 / -1;
+	font-size: 11px;
+	color: var(--asc-muted);
+	white-space: nowrap;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-variant-numeric: tabular-nums;
+}
+
+.asc-fm-board:has(.asc-fm-phone) .asc-fm-run-hud {
+	display: none;
+}
+
+/* Meet the Characters Container - Flat ASC Surface, No Backdrop */
+.asc-fm-character-surface {
+	margin: 40px 0 20px 0;
+	padding: 20px;
+	background-color: var(--asc-surface);
+	border: 1px solid var(--asc-card-border);
+	border-radius: var(--asc-card-border-radius);
+	box-shadow: none;
+	box-sizing: border-box;
+	max-width: 1000px;
+}
+
+.asc-fm-character-surface h2 {
+	margin: 0 0 14px 0;
+	font-family: var(--asc-font-heading);
+	font-size: 18px;
+	line-height: 1.2;
+	color: #99eff7;
+}
+
+.asc-fm-character-grid,
+.asc-fm-character-flex {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+/* Inner Character Cards - Same Surface as Bonus Items */
+.asc-fm-character-surface article,
+.asc-fm-character-surface div.asc-fm-character-card,
+.asc-fm-character-card {
+	margin: 0 !important;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	gap: 6px;
+	padding: 12px 8px;
+	background: rgba(255, 255, 255, 0.03);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	border-radius: 8px;
+	color: var(--asc-fg);
+	box-shadow: none;
+	box-sizing: border-box;
+}
+
+/* Row 1: Two main characters */
+.asc-fm-character-card.asc-fm-main-character {
+	flex: 0 0 calc((100% - 20px) / 2);
+	width: calc((100% - 20px) / 2);
+	max-width: calc((100% - 20px) / 2);
+}
+
+/* Row 2: Six bots */
+.asc-fm-character-card:not(.asc-fm-main-character) {
+	flex: 0 0 calc((100% - 100px) / 6);
+	width: calc((100% - 100px) / 6);
+	max-width: calc((100% - 100px) / 6);
+}
+
+.asc-fm-character-card img {
+	display: block;
+	width: 72px;
+	height: 72px;
+	max-width: 100%;
+	margin: 0 auto 6px auto;
+	object-fit: contain;
+}
+
+.asc-fm-character-card.asc-fm-main-character img {
+	width: 110px;
+	height: 84px;
+	filter: url(#asc-fm-character-edge-preview);
+}
+
+.asc-fm-character-card:not(.asc-fm-main-character) img {
+	width: 72px;
+	height: 72px;
+	filter: url(#asc-fm-character-edge-preview);
+}
+
+.asc-fm-character-card strong,
+.asc-fm-character-card span {
+	display: block;
+	font-family: var(--asc-font-body);
+}
+
+.asc-fm-character-card strong {
+	color: #fff7df;
+	font-size: 13px;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.asc-fm-character-card span {
+	color: var(--asc-muted, #8fa7c7);
+	font-size: 11px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+/* Animations */
+@keyframes asc-fm-pulse {
+	to {
+		opacity: 0.6;
+	}
+}
+
+@keyframes asc-fm-fastman-swagger {
+	from {
+		transform: rotate(calc(var(--asc-fm-facing, 0deg) - 10deg)) scaleX(var(--asc-fm-flip, 1)) translateY(2%);
+	}
+
+	to {
+		transform: rotate(calc(var(--asc-fm-facing, 0deg) + 10deg)) scaleX(var(--asc-fm-flip, 1)) translateY(-2%);
+	}
+}
+
+@keyframes asc-fm-fastman-hit {
+	from {
+		transform: rotate(var(--asc-fm-facing, 0deg)) scaleX(var(--asc-fm-flip, 1));
+	}
+
+	to {
+		transform: rotate(calc(var(--asc-fm-facing, 0deg) + 720deg)) scaleX(var(--asc-fm-flip, 1));
+		opacity: 0.25;
+	}
+}
+
+@keyframes asc-fm-power-flash {
+	50% {
+		filter: brightness(1.8);
+	}
+}
+
+@keyframes asc-fm-board-flash {
+
+	0%,
+	100% {
+		filter: brightness(1);
+	}
+
+	25% {
+		filter: brightness(1.8);
+	}
+}
+
+@keyframes asc-fm-points-rise {
+	to {
+		transform: translateY(-80%);
+		opacity: 0;
+	}
+}
+
+@keyframes asc-fm-bonus-life {
+	0% {
+		opacity: 0;
+		transform: scale(0.8);
+	}
+
+	20%,
+	70% {
+		opacity: 0.85;
+		transform: scale(1);
+	}
+
+	100% {
+		opacity: 0;
+		transform: scale(1.08);
+	}
+}
+
+@keyframes asc-fm-death-message {
+	from {
+		opacity: 0;
+		transform: scale(0.88);
+	}
+
+	to {
+		opacity: 0.92;
+		transform: scale(1);
+	}
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 768px) {
+	.asc-fm-bonus-list {
+		grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+	}
+}
+
+@media screen and (max-width: 640px) {
+	.asc-fm-control-deck {
+		grid-template-columns: 1fr;
+	}
+
+	.asc-fm-difficulty-row,
+	.asc-fm-audio-row {
+		flex-direction: column;
+		gap: 20px;
+	}
+
+	.asc-fm-status-bar {
+		grid-template-columns: 1fr;
+		gap: 6px;
+	}
+
+	.asc-fm-status-bar #asc-fm-power-time {
+		text-align: left;
+	}
+
+	.asc-fm-bonus-list {
+		grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+		gap: 20px;
+	}
+
+	.asc-fm-bonus-list span {
+		padding: 8px 4px;
+	}
+
+	.asc-fm-character-card.asc-fm-main-character {
+		flex: 0 0 100%;
+		width: 100%;
+		max-width: 100%;
+	}
+
+	.asc-fm-character-card:not(.asc-fm-main-character) {
+		flex: 0 0 calc((100% - 20px) / 2);
+		width: calc((100% - 20px) / 2);
+		max-width: calc((100% - 20px) / 2);
+	}
+
+	.asc-fm-character-card {
+		padding: 10px 4px;
+	}
+}
+
+@media screen and (min-width: 641px) and (max-width: 860px) {
+	.asc-fm-character-card:not(.asc-fm-main-character) {
+		flex: 0 0 calc((100% - 40px) / 3);
+		width: calc((100% - 40px) / 3);
+		max-width: calc((100% - 40px) / 3);
+	}
+}
+
+/* Reduced Motion Preference */
+@media (prefers-reduced-motion: reduce) {
+
+	.asc-fm-maze>.asc-fm-fastman.asc-fm-is-moving,
+	.asc-fm-maze>.asc-fm-fastman.asc-fm-is-hit,
+	.asc-fm-maze.asc-fm-board-flash,
+	.asc-fm-bonus-life-message,
+	.asc-fm-death-message,
+	.asc-fm-points-popup,
+	.asc-fm-cell .asc-fm-pill {
+		animation: none !important;
+	}
+
+	.asc-fm-power-warning .asc-fm-agent.asc-fm-is-vulnerable {
+		animation: none !important;
+		outline: 2px dotted #fff7df;
+	}
+}
+
+/* Fast-Man Breakout Container: Centered max-width 1000px breaking out of 2/3 column */
+@media screen and (min-width: 1061px) {
+
+	body.asc-fast-man-post .asc-single-entry-content,
+	.asc-single-entry:has(.asc-fm-stage) .asc-single-entry-content {
+		min-height: 440px;
+	}
+
+	body.asc-fast-man-post .asc-fm-character-surface,
+	body.asc-fast-man-post .asc-fm-stage,
+	.asc-single-entry:has(.asc-fm-stage) .asc-fm-character-surface,
+	.asc-single-entry:has(.asc-fm-stage) .asc-fm-stage {
+		margin-left: calc(25% - 530px);
+		width: 1000px;
+		max-width: 1000px;
+		box-sizing: border-box;
+	}
+
+	body.asc-fast-man-post .asc-fm-character-surface,
+	.asc-single-entry:has(.asc-fm-stage) .asc-fm-character-surface {
+		margin-top: 40px;
+	}
+
+	body.asc-fast-man-post .asc-fm-stage,
+	.asc-single-entry:has(.asc-fm-stage) .asc-fm-stage {
+		margin-top: 20px;
+	}
+}
+
+@media screen and (min-width: 901px) and (max-width: 1060px) {
+
+	body.asc-fast-man-post .asc-single-entry-content,
+	.asc-single-entry:has(.asc-fm-stage) .asc-single-entry-content {
+		min-height: 440px;
+	}
+
+	body.asc-fast-man-post .asc-fm-character-surface,
+	body.asc-fast-man-post .asc-fm-stage,
+	.asc-single-entry:has(.asc-fm-stage) .asc-fm-character-surface,
+	.asc-single-entry:has(.asc-fm-stage) .asc-fm-stage {
+		margin-left: calc(-50% - 60px);
+		width: calc(150% + 60px);
+		max-width: 1000px;
+		box-sizing: border-box;
+	}
+
+	body.asc-fast-man-post .asc-fm-character-surface,
+	.asc-single-entry:has(.asc-fm-stage) .asc-fm-character-surface {
+		margin-top: 40px;
+	}
+
+	body.asc-fast-man-post .asc-fm-stage,
+	.asc-single-entry:has(.asc-fm-stage) .asc-fm-stage {
+		margin-top: 20px;
+	}
+}

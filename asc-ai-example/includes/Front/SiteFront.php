@@ -29,12 +29,30 @@ class SiteFront {
 	 * @return string
 	 */
 	public function render_hero_image_shortcode(): string {
+		$alt = esc_attr__( 'AI-assisted WordPress websites on laptop and mobile devices', \ASC_AI_EXAMPLE_TEXT_DOMAIN );
+		$attachment_id = Media::find_attachment_id_by_media_path( 'hero.jpg' );
+		if ( $attachment_id > 0 ) {
+			return (string) wp_get_attachment_image(
+				$attachment_id,
+				'full',
+				false,
+				array(
+					'class' => 'example-hero-image',
+					'alt' => $alt,
+					'loading' => 'eager',
+					'fetchpriority' => 'high',
+					'decoding' => 'async',
+					'sizes' => '(max-width: 1400px) 100vw, 1400px',
+				)
+			);
+		}
+
 		$url = Media::get_attachment_url_for_path( 'hero.jpg' );
 		if ( '' === $url ) {
 			return '';
 		}
 
-		return '<img class="example-hero-image" src="' . esc_url( $url ) . '" alt="' . esc_attr__( 'AI-assisted WordPress websites on laptop and mobile devices', \ASC_AI_EXAMPLE_TEXT_DOMAIN ) . '" width="1440" height="465" loading="eager" fetchpriority="high" decoding="async">';
+		return '<img class="example-hero-image" src="' . esc_url( $url ) . '" alt="' . $alt . '" width="1440" height="465" loading="eager" fetchpriority="high" decoding="async">';
 	}
 
 	/**
@@ -133,15 +151,37 @@ class SiteFront {
 	}
 
 	public function render_theme_toggle_shortcode(): string {
+		$sun_url = Media::get_other_media_url( 'sun.svg' );
+		$moon_url = Media::get_other_media_url( 'moon.svg' );
+
 		return '<span class="example-theme-toggle" role="group" aria-label="'
 			. esc_attr__( 'Theme', \ASC_AI_EXAMPLE_TEXT_DOMAIN )
 			. '">'
 			. '<button type="button" class="example-theme-toggle-btn example-theme-toggle-btn--light" aria-pressed="false" aria-label="'
 			. esc_attr__( 'Light theme', \ASC_AI_EXAMPLE_TEXT_DOMAIN )
-			. '"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>'
+			. '"><img class="example-theme-toggle-icon" src="' . esc_url( $sun_url ) . '" alt="" width="20" height="20" aria-hidden="true"></button>'
 			. '<button type="button" class="example-theme-toggle-btn example-theme-toggle-btn--dark" aria-pressed="false" aria-label="'
 			. esc_attr__( 'Dark theme', \ASC_AI_EXAMPLE_TEXT_DOMAIN )
-			. '"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>'
+			. '"><img class="example-theme-toggle-icon" src="' . esc_url( $moon_url ) . '" alt="" width="20" height="20" aria-hidden="true"></button>'
 			. '</span>';
+	}
+
+	public function render_icon_shortcode( array|string $attributes ): string {
+		if ( ! is_array( $attributes ) ) {
+			$attributes = array();
+		}
+		$attributes = shortcode_atts(
+			array(
+				'name' => '',
+				'class' => '',
+			),
+			$attributes,
+			'example_icon'
+		);
+
+		return Front::icon_svg(
+			sanitize_key( (string) $attributes['name'] ),
+			sanitize_html_class( (string) $attributes['class'] )
+		);
 	}
 }

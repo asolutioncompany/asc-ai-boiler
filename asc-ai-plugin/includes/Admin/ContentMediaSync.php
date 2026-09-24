@@ -49,11 +49,6 @@ final class ContentMediaSync {
 	private static $media_path_cache = null;
 
 	/**
-	 * @var array<string, mixed>|null
-	 */
-	private static $manifest_cache = null;
-
-	/**
 	 * Filter: override the public base URL of content/other-media/ (trailing slash).
 	 *
 	 * @var string
@@ -198,7 +193,7 @@ final class ContentMediaSync {
 	/**
 	 * Public URL for a file under content/other-media/. Files are served directly — not imported into WordPress.
 	 *
-	 * @param string $relative_path Path relative to content/other-media/ (e.g. `moon.svg`).
+	 * @param string $relative_path Path relative to content/other-media/ (e.g. `og-image.svg`).
 	 *
 	 * @return string Escaped public URL.
 	 */
@@ -302,46 +297,12 @@ final class ContentMediaSync {
 	}
 
 	/**
-	 * @return string Absolute path to content-manifest.json.
-	 */
-	public static function get_content_manifest_path(): string {
-		return dirname( rtrim( self::get_media_directory(), '/' ) ) . '/content-manifest.json';
-	}
-
-	private static function load_manifest(): array {
-		if ( null !== self::$manifest_cache ) {
-			return self::$manifest_cache;
-		}
-
-		$path = self::get_content_manifest_path();
-		if ( ! is_readable( $path ) ) {
-			self::$manifest_cache = array();
-			return self::$manifest_cache;
-		}
-
-		$json = file_get_contents( $path );
-		if ( false === $json || '' === $json ) {
-			self::$manifest_cache = array();
-			return self::$manifest_cache;
-		}
-
-		$data = json_decode( $json, true );
-		if ( ! is_array( $data ) ) {
-			self::$manifest_cache = array();
-			return self::$manifest_cache;
-		}
-
-		self::$manifest_cache = $data;
-		return self::$manifest_cache;
-	}
-
-	/**
 	 * Media rows from content-manifest.json (`media` top-level key).
 	 *
 	 * @return list<array<string, mixed>>
 	 */
 	public static function load_manifest_media_rows(): array {
-		$data = self::load_manifest();
+		$data = ContentManifest::load_content_manifest();
 
 		$raw_rows = array();
 		if ( isset( $data['types']['media'] ) && is_array( $data['types']['media'] ) ) {
@@ -366,7 +327,7 @@ final class ContentMediaSync {
 	 * @return list<array<string, mixed>>
 	 */
 	public static function load_manifest_media_bindings(): array {
-		$data = self::load_manifest();
+		$data = ContentManifest::load_content_manifest();
 		if ( array() === $data ) {
 			return self::filtered_media_bindings();
 		}

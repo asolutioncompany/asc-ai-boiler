@@ -39,21 +39,23 @@ The site implements a dual-theme (light and dark) system using CSS custom proper
 
 | Variable | Description / Purpose | Light Mode Value | Dark Mode Value (Default) |
 | :--- | :--- | :--- | :--- |
-| `--example-cyan` | Cyan border & highlights | `#0b7285` | `#0891b2` |
+| `--example-cyan` | Cyan links, borders, and highlights | `#0b7285` | `#22d3ee` |
 | `--example-green` | Green highlights / success status | `#2b8a3e` | `#3fb950` |
 | `--example-purple` | Purple accent details | `#862e9c` | `#bc8cff` |
 | `--example-accent` | Accent pink/red details | `#d6336c` | `#f778ba` |
 | `--example-focus` | Focus outline color | `#e8590c` | `#f0883e` |
-| `--example-brand-accent` | Brand Accent highlights | `#0b7285` | `#0891b2` |
-| `--example-teal` | Button & Control background | `#10738a` | `#0891b2` |
+| `--example-brand-accent` | Brand Accent highlights | `#0b7285` | `#22d3ee` |
+| `--example-teal` | Teal borders and decorative controls | `#10738a` | `#0891b2` |
+| `--example-button-bg` | Accessible button background behind white text | `#0b7285` | `#0e7490` |
 | `--example-light-teal` | Light sky blue details | `#15aabf` | `#22d3ee` |
 | `--example-theme-toggle-bg` | Theme switcher background | `#ced5e0` | `#172335` |
 | `--example-tag-bg` | Tag and badge background | `#dbdada` | `#080d15` |
 | `--example-tag-border` | Tag and badge borders | `#adb5bd` | `#253952` |
 | `--example-card-bg` | Card container background | `#ffffff` | `#18263a` |
 | `--example-card-border` | Card container borders | `#dee2e6` | `#243b5a` |
-| `--example-cyan-border` | Cyan border style | `2px solid #67d8ef` | `2px solid #0891b2` |
-| `--example-btn-hover-border` | Button hover outline | `2px solid #495057` | `2px solid #3b5373` |
+| `--example-interactive-border-color` | Shared hover, focus, and active border color | `#161616` | `#f8fbff` |
+| `--example-interactive-border` | Shared interactive border style | `2px solid #161616` | `2px solid #f8fbff` |
+| `--example-btn-hover-border` | Button interaction outline | `2px solid #161616` | `2px solid #f8fbff` |
 
 ---
 
@@ -68,7 +70,7 @@ The site implements a dual-theme (light and dark) system using CSS custom proper
 - **Border Radius:** `16px` (`--example-button-border-radius`)
 - **Ghost Button Border:** `2px solid transparent`
 - **Standard Button Border (Footer):** `2px solid var(--example-muted)`
-- **Hover Border:** `2px solid #495057` (`--example-btn-hover-border`)
+- **Hover, Focus, and Active Border:** Uses the contrasting shared interaction border (`--example-btn-hover-border`)
 
 ### Cards
 - **Border Radius:** `10px` (`--example-card-border-radius`)

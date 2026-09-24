@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<phpunit bootstrap="tests/asc-ai-plugin/bootstrap.php" colors="true">
+	<testsuites>
+		<testsuite name="aS.c AI Boiler Plugin">
+			<directory suffix="Test.php">tests/asc-ai-plugin</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>

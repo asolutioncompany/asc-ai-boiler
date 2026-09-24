@@ -53,8 +53,11 @@
                 "date_gmt": "2026-06-03T12:00:00+00:00",
                 "excerpt": "about-us.txt",
                 "meta_description": "about-us.txt",
+                "social_description": "about-us.txt",
+                "x_description": "about-us.txt",
                 "social_title": "About Us - Fast WordPress",
-                "x_title": "About Us - Fast WordPress"
+                "x_title": "About Us - Fast WordPress",
+                "focus_keyphrase": "AI-assisted WordPress agency"
             },
             {
                 "post_type": "page",
@@ -64,8 +67,11 @@
                 "date_gmt": "2026-06-03T12:00:00+00:00",
                 "excerpt": "blog.txt",
                 "meta_description": "blog.txt",
+                "social_description": "blog.txt",
+                "x_description": "blog.txt",
                 "social_title": "Blog - Fast WordPress",
-                "x_title": "Blog - Fast WordPress"
+                "x_title": "Blog - Fast WordPress",
+                "focus_keyphrase": "AI-assisted WordPress development"
             },
             {
                 "post_type": "page",
@@ -75,8 +81,11 @@
                 "date_gmt": "2026-06-03T12:00:00+00:00",
                 "excerpt": "contact-us.txt",
                 "meta_description": "contact-us.txt",
+                "social_description": "contact-us.txt",
+                "x_description": "contact-us.txt",
                 "social_title": "Contact Us - Fast WordPress",
-                "x_title": "Contact Us - Fast WordPress"
+                "x_title": "Contact Us - Fast WordPress",
+                "focus_keyphrase": "WordPress website services"
             },
             {
                 "post_type": "page",
@@ -86,8 +95,11 @@
                 "date_gmt": "2026-06-03T12:00:00+00:00",
                 "excerpt": "home.txt",
                 "meta_description": "home.txt",
+                "social_description": "home.txt",
+                "x_description": "home.txt",
                 "social_title": "Home - Fast WordPress",
-                "x_title": "Home - Fast WordPress"
+                "x_title": "Home - Fast WordPress",
+                "focus_keyphrase": "AI-assisted WordPress websites"
             },
             {
                 "post_type": "page",
@@ -97,8 +109,11 @@
                 "date_gmt": "2026-06-17T10:42:40+00:00",
                 "excerpt": "page-not-found.txt",
                 "meta_description": "page-not-found.txt",
+                "social_description": "page-not-found.txt",
+                "x_description": "page-not-found.txt",
                 "social_title": "Page Not Found - Fast WordPress",
-                "x_title": "Page Not Found - Fast WordPress"
+                "x_title": "Page Not Found - Fast WordPress",
+                "focus_keyphrase": "page not found"
             },
             {
                 "post_type": "page",
@@ -108,8 +123,11 @@
                 "date_gmt": "2026-06-03T12:00:00+00:00",
                 "excerpt": "portfolio.txt",
                 "meta_description": "portfolio.txt",
+                "social_description": "portfolio.txt",
+                "x_description": "portfolio.txt",
                 "social_title": "Portfolio - Fast WordPress",
-                "x_title": "Portfolio - Fast WordPress"
+                "x_title": "Portfolio - Fast WordPress",
+                "focus_keyphrase": "WordPress website portfolio"
             },
             {
                 "post_type": "page",
@@ -119,8 +137,11 @@
                 "date_gmt": "2026-06-03T22:46:06+00:00",
                 "excerpt": "privacy-policy.txt",
                 "meta_description": "privacy-policy.txt",
+                "social_description": "privacy-policy.txt",
+                "x_description": "privacy-policy.txt",
                 "social_title": "Privacy Policy - Fast WordPress",
-                "x_title": "Privacy Policy - Fast WordPress"
+                "x_title": "Privacy Policy - Fast WordPress",
+                "focus_keyphrase": "privacy policy"
             }
         ],
         "posts": [
@@ -132,14 +153,23 @@
                 "date_gmt": "2026-06-02T12:00:00+00:00",
                 "excerpt": "ai-assisted-wordpress-development-improves-design.txt",
                 "meta_description": "ai-assisted-wordpress-development-improves-design.txt",
+                "social_description": "ai-assisted-wordpress-development-improves-design.txt",
+                "x_description": "ai-assisted-wordpress-development-improves-design.txt",
                 "social_title": "How AI-Assisted WordPress Development Can Improve Design - Fast WordPress",
                 "x_title": "How AI-Assisted WordPress Development Can Improve Design - Fast WordPress",
+                "focus_keyphrase": "AI-assisted WordPress design",
                 "categories": [
                     {
-                        "slug": "uncategorized",
-                        "name": "Uncategorized"
+                        "slug": "website-development",
+                        "name": "Website Development"
+                    },
+                    {
+                        "slug": "website-design",
+                        "name": "Website Design"
                     }
-                ]
+                ],
+                "tags": [],
+                "primary_category": "website-development"
             },
             {
                 "post_type": "post",
@@ -149,14 +179,27 @@
                 "date_gmt": "2026-06-03T12:00:00+00:00",
                 "excerpt": "ai-assisted-wordpress-development-improves-performance-and-security.txt",
                 "meta_description": "ai-assisted-wordpress-development-improves-performance-and-security.txt",
+                "social_description": "ai-assisted-wordpress-development-improves-performance-and-security.txt",
+                "x_description": "ai-assisted-wordpress-development-improves-performance-and-security.txt",
                 "social_title": "How AI-Assisted WordPress Development Can Improve Performance and Security - Fast WordPress",
                 "x_title": "How AI-Assisted WordPress Development Can Improve Performance and Security - Fast WordPress",
+                "focus_keyphrase": "WordPress performance and security",
                 "categories": [
                     {
-                        "slug": "uncategorized",
-                        "name": "Uncategorized"
+                        "slug": "website-development",
+                        "name": "Website Development"
+                    },
+                    {
+                        "slug": "website-performance",
+                        "name": "Website Performance"
+                    },
+                    {
+                        "slug": "wordpress-security",
+                        "name": "WordPress Security"
                     }
-                ]
+                ],
+                "tags": [],
+                "primary_category": "website-development"
             },
             {
                 "post_type": "post",
@@ -166,14 +209,19 @@
                 "date_gmt": "2026-06-01T12:00:00+00:00",
                 "excerpt": "ai-assisted-wordpress-development-improves-seo.txt",
                 "meta_description": "ai-assisted-wordpress-development-improves-seo.txt",
+                "social_description": "ai-assisted-wordpress-development-improves-seo.txt",
+                "x_description": "ai-assisted-wordpress-development-improves-seo.txt",
                 "social_title": "How AI-Assisted WordPress Development Can Improve SEO - Fast WordPress",
                 "x_title": "How AI-Assisted WordPress Development Can Improve SEO - Fast WordPress",
+                "focus_keyphrase": "AI-assisted WordPress SEO",
                 "categories": [
                     {
-                        "slug": "uncategorized",
-                        "name": "Uncategorized"
+                        "slug": "digital-marketing",
+                        "name": "Digital Marketing"
                     }
-                ]
+                ],
+                "tags": [],
+                "primary_category": "digital-marketing"
             },
             {
                 "post_type": "post",
@@ -183,14 +231,23 @@
                 "date_gmt": "2026-08-10T12:00:00+00:00",
                 "excerpt": "ai-assisted-wordpress-development-improves-portability.txt",
                 "meta_description": "ai-assisted-wordpress-development-improves-portability.txt",
+                "social_description": "ai-assisted-wordpress-development-improves-portability.txt",
+                "x_description": "ai-assisted-wordpress-development-improves-portability.txt",
                 "social_title": "How AI-Assisted WordPress Development Can Improve Portability - Fast WordPress",
                 "x_title": "How AI-Assisted WordPress Development Can Improve Portability - Fast WordPress",
+                "focus_keyphrase": "WordPress content portability",
                 "categories": [
                     {
-                        "slug": "uncategorized",
-                        "name": "Uncategorized"
+                        "slug": "website-development",
+                        "name": "Website Development"
+                    },
+                    {
+                        "slug": "wordpress-portability",
+                        "name": "WordPress Portability"
                     }
-                ]
+                ],
+                "tags": [],
+                "primary_category": "website-development"
             }
         ],
         "portfolio": [
@@ -202,8 +259,23 @@
                 "date_gmt": "2026-06-03T12:00:00+00:00",
                 "excerpt": "dog-groomer.txt",
                 "meta_description": "dog-groomer.txt",
+                "social_description": "dog-groomer.txt",
+                "x_description": "dog-groomer.txt",
                 "social_title": "Dog Groomer - Fast WordPress",
-                "x_title": "Dog Groomer - Fast WordPress"
+                "x_title": "Dog Groomer - Fast WordPress",
+                "focus_keyphrase": "dog groomer website",
+                "categories": [
+                    {
+                        "slug": "pet-services",
+                        "name": "Pet Services"
+                    },
+                    {
+                        "slug": "small-business",
+                        "name": "Small Business"
+                    }
+                ],
+                "tags": [],
+                "primary_category": "pet-services"
             },
             {
                 "post_type": "example_portfolio",
@@ -213,8 +285,23 @@
                 "date_gmt": "2026-06-02T12:00:00+00:00",
                 "excerpt": "landscaping-company.txt",
                 "meta_description": "landscaping-company.txt",
+                "social_description": "landscaping-company.txt",
+                "x_description": "landscaping-company.txt",
                 "social_title": "Landscaping Company - Fast WordPress",
-                "x_title": "Landscaping Company - Fast WordPress"
+                "x_title": "Landscaping Company - Fast WordPress",
+                "focus_keyphrase": "landscaping company website",
+                "categories": [
+                    {
+                        "slug": "landscaping-services",
+                        "name": "Landscaping Services"
+                    },
+                    {
+                        "slug": "small-business",
+                        "name": "Small Business"
+                    }
+                ],
+                "tags": [],
+                "primary_category": "landscaping-services"
             },
             {
                 "post_type": "example_portfolio",
@@ -224,8 +311,77 @@
                 "date_gmt": "2026-06-01T12:00:00+00:00",
                 "excerpt": "pool-service-company.txt",
                 "meta_description": "pool-service-company.txt",
+                "social_description": "pool-service-company.txt",
+                "x_description": "pool-service-company.txt",
                 "social_title": "Pool Service Company - Fast WordPress",
-                "x_title": "Pool Service Company - Fast WordPress"
+                "x_title": "Pool Service Company - Fast WordPress",
+                "focus_keyphrase": "pool service company website",
+                "categories": [
+                    {
+                        "slug": "pool-services",
+                        "name": "Pool Services"
+                    },
+                    {
+                        "slug": "small-business",
+                        "name": "Small Business"
+                    }
+                ],
+                "tags": [],
+                "primary_category": "pool-services"
+            }
+        ]
+    },
+    "taxonomies": {
+        "category": [
+            {
+                "slug": "digital-marketing",
+                "name": "Digital Marketing",
+                "description": "Practical ways to improve search visibility, website content, and the path from discovery to action."
+            },
+            {
+                "slug": "landscaping-services",
+                "name": "Landscaping Services",
+                "description": "Website examples and ideas for landscaping companies that need to present their work and win local projects."
+            },
+            {
+                "slug": "pet-services",
+                "name": "Pet Services",
+                "description": "Website examples and ideas for pet service businesses that depend on trust, clear services, and local customers."
+            },
+            {
+                "slug": "pool-services",
+                "name": "Pool Services",
+                "description": "Website examples and ideas for pool service companies that need to show expertise and generate local leads."
+            },
+            {
+                "slug": "small-business",
+                "name": "Small Business",
+                "description": "A focused website and verified Google Business Profile help local businesses appear when nearby customers are ready to call, visit, request a quote, or make a purchase."
+            },
+            {
+                "slug": "website-design",
+                "name": "Website Design",
+                "description": "Clear design choices that improve usability, brand consistency, and the path to action."
+            },
+            {
+                "slug": "website-development",
+                "name": "Website Development",
+                "description": "Practical WordPress development guidance for better design, content, performance, security, and maintainability."
+            },
+            {
+                "slug": "website-performance",
+                "name": "Website Performance",
+                "description": "Techniques that help WordPress pages load quickly and respond well across devices."
+            },
+            {
+                "slug": "wordpress-portability",
+                "name": "WordPress Portability",
+                "description": "Methods for keeping WordPress content and metadata portable across environments and implementations."
+            },
+            {
+                "slug": "wordpress-security",
+                "name": "WordPress Security",
+                "description": "Practical safeguards that reduce WordPress risk without adding unnecessary complexity."
             }
         ]
     },

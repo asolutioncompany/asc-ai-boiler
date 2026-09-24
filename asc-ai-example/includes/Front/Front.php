@@ -30,6 +30,7 @@ use ASC\AI_EXAMPLE\Core\RegisterPortfolio;
  */
 class Front {
 	private const FRONT_EXCERPT_WORD_COUNT = 30;
+	public const CARD_IMAGE_SIZES = '(max-width: 700px) calc(100vw - 40px), (max-width: 900px) calc((100vw - 64px) / 2), (max-width: 1400px) calc((100vw - 88px) / 3), 438px';
 
 	/**
 	 * Initialize the Front class.
@@ -67,8 +68,8 @@ class Front {
 		$blog_front = new BlogFront();
 		$portfolio_front = new PortfolioFront();
 
-		new SearchFront();
-		new RegisterShortcodes( $site_front, $call_to_action, $blog_front, $portfolio_front );
+		$search_front = new SearchFront();
+		new RegisterShortcodes( $site_front, $call_to_action, $blog_front, $portfolio_front, $search_front );
 	}
 
 	/**
@@ -98,29 +99,19 @@ class Front {
 		$css_file = 'assets/front/front.css';
 		$js_file = 'assets/front/front.js';
 
-		wp_enqueue_style( 'dashicons' );
-
 		wp_enqueue_style(
 			'example_site_front',
 			$plugin_url . $css_file,
-			array( 'dashicons' ),
+			array(),
 			filemtime( $plugin_path . $css_file )
 		);
 
 		wp_enqueue_script(
 			'example_site_front',
 			$plugin_url . $js_file,
-			array( 'jquery' ),
+			array(),
 			filemtime( $plugin_path . $js_file ),
 			true
-		);
-
-		wp_localize_script(
-			'example_site_front',
-			'example_site_front',
-			array(
-				'ajax_url' => admin_url( 'admin-ajax.php' ),
-			)
 		);
 	}
 
@@ -336,10 +327,15 @@ class Front {
 			$post_type = '';
 		}
 
+		$pill_links = array();
 		$primary_post_type_tag = self::get_primary_post_type_tag( $post_type );
-		if ( empty( $primary_post_type_tag['href'] ) || empty( $primary_post_type_tag['label'] ) ) {
-			return '';
+		if ( ! empty( $primary_post_type_tag['href'] ) && ! empty( $primary_post_type_tag['label'] ) ) {
+			$pill_links[] = '<a class="example-tag example-tag--post-type" href="'
+				. esc_url( $primary_post_type_tag['href'] )
+				. '">' . esc_html( $primary_post_type_tag['label'] ) . '</a>';
 		}
+		$pill_links = array_merge( $pill_links, self::get_taxonomy_pill_links( $post_id, 'post_tag' ) );
+		$pill_links = array_merge( $pill_links, self::get_taxonomy_pill_links( $post_id, 'category' ) );
 
 		$featured_markup = '';
 		$is_featured = '1' === (string) get_post_meta( $post_id, PostMeta::FEATURED_META_KEY, true );
@@ -349,10 +345,78 @@ class Front {
 				. '</div>';
 		}
 
-		return $featured_markup
-			. '<div class="example-tags-wrapper">'
-			. '<a class="example-tag" href="' . esc_url( $primary_post_type_tag['href'] ) . '">' . esc_html( $primary_post_type_tag['label'] ) . '</a>'
-			. '</div>';
+		if ( $pill_links === array() ) {
+			return $featured_markup;
+		}
+
+		return $featured_markup . '<div class="example-tags-wrapper">' . implode( '', $pill_links ) . '</div>';
+	}
+
+	private static function get_taxonomy_pill_links( int $post_id, string $taxonomy ): array {
+		$terms = get_the_terms( $post_id, $taxonomy );
+		if ( ! is_array( $terms ) ) {
+			return array();
+		}
+
+		$primary_term_id = 0;
+		if ( 'category' === $taxonomy ) {
+			$primary_term_id = (int) get_post_meta( $post_id, '_yoast_wpseo_primary_category', true );
+			$primary_term_id = (int) apply_filters( 'asc_ai_example_primary_category_term_id', $primary_term_id, $post_id );
+		}
+
+		usort(
+			$terms,
+			static function ( $first, $second ) use ( $primary_term_id ): int {
+				if ( $primary_term_id === (int) $first->term_id ) {
+					return -1;
+				}
+				if ( $primary_term_id === (int) $second->term_id ) {
+					return 1;
+				}
+				return strcasecmp( (string) $first->name, (string) $second->name );
+			}
+		);
+
+		$links = array();
+		foreach ( $terms as $term ) {
+			if ( ! $term instanceof \WP_Term ) {
+				continue;
+			}
+			if ( 'post_tag' === $taxonomy && in_array( (string) $term->slug, array( 'blog', 'portfolio' ), true ) ) {
+				continue;
+			}
+
+			$url = get_term_link( $term );
+			if ( is_wp_error( $url ) ) {
+				continue;
+			}
+
+			$links[] = '<a class="example-tag example-tag--' . esc_attr( sanitize_html_class( $taxonomy ) )
+				. '" href="' . esc_url( $url ) . '">' . esc_html( $term->name ) . '</a>';
+		}
+
+		return $links;
+	}
+
+	private static function get_primary_post_type_tag( string $post_type ): array {
+		if ( RegisterPortfolio::POST_TYPE === $post_type ) {
+			return array(
+				'label' => __( 'Portfolio', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
+				'href' => ArchiveConfig::url_for_page_slug( ArchiveConfig::SLUG_PORTFOLIO ),
+			);
+		}
+
+		if ( 'post' === $post_type ) {
+			return array(
+				'label' => __( 'Blog', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
+				'href' => ArchiveConfig::url_for_page_slug( ArchiveConfig::SLUG_BLOG ),
+			);
+		}
+
+		return array(
+			'label' => '',
+			'href' => '',
+		);
 	}
 
 	/**
@@ -389,49 +453,62 @@ class Front {
 	 * Read More button linking to a single post.
 	 *
 	 * @param string $permalink Post permalink.
+	 * @param string $title Post title.
 	 *
 	 * @return string
 	 */
-	public static function read_more_button_html( string $permalink ): string {
+	public static function read_more_button_html( string $permalink, string $title ): string {
 		if ( '' === $permalink ) {
 			return '';
 		}
 
-		return '<a class="example-button-blue" href="' . esc_url( $permalink ) . '">'
+		$accessible_label = sprintf(
+			__( 'Read more about %s', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
+			$title
+		);
+
+		return '<a class="example-button-blue" href="' . esc_url( $permalink ) . '" aria-label="' . esc_attr( $accessible_label ) . '">'
 			. esc_html__( 'Read More', \ASC_AI_EXAMPLE_TEXT_DOMAIN )
 			. ' →</a>';
 	}
 
-	/**
-	 * Leading crumb link before taxonomy tags.
-	 *
-	 * @param string $post_type Post type key.
-	 *
-	 * @return array{label:string, href:string}
-	 */
-	private static function get_primary_post_type_tag( string $post_type ): array {
-		if ( RegisterPortfolio::POST_TYPE === $post_type ) {
-			return array(
-				'label' => __( 'Portfolio', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
-				'href' => ArchiveConfig::url_for_page_slug( ArchiveConfig::SLUG_PORTFOLIO ),
-			);
+	public static function icon_svg( string $name, string $class = '' ): string {
+		$path = '';
+		switch ( $name ) {
+			case 'performance':
+				$path = 'M3.76 17.010h12.48c1.1-1.38 1.76-3.11 1.76-5.010 0-4.41-3.58-8-8-8s-8 3.59-8 8c0 1.9 0.66 3.63 1.76 5.010zM9 6c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1zM4 8c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1zM8.52 11.4c0.84-0.83 6.51-3.5 6.51-3.5s-2.66 5.68-3.49 6.51c-0.84 0.84-2.18 0.84-3.020 0-0.83-0.83-0.83-2.18 0-3.010zM3 13c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1zM9 13c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1zM15 13c0-0.55 0.45-1 1-1s1 0.45 1 1c0 0.56-0.45 1-1 1s-1-0.44-1-1z';
+				break;
+			case 'search':
+				$path = 'M12.14 4.18c1.87 1.87 2.11 4.75 0.72 6.89 0.12 0.1 0.22 0.21 0.36 0.31 0.2 0.16 0.47 0.36 0.81 0.59 0.34 0.24 0.56 0.39 0.66 0.47 0.42 0.31 0.73 0.57 0.94 0.78 0.32 0.32 0.6 0.65 0.84 1 0.25 0.35 0.44 0.69 0.59 1.040 0.14 0.35 0.21 0.68 0.18 1-0.020 0.32-0.14 0.59-0.36 0.81s-0.49 0.34-0.81 0.36c-0.31 0.020-0.65-0.040-0.99-0.19-0.35-0.14-0.7-0.34-1.040-0.59-0.35-0.24-0.68-0.52-1-0.84-0.21-0.21-0.47-0.52-0.77-0.93-0.1-0.13-0.25-0.35-0.47-0.66-0.22-0.32-0.4-0.57-0.56-0.78-0.16-0.2-0.29-0.35-0.44-0.5-2.070 1.090-4.69 0.76-6.44-0.98-2.14-2.15-2.14-5.64 0-7.78 2.15-2.15 5.63-2.15 7.78 0zM10.73 10.54c1.36-1.37 1.36-3.58 0-4.95-1.37-1.37-3.59-1.37-4.95 0-1.37 1.37-1.37 3.58 0 4.95 1.36 1.37 3.58 1.37 4.95 0z';
+				break;
+			case 'arrow-right':
+				$path = 'M6 15l5-5-5-5 1-2 7 7-7 7z';
+				break;
+			case 'close':
+				$path = 'M14.95 6.46l-3.54 3.54 3.54 3.54-1.41 1.41-3.54-3.53-3.53 3.53-1.42-1.42 3.53-3.53-3.53-3.53 1.42-1.42 3.53 3.53 3.54-3.53z';
+				break;
+			case 'menu':
+				$path = 'M3 15h14v-2H3v2zm0-10v2h14V5H3zm0 6h14V9H3v2z';
+				break;
+			case 'info':
+				$path = 'M9 15h2V9H9v6zm1-10c-0.5 0-1 0.5-1 1s0.5 1 1 1 1-0.5 1-1-0.5-1-1-1zm0-4c-5 0-9 4-9 9s4 9 9 9 9-4 9-9-4-9-9-9zm0 16c-3.9 0-7-3.1-7-7s3.1-7 7-7 7 3.1 7 7-3.1 7-7 7z';
+				break;
+			case 'chevron-down':
+				$path = 'M5 6l5 5 5-5 2 1-7 7-7-7z';
+				break;
+			case 'arrow-up':
+				$path = 'M15 14l-5-5-5 5-2-1 7-7 7 7z';
+				break;
+			default:
+				return '';
 		}
 
-		if ( 'post' === $post_type ) {
-			return array(
-				'label' => __( 'Blog', \ASC_AI_EXAMPLE_TEXT_DOMAIN ),
-				'href' => ArchiveConfig::url_for_page_slug( ArchiveConfig::SLUG_BLOG ),
-			);
-		}
-
-		return array(
-			'label' => '',
-			'href' => '',
-		);
+		$classes = trim( 'example-icon example-icon--' . $name . ' ' . $class );
+		return '<svg class="' . esc_attr( $classes ) . '" aria-hidden="true" focusable="false" viewBox="0 0 20 20" fill="currentColor"><path d="' . esc_attr( $path ) . '"></path></svg>';
 	}
 
 	public function render_scroll_top(): void {
-		echo '<button type="button" class="asc-scroll-top" aria-label="' . esc_attr__( 'Scroll to top', 'asc-ai-boiler' ) . '"><span class="dashicons dashicons-arrow-up-alt2" aria-hidden="true"></span></button>';
+		echo '<button type="button" class="asc-scroll-top" aria-label="' . esc_attr__( 'Scroll to top', 'asc-ai-boiler' ) . '">' . self::icon_svg( 'arrow-up' ) . '</button>';
 	}
 
 	/**

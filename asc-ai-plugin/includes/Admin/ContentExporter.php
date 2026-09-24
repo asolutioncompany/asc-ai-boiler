@@ -117,6 +117,7 @@ final class ContentExporter {
 
 					if ( SyncConfig::CONTENT_TYPE_PARTIALS !== $type_key ) {
 						CompanionFileSync::export_companion_files_for_post( $post, $filename );
+						SeoSync::export_companion_files_for_post( $post, $filename );
 					}
 
 					$remaining--;
@@ -142,6 +143,7 @@ final class ContentExporter {
 
 				if ( SyncConfig::CONTENT_TYPE_PARTIALS !== $type_key ) {
 					CompanionFileSync::export_companion_files_for_post( $post, $filename );
+					SeoSync::export_companion_files_for_post( $post, $filename );
 				}
 
 				$remaining--;

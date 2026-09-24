@@ -134,7 +134,7 @@ final class Media {
 	/**
 	 * Public URL for a file under content/other-media/. Files are served directly — not imported into WordPress.
 	 *
-	 * @param string $relative_path Path relative to content/other-media/ (e.g. `moon.svg`).
+	 * @param string $relative_path Path relative to content/other-media/ (e.g. `og-image.svg`).
 	 * @return string Escaped public URL.
 	 */
 	public static function get_other_media_url( string $relative_path ): string {

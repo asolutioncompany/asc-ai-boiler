@@ -166,7 +166,7 @@ class PortfolioFront {
 				'order'                  => 'DESC',
 				'no_found_rows'          => false,
 				'update_post_meta_cache' => true,
-				'update_post_term_cache' => false,
+				'update_post_term_cache' => true,
 			)
 		);
 
@@ -227,7 +227,14 @@ class PortfolioFront {
 		}
 
 		if ( has_post_thumbnail( $post_id ) ) {
-			$media_markup = (string) get_the_post_thumbnail( $post_id, 'large', array( 'loading' => 'lazy' ) );
+			$media_markup = (string) get_the_post_thumbnail(
+				$post_id,
+				'large',
+				array(
+					'loading' => 'lazy',
+					'sizes' => Front::CARD_IMAGE_SIZES,
+				)
+			);
 		} else {
 			$url = Front::media_url_for_post( $post_id, CoreSettings::SETTING_IMAGE_PORTFOLIO );
 			$alt = Front::default_image_alt_by_setting_key( CoreSettings::SETTING_IMAGE_PORTFOLIO, $title );
@@ -241,8 +248,8 @@ class PortfolioFront {
 			. '<a class="example-card-media" href="' . esc_url( $permalink ) . '" tabindex="-1">' . $media_markup . '</a>'
 			. '<div class="example-card-content example-card--light">'
 			. $tags_markup
-			. '<h3 class="example-card-title"><a href="' . esc_url( $permalink ) . '" tabindex="-1">' . esc_html( $title ) . '</a></h3>'
-			. '<div class="example-card-cta">' . Front::read_more_button_html( $permalink ) . '</div>'
+			. '<h2 class="example-card-title"><a href="' . esc_url( $permalink ) . '" tabindex="-1">' . esc_html( $title ) . '</a></h2>'
+			. '<div class="example-card-cta">' . Front::read_more_button_html( $permalink, $title ) . '</div>'
 			. '</div>'
 			. '</div>'
 			. '</article>';

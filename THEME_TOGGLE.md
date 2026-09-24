@@ -1,4 +1,4 @@
-# Theme Toggle & Caching Guide
+# Theme Toggle and Caching Guide
 
 This document describes the cookie-based light/dark theme system used by the aS.c AI Boiler Framework (`asc-ai-example`), how to use the theme toggle shortcode in templates/partials, and how to configure web server and edge caching solutions to cache pages by theme.
 
@@ -20,9 +20,10 @@ The framework implements a flash-free, cookie-persisted theme toggle:
    - `ThemeShell::render_document()` sets the `style="color-scheme: dark"` or `style="color-scheme: light"` attribute on `<html>`.
    - **Why server-side detection matters**: Setting the correct body class and color-scheme in the initial HTML payload completely eliminates flash-of-wrong-theme (FOUC) when loading cached or uncached pages.
 
-3. **Shortcode & Partial Integration**:
+3. **Shortcode and Partial Integration**:
    - Shortcode: `[example_theme_toggle]`
-   - Renders a semantic, accessible toggle control containing lightweight SVG icons (sun and moon) inside an `aria-label="Theme"` group.
+   - Renders a semantic, accessible toggle control containing inline Dashicons SVG paths inside an `aria-label="Theme"` group.
+   - Uses the shared `Front::icon_svg()` renderer. The public site does not enqueue the Dashicons stylesheet or font.
    - Can be placed inside header, footer, or mobile navigation partials stored in the Partials CPT (`asc_boiler_partial`).
 
 ---
@@ -37,30 +38,24 @@ Place this shortcode anywhere in your content, templates, or partials:
 [example_theme_toggle]
 ```
 
-### Generated Markup
+### Generated Markup Structure
 
 ```html
 <span class="example-theme-toggle" role="group" aria-label="Theme">
     <button type="button" class="example-theme-toggle-btn example-theme-toggle-btn--light" aria-pressed="false" aria-label="Light theme">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="5"/>
-            <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-        </svg>
+        <img class="example-theme-toggle-icon" src=".../content/other-media/sun.svg" alt="" width="20" height="20" aria-hidden="true">
     </button>
     <button type="button" class="example-theme-toggle-btn example-theme-toggle-btn--dark" aria-pressed="false" aria-label="Dark theme">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
+        <img class="example-theme-toggle-icon" src=".../content/other-media/moon.svg" alt="" width="20" height="20" aria-hidden="true">
     </button>
 </span>
 ```
 
+The theme control loads `sun.svg` and `moon.svg` from `content/other-media/`. `Front::icon_svg()` owns the inline Dashicons paths for search, close, menu, information, performance, and arrow controls.
+
 ---
 
-## 3. Web Server & FastCGI Caching Configuration
+## 3. Web Server and FastCGI Caching Configuration
 
 > [!IMPORTANT]
 > When full-page caching is active (such as Nginx FastCGI cache, Varnish, or Redis full-page cache), the cache key **must** incorporate the theme cookie value.
@@ -161,9 +156,9 @@ If you use WordPress-level page caching plugins instead of (or in addition to) s
 
 ---
 
-## 6. How to Completely Remove the Theme Toggle (Single-Theme Simplification)
+## 6. How to Remove Light and Dark Mode Switching
 
-If your website only requires a single fixed theme (e.g. fixed light or fixed dark) and you do not need theme switching, it is recommended to completely remove all theme toggle code from your site layer. This keeps the codebase clean, eliminates dead code, simplifies caching, and reduces payload size.
+Use this process when a site needs one fixed theme. Choose light or dark before making the changes. Remove the switcher, cookie handling, unused theme variables, and cache variation together.
 
 ### Step-by-Step Manual Removal Checklist
 
@@ -172,31 +167,34 @@ If your website only requires a single fixed theme (e.g. fixed light or fixed da
 
 2. **Remove PHP Shortcode Handler & Registration**:
    - In `includes/Front/SiteFront.php`, remove the `render_theme_toggle_shortcode()` method.
-   - In `includes/Front/RegisterShortcodes.php`, remove `add_shortcode( 'example_theme_toggle', array( SiteFront::class, 'render_theme_toggle_shortcode' ) );`.
+   - In `includes/Front/RegisterShortcodes.php`, remove `add_shortcode( 'example_theme_toggle', array( $site_front, 'render_theme_toggle_shortcode' ) );`.
+   - Keep `Front::icon_svg()` and `[example_icon]`. Search, close, menu, and other controls still use them.
 
 3. **Simplify Server-Side Body Class & HTML Attributes**:
    - In `includes/Front/Front.php`, simplify `filter_body_class()` to return your fixed theme class (e.g., `example-site-light` or `example-site-dark`) without reading `$_COOKIE['asc_cookie']`.
    - In `includes/Core/ThemeShell.php`, hardcode the `color-scheme` attribute (e.g., `style="color-scheme: dark"` or `style="color-scheme: light"`) on `<html>`.
 
 4. **Remove Client-Side JavaScript**:
-   - In `assets/front/front.js`, delete the `initThemeToggle()` function and remove the `initThemeToggle();` call inside `$(document).ready()`.
+   - In `assets/front/front.js`, delete the `initThemeToggle()` function and remove the `initThemeToggle();` call from `init()`.
 
 5. **Clean Up CSS**:
    - In `assets/front/front.css`, delete the `.example-theme-toggle`, `.example-theme-toggle-btn`, and `.example-header-drawer-footer` rule blocks.
    - If consolidating to a single theme, you can merge the desired variables directly into `body` and remove the `body.example-site-dark` override block.
 
-6. **Delete Unused SVG Media**:
-   - Delete `content/other-media/sun.svg` and `content/other-media/moon.svg`.
-
-7. **Simplify Server Caching (Optional)**:
+6. **Simplify Server Caching**:
    - In your Nginx site configuration, remove `|$asc_theme` from `fastcgi_cache_key`.
    - If no other sites on the server use theme switching, remove the `$asc_theme` map from `/etc/nginx/nginx.conf`.
+
+7. **Verify the Fixed Theme**:
+   - Search for `example_theme_toggle`, `initThemeToggle`, `asc_cookie`, `example-site-light`, and `example-site-dark`.
+   - Keep only the fixed theme class and the CSS variables required by that theme.
+   - Test uncached and cached pages at mobile and desktop widths.
 
 ---
 
 ### Copy-Paste AI Prompt for Automated Removal
 
-If you are using an AI coding assistant (e.g. Antigravity, Claude, ChatGPT), you can copy and paste the prompt below into the chat to automate the entire removal in one step:
+Replace `[light|dark]` with the fixed theme before using this prompt:
 
 ```text
 Please remove the theme toggle functionality completely from this site layer plugin and set the site to a fixed [light|dark] theme:
@@ -204,10 +202,9 @@ Please remove the theme toggle functionality completely from this site layer plu
 1. Partials: Remove [example_theme_toggle] from content/partials/header.html (both desktop nav and mobile drawer).
 2. Shortcodes: Remove render_theme_toggle_shortcode() from includes/Front/SiteFront.php and unregister [example_theme_toggle] in includes/Front/RegisterShortcodes.php.
 3. PHP Classes: In includes/Front/Front.php (filter_body_class) and includes/Core/ThemeShell.php, remove the $_COOKIE['asc_cookie'] checks and set the body class and html color-scheme to fixed [light|dark].
-4. JavaScript: In assets/front/front.js, remove initThemeToggle() and its call in $(document).ready().
+4. JavaScript: In assets/front/front.js, remove initThemeToggle() and its call from init().
 5. CSS: In assets/front/front.css, remove the .example-theme-toggle, .example-theme-toggle-btn, and .example-header-drawer-footer CSS rules.
-6. Files: Delete content/other-media/sun.svg and content/other-media/moon.svg.
-7. Verification: Run php -l on all modified PHP files to ensure zero syntax errors.
+6. Icons: Keep Front::icon_svg() and [example_icon]. Other interface controls use the shared inline Dashicons renderer. Remove content/other-media/sun.svg and content/other-media/moon.svg with the theme selector.
+7. Caching: Remove the theme cookie from page-cache variation and cache keys after the application no longer reads it.
+8. Verification: Search for remaining theme-toggle and cookie references. Run php -l on all modified PHP files and check assets/front/front.js syntax.
 ```
-
-

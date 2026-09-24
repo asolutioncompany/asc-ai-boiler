@@ -63,6 +63,7 @@ final class ContentImporter {
 				self::maybe_run_import_cleanup( $confirmed, $messages );
 				self::maybe_import_plugin_media( $messages );
 				PostMetaSync::import_post_meta_from_manifest( $messages );
+				TaxonomySync::import_manifest_taxonomies( $messages );
 				YoastSync::sync_all_yoast_social_meta( $messages );
 				ContentManifest::maybe_normalize_content_manifest_from_wordpress( $messages );
 
@@ -116,6 +117,7 @@ final class ContentImporter {
 			self::maybe_run_import_cleanup( $confirmed, $messages );
 			self::maybe_import_plugin_media( $messages );
 			PostMetaSync::import_post_meta_from_manifest( $messages );
+			TaxonomySync::import_manifest_taxonomies( $messages );
 			YoastSync::sync_all_yoast_social_meta( $messages );
 			ContentManifest::maybe_normalize_content_manifest_from_wordpress( $messages );
 
@@ -307,6 +309,10 @@ final class ContentImporter {
 		}
 
 		$manifest_entry = ContentManifest::get_manifest_entry_for_file( $type_key, $filename, $post );
+		$seo_changed = false;
+		if ( null !== $manifest_entry ) {
+			$seo_changed = SeoSync::import_manifest_fields( $post_id, $manifest_entry, $relative_path, $messages );
+		}
 
 		$content_changed = false;
 
@@ -378,6 +384,26 @@ final class ContentImporter {
 			);
 		}
 
+		$primary_category_changed = false;
+		if ( null !== $manifest_entry ) {
+			$primary_category_changed = SeoSync::import_primary_category(
+				$post_id,
+				$post_type,
+				$manifest_entry,
+				$relative_path,
+				$messages
+			);
+		}
+
+		if ( $seo_changed || $primary_category_changed ) {
+			wp_update_post( array( 'ID' => $post_id ) );
+			clean_post_cache( $post_id );
+			$post = get_post( $post_id );
+			if ( ! $post instanceof WP_Post ) {
+				return false;
+			}
+		}
+
 		$timestamps_changed = false;
 		if ( null !== $manifest_entry && ! $content_changed ) {
 			clean_post_cache( $post_id );
@@ -423,6 +449,8 @@ final class ContentImporter {
 		return $content_changed || $title_slug_changed || $taxonomy_changed || $timestamps_changed
 			|| ! $existed_before
 			|| $shell_meta_repaired
+			|| $seo_changed
+			|| $primary_category_changed
 			|| $companion_changed;
 	}
 

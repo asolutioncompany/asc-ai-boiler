@@ -64,7 +64,7 @@ class BlogFront {
 		echo '<div class="example-card-grid">';
 		while ( $query->have_posts() ) {
 			$query->the_post();
-			echo $this->render_post_teaser( (int) get_the_ID() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo $this->render_post_teaser( (int) get_the_ID(), 3 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 		echo '</div>';
 		echo $this->render_view_all_row(
@@ -120,7 +120,7 @@ class BlogFront {
 			echo '<div class="example-card-grid">';
 			while ( $query->have_posts() ) {
 				$query->the_post();
-				echo $this->render_post_teaser( (int) get_the_ID() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo $this->render_post_teaser( (int) get_the_ID(), 2 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			}
 			echo '</div>';
 			if ( $max_pages > 1 ) {
@@ -192,10 +192,11 @@ class BlogFront {
 	 * Render a single blog post card.
 	 *
 	 * @param int $post_id Post ID.
+	 * @param int $heading_level Card-title heading level.
 	 *
 	 * @return string
 	 */
-	private function render_post_teaser( int $post_id ): string {
+	private function render_post_teaser( int $post_id, int $heading_level ): string {
 		$title = get_the_title( $post_id );
 		$permalink = get_permalink( $post_id );
 		if ( ! is_string( $permalink ) ) {
@@ -203,7 +204,14 @@ class BlogFront {
 		}
 
 		if ( has_post_thumbnail( $post_id ) ) {
-			$media_markup = get_the_post_thumbnail( $post_id, 'large', array( 'loading' => 'lazy' ) );
+			$media_markup = get_the_post_thumbnail(
+				$post_id,
+				'large',
+				array(
+					'loading' => 'lazy',
+					'sizes' => Front::CARD_IMAGE_SIZES,
+				)
+			);
 		} else {
 			$media_markup = '<img src="' . esc_url( Front::media_url_for_post( $post_id, CoreSettings::SETTING_IMAGE_BLOG_DEFAULT ) ) . '" alt="' . esc_attr( CoreSettings::get_image_alt( CoreSettings::SETTING_IMAGE_BLOG_DEFAULT, $title ) ) . '" width="1440" height="1080">';
 		}
@@ -242,16 +250,20 @@ class BlogFront {
 		}
 
 		$tags_markup = Front::get_pill_markup( $post_id );
+		$heading_tag = 'h2';
+		if ( 3 === $heading_level ) {
+			$heading_tag = 'h3';
+		}
 
 		return '<article class="example-card example-blog-card">'
 			. '<div class="example-card-body">'
 			. '<a class="example-card-media" href="' . esc_url( $permalink ) . '" tabindex="-1">' . $media_markup . '</a>'
 			. '<div class="example-card-content example-card--light">'
 			. $tags_markup
-			. '<h3 class="example-card-title"><a href="' . esc_url( $permalink ) . '" tabindex="-1">' . esc_html( $title ) . '</a></h3>'
+			. '<' . $heading_tag . ' class="example-card-title"><a href="' . esc_url( $permalink ) . '" tabindex="-1">' . esc_html( $title ) . '</a></' . $heading_tag . '>'
 			. $date_markup
 			. $excerpt_markup
-			. '<div class="example-card-cta">' . Front::read_more_button_html( $permalink ) . '</div>'
+			. '<div class="example-card-cta">' . Front::read_more_button_html( $permalink, $title ) . '</div>'
 			. '</div>'
 			. '</div>'
 			. '</article>';

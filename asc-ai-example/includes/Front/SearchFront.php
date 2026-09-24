@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use ASC\AI_EXAMPLE\Core\ThemeShell;
 use ASC\AI_EXAMPLE\Core\ArchiveConfig;
 use ASC\AI_EXAMPLE\Core\CoreSettings;
+use ASC\AI_EXAMPLE\Core\RegisterPortfolio;
 
 /**
  * @since 1.0
@@ -32,6 +33,14 @@ class SearchFront {
 	public function redirect_disabled_pages(): void {
 		$search_enabled = (bool) \ASC_AI_EXAMPLE_SEARCH_ENABLED;
 		$archive_enabled = (bool) \ASC_AI_EXAMPLE_ARCHIVE_ENABLED;
+		if ( is_tag( 'blog' ) ) {
+			wp_safe_redirect( ArchiveConfig::url_for_page_slug( ArchiveConfig::SLUG_BLOG ), 301 );
+			exit;
+		}
+		if ( is_tag( 'portfolio' ) ) {
+			wp_safe_redirect( ArchiveConfig::url_for_page_slug( ArchiveConfig::SLUG_PORTFOLIO ), 301 );
+			exit;
+		}
 
 		if ( ! $search_enabled && is_search() ) {
 			wp_safe_redirect( home_url( '/' ), 302 );
@@ -58,6 +67,9 @@ class SearchFront {
 
 		if ( $archive_enabled && $query->is_archive() ) {
 			$query->set( 'posts_per_page', ArchiveConfig::SEARCH_ARCHIVE_LIMIT );
+			if ( $query->is_category() ) {
+				$query->set( 'post_type', array( 'post', RegisterPortfolio::POST_TYPE ) );
+			}
 		}
 	}
 
@@ -120,11 +132,14 @@ class SearchFront {
 	}
 
 	private function render_archive(): string {
-		$title = get_the_archive_title();
-		$heading = '<h1 class="example-page-title">' . $title . '</h1>';
+		$heading = $this->render_archive_heading();
+		$section_class = 'example-full-content';
+		if ( is_category() ) {
+			$section_class = 'example-taxonomy-archive-page';
+		}
 
 		if ( ! have_posts() ) {
-			return '<section class="example-full-content">'
+			return '<section class="' . esc_attr( $section_class ) . '">'
 				. $heading
 				. '<div class="example-section example-card-section example-archive-listing-card-section">'
 				. '<div class="example-card-section-content">'
@@ -134,10 +149,86 @@ class SearchFront {
 				. '</section>';
 		}
 
-		return $this->render_card_loop( $heading );
+		return $this->render_card_loop( $heading, $section_class );
 	}
 
-	private function render_card_loop( string $heading ): string {
+	private function render_archive_heading(): string {
+		if ( ! is_category() ) {
+			return '<h1 class="example-page-title">' . wp_kses_post( get_the_archive_title() ) . '</h1>';
+		}
+
+		$term = get_queried_object();
+		if ( ! $term instanceof \WP_Term ) {
+			return '<h1 class="example-page-title">' . wp_kses_post( get_the_archive_title() ) . '</h1>';
+		}
+
+		$archive_type = esc_html__( 'Blog Topic', \ASC_AI_EXAMPLE_TEXT_DOMAIN );
+		$portfolio_items = get_posts(
+			array(
+				'post_type' => RegisterPortfolio::POST_TYPE,
+				'post_status' => 'publish',
+				'posts_per_page' => 1,
+				'fields' => 'ids',
+				'cat' => (int) $term->term_id,
+				'no_found_rows' => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+		if ( ! empty( $portfolio_items ) ) {
+			$archive_type = esc_html__( 'Portfolio Category', \ASC_AI_EXAMPLE_TEXT_DOMAIN );
+		}
+		$archive_subtitle = esc_html__( 'Archive', \ASC_AI_EXAMPLE_TEXT_DOMAIN );
+
+		$intro_markup = $this->render_taxonomy_description_shortcode();
+
+		return '<header class="example-taxonomy-archive-header">'
+			. '<div class="example-taxonomy-archive-header-content">'
+			. '<div class="example-taxonomy-archive-heading">'
+			. '<p class="example-taxonomy-archive-type">' . $archive_type . '</p>'
+			. '<p class="example-taxonomy-archive-subtitle">' . $archive_subtitle . '</p>'
+			. '</div>'
+			. '<div class="example-taxonomy-archive-copy">'
+			. '<h1 class="example-page-title">' . esc_html( $term->name ) . '</h1>'
+			. $intro_markup
+			. '</div>'
+			. '</div>'
+			. '</header>';
+	}
+
+	public function render_taxonomy_description_shortcode( array|string $attributes = array() ): string {
+		if ( ! is_array( $attributes ) ) {
+			$attributes = array();
+		}
+		$attributes = shortcode_atts(
+			array(
+				'taxonomy' => '',
+				'slug' => '',
+			),
+			$attributes,
+			'example_taxonomy_description'
+		);
+
+		$term = get_queried_object();
+		$taxonomy = sanitize_key( (string) $attributes['taxonomy'] );
+		$slug = sanitize_title( (string) $attributes['slug'] );
+		if ( '' !== $taxonomy && '' !== $slug ) {
+			$term = get_term_by( 'slug', $slug, $taxonomy );
+		}
+
+		if ( ! $term instanceof \WP_Term ) {
+			return '';
+		}
+		$description = trim( wp_kses_post( (string) $term->description ) );
+		if ( '' === $description ) {
+			return '';
+		}
+		$description = wpautop( $description );
+
+		return '<div class="example-taxonomy-archive-intro">' . $description . '</div>';
+	}
+
+	private function render_card_loop( string $heading, string $section_class = 'example-full-content' ): string {
 		global $wp_query;
 
 		$paged = ArchivePagination::get_current_paged();
@@ -146,7 +237,7 @@ class SearchFront {
 
 		ob_start();
 
-		echo '<section class="example-full-content">';
+		echo '<section class="' . esc_attr( $section_class ) . '">';
 		echo $heading; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo '<div class="example-section example-card-section example-archive-listing-card-section">';
 		echo '<div class="example-card-section-content">';
@@ -178,23 +269,40 @@ class SearchFront {
 			$permalink = '';
 		}
 
+		$post_type = (string) get_post_type( $post_id );
+		$card_class = 'example-blog-card';
+		$image_setting = CoreSettings::SETTING_IMAGE_BLOG_DEFAULT;
+		if ( RegisterPortfolio::POST_TYPE === $post_type ) {
+			$card_class = 'example-project-card';
+			$image_setting = CoreSettings::SETTING_IMAGE_PORTFOLIO;
+		}
+
 		if ( has_post_thumbnail( $post_id ) ) {
-			$media_markup = (string) get_the_post_thumbnail( $post_id, 'large', array( 'loading' => 'lazy' ) );
+			$media_markup = (string) get_the_post_thumbnail(
+				$post_id,
+				'large',
+				array(
+					'loading' => 'lazy',
+					'sizes' => Front::CARD_IMAGE_SIZES,
+				)
+			);
 		} else {
-			$media_markup = '<img src="' . esc_url( Front::media_url_for_post( $post_id, CoreSettings::SETTING_IMAGE_BLOG_DEFAULT ) ) . '" alt="' . esc_attr( CoreSettings::get_image_alt( CoreSettings::SETTING_IMAGE_BLOG_DEFAULT, $title ) ) . '" width="1440" height="1080">';
+			$image_url = Front::media_url_for_post( $post_id, $image_setting );
+			$image_alt = Front::default_image_alt_by_setting_key( $image_setting, $title );
+			$media_markup = '<img src="' . esc_url( $image_url ) . '" alt="' . esc_attr( $image_alt ) . '" width="1440" height="1080">';
 		}
 
 		$date_markup = '<p class="example-post-entry-date">' . esc_html( (string) get_the_date( '', $post_id ) ) . '</p>';
 		$tags_markup = Front::get_pill_markup( $post_id );
 
-		return '<article class="example-card example-blog-card">'
+		return '<article class="example-card ' . esc_attr( $card_class ) . '">'
 			. '<div class="example-card-body">'
 			. '<a class="example-card-media" href="' . esc_url( $permalink ) . '" tabindex="-1">' . $media_markup . '</a>'
 			. '<div class="example-card-content example-card--light">'
 			. $tags_markup
-			. '<h3 class="example-card-title"><a href="' . esc_url( $permalink ) . '" tabindex="-1">' . esc_html( $title ) . '</a></h3>'
+			. '<h2 class="example-card-title"><a href="' . esc_url( $permalink ) . '" tabindex="-1">' . esc_html( $title ) . '</a></h2>'
 			. $date_markup
-			. '<div class="example-card-cta">' . Front::read_more_button_html( $permalink ) . '</div>'
+			. '<div class="example-card-cta">' . Front::read_more_button_html( $permalink, $title ) . '</div>'
 			. '</div>'
 			. '</div>'
 			. '</article>';

@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" focusable="false" class="asc-fm-svg-filters">
+	<defs>
+		<filter id="asc-fm-character-edge" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+			<feMorphology in="SourceAlpha" operator="dilate" radius="1" result="silhouette" />
+			<feFlood flood-color="#050817" result="ink" />
+			<feComposite in="ink" in2="silhouette" operator="in" result="border" />
+			<feMerge>
+				<feMergeNode in="border" />
+				<feMergeNode in="SourceGraphic" />
+			</feMerge>
+		</filter>
+		<filter id="asc-fm-character-edge-preview" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+			<feMorphology in="SourceAlpha" operator="dilate" radius="2" result="silhouette" />
+			<feFlood flood-color="#050817" result="ink" />
+			<feComposite in="ink" in2="silhouette" operator="in" result="border" />
+			<feMerge>
+				<feMergeNode in="border" />
+				<feMergeNode in="SourceGraphic" />
+			</feMerge>
+		</filter>
+	</defs>
+</svg>
+<section class="asc-fm-character-surface" aria-labelledby="asc-fm-character-title">
+	<h2 id="asc-fm-character-title">Meet the characters</h2>
+	<div class="asc-fm-character-grid asc-fm-character-flex">
+		<div class="asc-fm-character-card asc-fm-main-character">
+			<img src="{{ASSET_URL}}128-creative-man.png" alt="Creative Man" width="110" height="84" loading="eager" decoding="async">
+			<strong>Creative Man</strong>
+			<span>Main character</span>
+		</div>
+		<div class="asc-fm-character-card asc-fm-main-character">
+			<img src="{{ASSET_URL}}128-fast-man.png" alt="Fast Man" width="110" height="84" loading="eager" decoding="async">
+			<strong>Fast Man</strong>
+			<span>Powered-up character</span>
+		</div>
+		<div class="asc-fm-character-card">
+			<img src="{{ASSET_URL}}128-bot-crawler.png" alt="Crawler bot" width="72" height="72" loading="eager" decoding="async">
+			<strong>Crawler</strong>
+			<span>Slow Bot</span>
+		</div>
+		<div class="asc-fm-character-card">
+			<img src="{{ASSET_URL}}128-bot-scanner.png" alt="Scanner bot" width="72" height="72" loading="eager" decoding="async">
+			<strong>Scanner</strong>
+			<span>Slow Bot</span>
+		</div>
+		<div class="asc-fm-character-card">
+			<img src="{{ASSET_URL}}128-bot-spammer.png" alt="Spammer bot" width="72" height="72" loading="eager" decoding="async">
+			<strong>Spammer</strong>
+			<span>Normal Bot</span>
+		</div>
+		<div class="asc-fm-character-card">
+			<img src="{{ASSET_URL}}128-bot-hacker.png" alt="Hacker bot" width="72" height="72" loading="eager" decoding="async">
+			<strong>Hacker</strong>
+			<span>Normal Bot</span>
+		</div>
+		<div class="asc-fm-character-card">
+			<img src="{{ASSET_URL}}128-bot-linker.png" alt="Linker bot" width="72" height="72" loading="eager" decoding="async">
+			<strong>Linker</strong>
+			<span>Fast Bot</span>
+		</div>
+		<div class="asc-fm-character-card">
+			<img src="{{ASSET_URL}}128-bot-miner.png" alt="Miner bot" width="72" height="72" loading="eager" decoding="async">
+			<strong>Miner</strong>
+			<span>Fast Bot</span>
+		</div>
+	</div>
+</section>
+<section class="asc-fm-stage" id="asc-fm-stage" aria-label="aS.c Fast-Man game">
+	<div class="asc-fm-board" id="asc-fm-board">
+		<div class="asc-fm-game-over" id="asc-fm-game-over" hidden>
+			<strong id="asc-fm-game-over-title">Game Over!</strong>
+			<button type="button" id="asc-fm-game-over-restart" class="asc-fm-button-orange">New game</button>
+		</div>
+		<div class="asc-fm-bonus-life-message" id="asc-fm-bonus-life-message" hidden>EXTRA REBOOT</div>
+		<div class="asc-fm-death-message" id="asc-fm-death-message" hidden></div>
+		<div class="asc-fm-cutscene" id="asc-fm-cutscene" hidden aria-label="Intermission cutscene">
+			<button type="button" id="asc-fm-cutscene-skip" class="asc-fm-cutscene-skip">Skip</button>
+			<div class="asc-fm-cutscene-stage">
+				<!-- Act 1: Creative Man chased by Blue and Purple bots (left to right) -->
+				<div class="asc-fm-cutscene-actor asc-fm-cs-hero-run">
+					<img src="{{ASSET_URL}}128-creative-man.png" alt="Creative Man">
+				</div>
+				<div class="asc-fm-cutscene-actor asc-fm-cs-crawler-chase">
+					<img src="{{ASSET_URL}}128-bot-crawler.png" alt="Crawler">
+				</div>
+				<div class="asc-fm-cutscene-actor asc-fm-cs-scanner-chase">
+					<img src="{{ASSET_URL}}128-bot-scanner.png" alt="Scanner">
+				</div>
+				<div class="asc-fm-cutscene-actor asc-fm-cs-spammer-chase">
+					<img src="{{ASSET_URL}}128-bot-spammer.png" alt="Spammer">
+				</div>
+				<div class="asc-fm-cutscene-actor asc-fm-cs-hacker-chase">
+					<img src="{{ASSET_URL}}128-bot-hacker.png" alt="Hacker">
+				</div>
+
+				<!-- Act 2: Orange bots fleeing, chased by Fast Man (right to left) -->
+				<div class="asc-fm-cutscene-actor asc-fm-cs-crawler-flee">
+					<img src="{{ASSET_URL}}128-bot-crawler.png" alt="Crawler" class="asc-fm-is-vulnerable">
+				</div>
+				<div class="asc-fm-cutscene-actor asc-fm-cs-scanner-flee">
+					<img src="{{ASSET_URL}}128-bot-scanner.png" alt="Scanner" class="asc-fm-is-vulnerable">
+				</div>
+				<div class="asc-fm-cutscene-actor asc-fm-cs-spammer-flee">
+					<img src="{{ASSET_URL}}128-bot-spammer.png" alt="Spammer" class="asc-fm-is-vulnerable">
+				</div>
+				<div class="asc-fm-cutscene-actor asc-fm-cs-hacker-flee">
+					<img src="{{ASSET_URL}}128-bot-hacker.png" alt="Hacker" class="asc-fm-is-vulnerable">
+				</div>
+				<div class="asc-fm-cutscene-actor asc-fm-cs-fastman-chase">
+					<img src="{{ASSET_URL}}128-fast-man.png" alt="Fast Man">
+				</div>
+
+				<!-- Act 3: Green bots enter stage right and stop at center stage -->
+				<div class="asc-fm-cutscene-actor asc-fm-cs-linker-enter">
+					<img src="{{ASSET_URL}}128-bot-linker.png" alt="Linker">
+				</div>
+				<div class="asc-fm-cutscene-actor asc-fm-cs-miner-enter">
+					<img src="{{ASSET_URL}}128-bot-miner.png" alt="Miner">
+				</div>
+			</div>
+		</div>
+		<div class="asc-fm-run-hud">
+			<span>Score <strong id="asc-fm-run-score">000000</strong></span>
+			<span>High <strong class="asc-fm-score" id="asc-fm-high-score">000000</strong></span>
+			<span>Dots Left <strong id="asc-fm-remaining">0</strong></span>
+			<span>Reboots <strong id="asc-fm-lives">3</strong></span>
+			<span>Round <strong id="asc-fm-round">1</strong></span>
+		</div>
+		<div class="asc-fm-maze" id="asc-fm-maze" role="group" tabindex="0" aria-label="Maze" aria-describedby="asc-fm-run-status"></div>
+		<div class="asc-fm-control-deck">
+			<div class="asc-fm-control-actions">
+				<button type="button" id="asc-fm-start" class="asc-fm-button-orange">Start</button>
+				<button type="button" id="asc-fm-pause" class="asc-fm-button-orange">Pause</button>
+			</div>
+			<div class="asc-fm-control-new">
+				<button type="button" id="asc-fm-restart" class="asc-fm-button-orange">New game</button>
+				<button type="button" id="asc-fm-next-round" class="asc-fm-button-orange">Next round</button>
+			</div>
+		</div>
+		<div class="asc-fm-difficulty-row">
+			<span class="asc-fm-difficulty-label" id="asc-fm-difficulty-title">Difficulty:</span>
+			<div class="asc-fm-difficulty-options" role="radiogroup" aria-labelledby="asc-fm-difficulty-title">
+				<label><input type="radio" name="difficulty" value="easy">Easy</label>
+				<label><input type="radio" name="difficulty" value="normal" checked>Normal</label>
+				<label><input type="radio" name="difficulty" value="hard">Hard</label>
+			</div>
+		</div>
+		<div class="asc-fm-audio-row">
+			<span class="asc-fm-audio-label" id="asc-fm-audio-title">Audio:</span>
+			<div class="asc-fm-audio-options" aria-labelledby="asc-fm-audio-title">
+				<label><input type="checkbox" id="asc-fm-toggle-sfx"> Sound FX</label>
+				<label><input type="checkbox" id="asc-fm-toggle-music"> Music</label>
+			</div>
+		</div>
+		<div class="asc-fm-status-bar">
+			<p class="asc-fm-status" id="asc-fm-run-status" role="status"></p>
+			<p id="asc-fm-power-time" class="asc-fm-status">Creative Mode</p>
+		</div>
+	</div>
+	<section class="asc-fm-card asc-fm-bonus-guide" aria-labelledby="asc-fm-bonus-guide-title">
+		<h2 id="asc-fm-bonus-guide-title">Bonus items</h2>
+		<div class="asc-fm-bonus-list">
+			<span><b><img src="{{ASSET_URL}}wordpress-logo.svg" alt="WordPress" width="32" height="32"></b><em>Round 1</em><strong>500</strong></span>
+			<span><b><img src="{{ASSET_URL}}gemini-logo.svg" alt="Gemini" width="32" height="32"></b><em>Round 2</em><strong>1,000</strong></span>
+			<span><b><img src="{{ASSET_URL}}chatgpt-logo.svg" alt="ChatGPT" width="32" height="32"></b><em>Round 3</em><strong>2,000</strong></span>
+			<span><b><img src="{{ASSET_URL}}nginx-logo.svg" alt="Nginx" width="32" height="32"></b><em>Round 4</em><strong>4,000</strong></span>
+			<span><b><img src="{{ASSET_URL}}aws-logo.svg" alt="AWS" width="32" height="32"></b><em>Round 5+</em><strong>8,000</strong></span>
+		</div>
+	</section>
+</section>

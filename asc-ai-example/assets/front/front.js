@@ -2,7 +2,7 @@
  * Example site front-end JavaScript
  */
 
-(function ($) {
+(function () {
 	'use strict';
 
 	function initHeaderNav() {
@@ -162,7 +162,6 @@
 		} else if (mqMobile.addListener) {
 			mqMobile.addListener(onViewportChange);
 		}
-		window.addEventListener('resize', onViewportChange);
 
 		onViewportChange();
 	}
@@ -381,12 +380,17 @@
 		});
 	}
 
-	$(document).ready(function () {
+	function init() {
 		initHeaderNav();
 		initHeaderSearch();
 		initSkipLinkFocus();
 		initThemeToggle();
 		initScrollTop();
-	});
-})(jQuery);
+	}
 
+	if ('loading' === document.readyState) {
+		document.addEventListener('DOMContentLoaded', init, { once: true });
+	} else {
+		init();
+	}
+})();

@@ -342,6 +342,9 @@ final class ContentSync {
 			$manifest_entry = ContentManifest::get_manifest_entry_for_file( $type_key, $filename, $post );
 			$content_issues = array_merge( $content_issues, self::describe_paired_manifest_metadata_drift_for_detect( $type_key, $post, $manifest_entry ) );
 			$content_issues = array_merge( $content_issues, CompanionFileSync::describe_companion_file_drift_for_detect( $type_key, $post, $filename ) );
+			if ( null !== $manifest_entry && SyncConfig::CONTENT_TYPE_PARTIALS !== $type_key ) {
+				$content_issues = array_merge( $content_issues, SeoSync::describe_manifest_drift( $post, $manifest_entry ) );
+			}
 			$content_issues = array_merge( $content_issues, self::describe_featured_image_drift_for_detect( $post ) );
 			$content_issues = array_merge( $content_issues, PostMetaSync::describe_post_meta_drift_for_detect( (string) $post->post_type, (string) $post->post_name, (int) $post->ID ) );
 
@@ -436,6 +439,10 @@ final class ContentSync {
 			}
 		}
 
+		foreach ( TaxonomySync::detect_differences() as $taxonomy_diff ) {
+			$differences[] = $taxonomy_diff;
+		}
+
 		$total_normalization_count = array_sum( $normalization_counts_by_type );
 		if ( $total_normalization_count > 0 ) {
 			$sync_types = ContentSyncProfile::sync_types();
@@ -526,44 +533,6 @@ final class ContentSync {
 	}
 
 	/**
-	 * Manifest drift for a paired file/post: publication date plus the same metadata slice export uses for “manifest refresh” ({@see ContentManifest::manifest_row_metadata_snapshot_for_compare()}).
-	 *
-	 * Keeps Detect aligned with skip-write manifest updates (e.g. seeded partials where `post_name` need not match the `.html` basename).
-	 *
-	 * @param string $type_key Content type key.
-	 * @param WP_Post $post Post.
-	 * @param array<string, mixed>|null $manifest_entry Row when present.
-	 *
-	 * @return list<string>
-	 */
-	private static function describe_paired_manifest_drift_for_detect(
-		string $type_key,
-		WP_Post $post,
-		?array $manifest_entry
-	): array {
-		if ( null === $manifest_entry ) {
-			return array();
-		}
-
-		$lines = self::describe_publication_drift_for_detect( $post, $manifest_entry );
-
-		$desired = ContentManifest::build_export_manifest_row_from_post( $type_key, $post );
-		if ( null === $desired ) {
-			return $lines;
-		}
-
-		if ( ContentManifest::manifest_row_metadata_snapshot_for_compare( $desired )
-			!== ContentManifest::manifest_row_metadata_snapshot_for_compare( $manifest_entry ) ) {
-			$lines[] = __(
-				'content-manifest.json metadata for this file does not match WordPress (title, slug, filename, categories, tags, excerpt, meta description, social title, x title, or focus keyphrase).',
-				\ASC_AI_PLUGIN_DOMAIN
-			);
-		}
-
-		return $lines;
-	}
-
-	/**
 	 * Manifest metadata drift for a paired file/post excluding publication date.
 	 *
 	 * @param string $type_key Content type key.
@@ -590,7 +559,7 @@ final class ContentSync {
 		if ( ContentManifest::manifest_row_metadata_snapshot_for_compare( $desired )
 			!== ContentManifest::manifest_row_metadata_snapshot_for_compare( $manifest_entry ) ) {
 			$lines[] = __(
-				'content-manifest.json metadata for this file does not match WordPress (title, slug, filename, categories, tags, excerpt, meta description, social title, x title, or focus keyphrase).',
+				'content-manifest.json metadata for this file does not match WordPress (title, slug, filename, categories, tags, excerpt, SEO fields, or primary category).',
 				\ASC_AI_PLUGIN_DOMAIN
 			);
 		}

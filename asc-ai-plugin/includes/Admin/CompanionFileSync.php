@@ -11,20 +11,8 @@ namespace ASC\AI_BOILER\Admin;
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 use WP_Post;
-use WP_Query;
-use ASC\AI_BOILER\Core\Core;
 
 final class CompanionFileSync {
-
-	/**
-	 * Filter: override the active SEO meta description key.
-	 */
-	public const FILTER_META_DESCRIPTION_META_KEY = 'asc_ai_boiler_meta_description_meta_key';
-
-	/**
-	 * Default SEO meta description key.
-	 */
-	public const META_DESCRIPTION_META_KEY_DEFAULT = '_asc_ai_boiler_meta_description';
 
 	/**
 	 * Absolute path to a companion text subdirectory (trailing slash).
@@ -129,34 +117,6 @@ final class CompanionFileSync {
 	}
 
 	/**
-	 * Active SEO meta key for reading/writing meta descriptions. Filtered by {@see FILTER_META_DESCRIPTION_META_KEY}.
-	 *
-	 * @return string
-	 */
-	public static function get_active_meta_description_meta_key(): string {
-		$default = self::META_DESCRIPTION_META_KEY_DEFAULT;
-		if ( SyncConfig::is_yoast_sync() || defined( 'WPSEO_VERSION' ) ) {
-			$default = '_yoast_wpseo_metadesc';
-		}
-		$key = (string) apply_filters( self::FILTER_META_DESCRIPTION_META_KEY, $default );
-		$key = trim( $key );
-		if ( '' === $key ) {
-			return $default;
-		}
-		return $key;
-	}
-
-	/**
-	 * Whether the active meta description key is a Yoast SEO key.
-	 *
-	 * @return bool
-	 */
-	public static function is_yoast_meta_description_active(): bool {
-		$key = self::get_active_meta_description_meta_key();
-		return 0 === strpos( $key, '_yoast' );
-	}
-
-	/**
 	 * Retrieve a post metadata value directly from the wp_postmeta table,
 	 * bypassing any get_post_metadata filters/cache overrides (e.g. from Yoast SEO).
 	 *
@@ -229,51 +189,7 @@ final class CompanionFileSync {
 	}
 
 	/**
-	 * Read the SEO meta description for a post via the active meta key.
-	 *
-	 * @param int $post_id Post ID.
-	 *
-	 * @return string
-	 */
-	public static function get_post_meta_description( int $post_id ): string {
-		$meta_key = self::get_active_meta_description_meta_key();
-		if ( 0 === strpos( $meta_key, '_yoast' ) ) {
-			return self::get_post_meta_raw( $post_id, $meta_key );
-		}
-		return (string) get_post_meta( $post_id, $meta_key, true );
-	}
-
-	/**
-	 * Write the SEO meta description for a post via the active meta key.
-	 * Deletes the meta entry when `$value` is empty.
-	 *
-	 * @param int $post_id Post ID.
-	 * @param string $value Meta description value.
-	 *
-	 * @return void
-	 */
-	public static function set_post_meta_description( int $post_id, string $value ): void {
-		$meta_key = self::get_active_meta_description_meta_key();
-		if ( 0 === strpos( $meta_key, '_yoast' ) ) {
-			if ( '' === $value ) {
-				global $wpdb;
-				$wpdb->delete( $wpdb->postmeta, array( 'post_id' => $post_id, 'meta_key' => $meta_key ) );
-			} else {
-				self::update_post_meta_raw( $post_id, $meta_key, $value );
-			}
-			return;
-		}
-
-		if ( '' === $value ) {
-			delete_post_meta( $post_id, $meta_key );
-		} else {
-			update_post_meta( $post_id, $meta_key, $value );
-		}
-	}
-
-	/**
-	 * Write excerpt and meta description companion files for a post during export.
-	 * Skipped for partials (which have no excerpt or SEO meta description).
+	 * Write the excerpt companion file for a post during export.
 	 *
 	 * @param WP_Post $post Post to back up.
 	 * @param string $html_filename HTML basename of the content file.
@@ -283,21 +199,6 @@ final class CompanionFileSync {
 	public static function export_companion_files_for_post( WP_Post $post, string $html_filename ): void {
 		$excerpt = trim( (string) $post->post_excerpt );
 		self::write_companion_text_file( SyncConfig::CONTENT_DIR_EXCERPTS, $html_filename, $excerpt );
-
-		if ( ! SyncConfig::is_yoast_sync() && self::is_yoast_meta_description_active() ) {
-			return;
-		}
-
-		$meta_description = trim( self::get_post_meta_description( (int) $post->ID ) );
-		self::write_companion_text_file( SyncConfig::CONTENT_DIR_META_DESCRIPTIONS, $html_filename, $meta_description );
-
-		if ( SyncConfig::is_yoast_sync() ) {
-			$fb_desc = trim( self::get_post_meta_raw( (int) $post->ID, '_yoast_wpseo_opengraph-description' ) );
-			self::write_companion_text_file( SyncConfig::CONTENT_DIR_SOCIAL_DESCRIPTIONS, $html_filename, $fb_desc );
-
-			$tw_desc = trim( self::get_post_meta_raw( (int) $post->ID, '_yoast_wpseo_twitter-description' ) );
-			self::write_companion_text_file( SyncConfig::CONTENT_DIR_X_DESCRIPTIONS, $html_filename, $tw_desc );
-		}
 	}
 
 	/**
@@ -326,21 +227,6 @@ final class CompanionFileSync {
 		}
 
 		$changed = false;
-		$title = trim( (string) $post->post_title );
-
-		if ( null !== $manifest_entry && isset( $manifest_entry['focus_keyphrase'] ) && SyncConfig::is_yoast_sync() ) {
-			$focus_keyphrase = trim( (string) $manifest_entry['focus_keyphrase'] );
-			$current = trim( self::get_post_meta_raw( $post_id, '_yoast_wpseo_focuskw' ) );
-			if ( $focus_keyphrase !== $current ) {
-				self::update_post_meta_raw( $post_id, '_yoast_wpseo_focuskw', $focus_keyphrase );
-				$changed = true;
-				$messages[] = sprintf(
-					/* translators: %s: relative plugin path */
-					__( 'Imported Yoast focus keyphrase for %s.', \ASC_AI_PLUGIN_DOMAIN ),
-					$relative_path
-				);
-			}
-		}
 
 		$excerpt_raw = self::read_companion_text_file( SyncConfig::CONTENT_DIR_EXCERPTS, $html_filename );
 		if ( null !== $excerpt_raw ) {
@@ -372,128 +258,6 @@ final class CompanionFileSync {
 			}
 		}
 
-		$file_meta_desc = '';
-		if ( SyncConfig::is_yoast_sync() || ! self::is_yoast_meta_description_active() ) {
-			$meta_desc_raw = self::read_companion_text_file( SyncConfig::CONTENT_DIR_META_DESCRIPTIONS, $html_filename );
-			if ( null !== $meta_desc_raw ) {
-				$file_meta_desc = trim( $meta_desc_raw );
-				$current_meta_desc = trim( self::get_post_meta_description( $post_id ) );
-				if ( $file_meta_desc !== $current_meta_desc ) {
-					self::set_post_meta_description( $post_id, $file_meta_desc );
-					$changed = true;
-					$messages[] = sprintf(
-						/* translators: %s: relative plugin path */
-						__( 'Imported meta description for %s.', \ASC_AI_PLUGIN_DOMAIN ),
-						$relative_path
-					);
-				}
-			}
-		}
-
-		if ( SyncConfig::is_yoast_sync() ) {
-			// Facebook Title
-			$fb_title_raw = $manifest_entry['social_title'] ?? '';
-			$fb_title = '';
-			if ( null !== $fb_title_raw ) {
-				$fb_title = trim( (string) $fb_title_raw );
-			}
-			if ( '' === $fb_title && '' !== $title ) {
-				$site_name = get_bloginfo( 'name' );
-				$fb_title = $title;
-				if ( '' !== $site_name ) {
-					$fb_title = $title . ' - ' . $site_name;
-				}
-			}
-			if ( '' !== $fb_title ) {
-				$current = trim( self::get_post_meta_raw( $post_id, '_yoast_wpseo_opengraph-title' ) );
-				if ( $fb_title !== $current ) {
-					self::update_post_meta_raw( $post_id, '_yoast_wpseo_opengraph-title', $fb_title );
-					$changed = true;
-					$messages[] = sprintf(
-						/* translators: %s: relative plugin path */
-						__( 'Imported Yoast Facebook title for %s.', \ASC_AI_PLUGIN_DOMAIN ),
-						$relative_path
-					);
-				}
-			}
-
-			// Twitter Title
-			$tw_title_raw = $manifest_entry['x_title'] ?? '';
-			$tw_title = '';
-			if ( null !== $tw_title_raw ) {
-				$tw_title = trim( (string) $tw_title_raw );
-			}
-			if ( '' === $tw_title && '' !== $title ) {
-				$site_name = get_bloginfo( 'name' );
-				$tw_title = $title;
-				if ( '' !== $site_name ) {
-					$tw_title = $title . ' - ' . $site_name;
-				}
-			}
-			if ( '' !== $tw_title ) {
-				$current = trim( self::get_post_meta_raw( $post_id, '_yoast_wpseo_twitter-title' ) );
-				if ( $tw_title !== $current ) {
-					self::update_post_meta_raw( $post_id, '_yoast_wpseo_twitter-title', $tw_title );
-					$changed = true;
-					$messages[] = sprintf(
-						/* translators: %s: relative plugin path */
-						__( 'Imported Yoast Twitter title for %s.', \ASC_AI_PLUGIN_DOMAIN ),
-						$relative_path
-					);
-				}
-			}
-
-			// Facebook Description
-			$fb_desc_raw = self::read_companion_text_file( SyncConfig::CONTENT_DIR_SOCIAL_DESCRIPTIONS, $html_filename );
-			$fb_desc = '';
-			if ( null !== $fb_desc_raw ) {
-				$fb_desc = trim( $fb_desc_raw );
-			}
-			if ( '' === $fb_desc ) {
-				$fb_desc = trim( self::get_post_meta_description( $post_id ) );
-				if ( '' === $fb_desc && '' !== $file_meta_desc ) {
-					$fb_desc = $file_meta_desc;
-				}
-			}
-			if ( '' !== $fb_desc ) {
-				$current = trim( self::get_post_meta_raw( $post_id, '_yoast_wpseo_opengraph-description' ) );
-				if ( $fb_desc !== $current ) {
-					self::update_post_meta_raw( $post_id, '_yoast_wpseo_opengraph-description', $fb_desc );
-					$changed = true;
-					$messages[] = sprintf(
-						/* translators: %s: relative plugin path */
-						__( 'Imported Yoast Facebook description for %s.', \ASC_AI_PLUGIN_DOMAIN ),
-						$relative_path
-					);
-				}
-			}
-
-			// Twitter Description
-			$tw_desc_raw = self::read_companion_text_file( SyncConfig::CONTENT_DIR_X_DESCRIPTIONS, $html_filename );
-			$tw_desc = '';
-			if ( null !== $tw_desc_raw ) {
-				$tw_desc = trim( $tw_desc_raw );
-			}
-			if ( '' === $tw_desc ) {
-				$tw_desc = trim( self::get_post_meta_description( $post_id ) );
-				if ( '' === $tw_desc && '' !== $file_meta_desc ) {
-					$tw_desc = $file_meta_desc;
-				}
-			}
-			if ( '' !== $tw_desc ) {
-				$current = trim( self::get_post_meta_raw( $post_id, '_yoast_wpseo_twitter-description' ) );
-				if ( $tw_desc !== $current ) {
-					self::update_post_meta_raw( $post_id, '_yoast_wpseo_twitter-description', $tw_desc );
-					$changed = true;
-					$messages[] = sprintf(
-						/* translators: %s: relative plugin path */
-						__( 'Imported Yoast Twitter description for %s.', \ASC_AI_PLUGIN_DOMAIN ),
-						$relative_path
-					);
-				}
-			}
-		}
-
 		return $changed;
 	}
 
@@ -517,7 +281,6 @@ final class CompanionFileSync {
 		}
 
 		$issues = array();
-		$post_id = (int) $post->ID;
 
 		$excerpt_raw = self::read_companion_text_file( SyncConfig::CONTENT_DIR_EXCERPTS, $html_filename );
 		if ( null !== $excerpt_raw ) {
@@ -525,37 +288,6 @@ final class CompanionFileSync {
 			$post_excerpt = trim( (string) $post->post_excerpt );
 			if ( $file_excerpt !== $post_excerpt ) {
 				$issues[] = __( 'Excerpt file differs from WordPress post excerpt.', \ASC_AI_PLUGIN_DOMAIN );
-			}
-		}
-
-		if ( SyncConfig::is_yoast_sync() || ! self::is_yoast_meta_description_active() ) {
-			$meta_desc_raw = self::read_companion_text_file( SyncConfig::CONTENT_DIR_META_DESCRIPTIONS, $html_filename );
-			if ( null !== $meta_desc_raw ) {
-				$file_meta_desc = trim( $meta_desc_raw );
-				$current_meta_desc = trim( self::get_post_meta_description( $post_id ) );
-				if ( $file_meta_desc !== $current_meta_desc ) {
-					$issues[] = __( 'Meta description file differs from WordPress meta description.', \ASC_AI_PLUGIN_DOMAIN );
-				}
-			}
-		}
-
-		if ( SyncConfig::is_yoast_sync() ) {
-			$fb_desc_raw = self::read_companion_text_file( SyncConfig::CONTENT_DIR_SOCIAL_DESCRIPTIONS, $html_filename );
-			if ( null !== $fb_desc_raw ) {
-				$file_fb_desc = trim( $fb_desc_raw );
-				$current = trim( self::get_post_meta_raw( $post_id, '_yoast_wpseo_opengraph-description' ) );
-				if ( $file_fb_desc !== $current ) {
-					$issues[] = __( 'Facebook description file differs from WordPress Facebook description.', \ASC_AI_PLUGIN_DOMAIN );
-				}
-			}
-
-			$tw_desc_raw = self::read_companion_text_file( SyncConfig::CONTENT_DIR_X_DESCRIPTIONS, $html_filename );
-			if ( null !== $tw_desc_raw ) {
-				$file_tw_desc = trim( $tw_desc_raw );
-				$current = trim( self::get_post_meta_raw( $post_id, '_yoast_wpseo_twitter-description' ) );
-				if ( $file_tw_desc !== $current ) {
-					$issues[] = __( 'Twitter description file differs from WordPress Twitter description.', \ASC_AI_PLUGIN_DOMAIN );
-				}
 			}
 		}
 

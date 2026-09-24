@@ -24,16 +24,19 @@ class RegisterShortcodes {
 	 * @param CallToAction $call_to_action CTA bands.
 	 * @param BlogFront $blog_front Blog listings and single-post filter.
 	 * @param PortfolioFront $portfolio_front Portfolio grid listings.
+	 * @param SearchFront $search_front Search and taxonomy archive rendering.
 	 */
 	public function __construct(
 		SiteFront $site_front,
 		CallToAction $call_to_action,
 		BlogFront $blog_front,
-		PortfolioFront $portfolio_front
+		PortfolioFront $portfolio_front,
+		SearchFront $search_front
 	) {
 		$this->register_site( $site_front, $call_to_action );
 		$this->register_blog( $blog_front );
 		$this->register_portfolio( $portfolio_front );
+		add_shortcode( 'example_taxonomy_description', array( $search_front, 'render_taxonomy_description_shortcode' ) );
 	}
 
 	/**
@@ -59,6 +62,7 @@ class RegisterShortcodes {
 		add_shortcode( 'example_cta', array( $call_to_action, 'render_cta_shortcode' ) );
 
 		add_shortcode( 'example_theme_toggle', array( $site_front, 'render_theme_toggle_shortcode' ) );
+		add_shortcode( 'example_icon', array( $site_front, 'render_icon_shortcode' ) );
 	}
 
 	/**

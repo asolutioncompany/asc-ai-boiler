@@ -11,9 +11,6 @@ namespace ASC\AI_BOILER\Admin;
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 use WP_Post;
-use WP_Query;
-use ASC\AI_BOILER\Core\Core;
-
 final class ContentManifest {
 
 	/**
@@ -35,11 +32,13 @@ final class ContentManifest {
 	 */
 	private static ?array $content_manifest_post_meta = null;
 
+	private static ?array $content_manifest = null;
+
 	/**
 	 * Absolute path to the content export manifest JSON (`content/content-manifest.json`).
 	 */
 	public static function get_content_manifest_path(): string {
-	return ContentSync::get_content_directory() . self::CONTENT_MANIFEST_FILENAME;
+		return ContentSync::get_content_directory() . self::CONTENT_MANIFEST_FILENAME;
 	}
 
 	/**
@@ -48,9 +47,37 @@ final class ContentManifest {
 	 * @return void
 	 */
 	public static function invalidate_content_manifest_cache(): void {
+		self::$content_manifest = null;
 		self::$content_manifest_types = null;
 		self::$content_manifest_post_meta = null;
 		ContentSyncProfile::invalidate_cache();
+	}
+
+	public static function load_content_manifest(): array {
+		if ( null !== self::$content_manifest ) {
+			return self::$content_manifest;
+		}
+
+		$path = self::get_content_manifest_path();
+		if ( ! is_readable( $path ) ) {
+			self::$content_manifest = array();
+			return self::$content_manifest;
+		}
+
+		$json = file_get_contents( $path );
+		if ( false === $json || '' === $json ) {
+			self::$content_manifest = array();
+			return self::$content_manifest;
+		}
+
+		$data = json_decode( $json, true );
+		if ( ! is_array( $data ) ) {
+			self::$content_manifest = array();
+			return self::$content_manifest;
+		}
+
+		self::$content_manifest = $data;
+		return self::$content_manifest;
 	}
 
 	/**
@@ -63,19 +90,7 @@ final class ContentManifest {
 			return self::$content_manifest_types;
 		}
 
-		$path = self::get_content_manifest_path();
-		if ( ! is_readable( $path ) ) {
-			self::$content_manifest_types = array();
-			return self::$content_manifest_types;
-		}
-
-		$json = file_get_contents( $path );
-		if ( false === $json || '' === $json ) {
-			self::$content_manifest_types = array();
-			return self::$content_manifest_types;
-		}
-
-		$data = json_decode( $json, true );
+		$data = self::load_content_manifest();
 		if ( ! is_array( $data ) || ! isset( $data['types'] ) || ! is_array( $data['types'] ) ) {
 			self::$content_manifest_types = array();
 			return self::$content_manifest_types;
@@ -112,19 +127,7 @@ final class ContentManifest {
 			return self::$content_manifest_post_meta;
 		}
 
-		$path = self::get_content_manifest_path();
-		if ( ! is_readable( $path ) ) {
-			self::$content_manifest_post_meta = array();
-			return self::$content_manifest_post_meta;
-		}
-
-		$json = file_get_contents( $path );
-		if ( false === $json || '' === $json ) {
-			self::$content_manifest_post_meta = array();
-			return self::$content_manifest_post_meta;
-		}
-
-		$data = json_decode( $json, true );
+		$data = self::load_content_manifest();
 		if ( ! is_array( $data ) || ! isset( $data['post_meta'] ) || ! is_array( $data['post_meta'] ) ) {
 			self::$content_manifest_post_meta = array();
 			return self::$content_manifest_post_meta;
@@ -557,24 +560,8 @@ final class ContentManifest {
 			$txt_basename = CompanionFileSync::companion_text_basename( $filename );
 			if ( '' !== $txt_basename ) {
 				$row['excerpt'] = $txt_basename;
-				if ( SyncConfig::is_yoast_sync() || ! CompanionFileSync::is_yoast_meta_description_active() ) {
-					$row['meta_description'] = $txt_basename;
-				}
 			}
-			if ( SyncConfig::is_yoast_sync() ) {
-				$fb_title = trim( CompanionFileSync::get_post_meta_raw( (int) $post->ID, '_yoast_wpseo_opengraph-title' ) );
-				if ( '' !== $fb_title ) {
-					$row['social_title'] = $fb_title;
-				}
-				$tw_title = trim( CompanionFileSync::get_post_meta_raw( (int) $post->ID, '_yoast_wpseo_twitter-title' ) );
-				if ( '' !== $tw_title ) {
-					$row['x_title'] = $tw_title;
-				}
-				$focus_kw = trim( CompanionFileSync::get_post_meta_raw( (int) $post->ID, '_yoast_wpseo_focuskw' ) );
-				if ( '' !== $focus_kw ) {
-					$row['focus_keyphrase'] = $focus_kw;
-				}
-			}
+			SeoSync::append_export_manifest_fields( $post, $filename, $row );
 		}
 
 		return array_merge( $row, ContentSync::manifest_taxonomy_lists_for_post( $post ) );
@@ -673,16 +660,6 @@ final class ContentManifest {
 			'tags' => $tax['tags'],
 		);
 
-		if ( SyncConfig::is_yoast_sync() || ! CompanionFileSync::is_yoast_meta_description_active() ) {
-			$snapshot['meta_description'] = self::normalize_manifest_compare_scalar( (string) ( $row['meta_description'] ?? '' ) );
-		}
-
-		if ( SyncConfig::is_yoast_sync() ) {
-			$snapshot['social_title'] = self::normalize_manifest_compare_scalar( (string) ( $row['social_title'] ?? '' ) );
-			$snapshot['x_title'] = self::normalize_manifest_compare_scalar( (string) ( $row['x_title'] ?? '' ) );
-			$snapshot['focus_keyphrase'] = self::normalize_manifest_compare_scalar( (string) ( $row['focus_keyphrase'] ?? '' ) );
-		}
-
 		return $snapshot;
 	}
 
@@ -708,6 +685,9 @@ final class ContentManifest {
 
 		if ( null === $entry ) {
 			return $manifest_readable;
+		}
+		if ( SyncConfig::CONTENT_TYPE_PARTIALS !== $type_key && array() !== SeoSync::describe_manifest_drift( $post, $entry ) ) {
+			return true;
 		}
 
 		return self::manifest_row_metadata_snapshot_for_compare( $desired )
@@ -786,14 +766,19 @@ final class ContentManifest {
 				$post_meta_out = $existing_manifest['post_meta'];
 			}
 		}
+		$taxonomies_out = TaxonomySync::build_export_manifest_taxonomies();
+		if ( ! TaxonomySync::has_enabled_content_sources() && isset( $existing_manifest['taxonomies'] ) && is_array( $existing_manifest['taxonomies'] ) ) {
+			$taxonomies_out = $existing_manifest['taxonomies'];
+		}
 
 		$payload = array(
 			'manifest_version' => 1,
-			'exported_at'      => gmdate( 'c' ),
-			'types'            => $types_out,
-			'media'            => $media_out,
-			'media_bindings'   => $bindings_out,
-			'post_meta'        => $post_meta_out,
+			'exported_at' => gmdate( 'c' ),
+			'types' => $types_out,
+			'taxonomies' => $taxonomies_out,
+			'media' => $media_out,
+			'media_bindings' => $bindings_out,
+			'post_meta' => $post_meta_out,
 		);
 
 		$flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
