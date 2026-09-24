@@ -16,6 +16,7 @@ Three-package WordPress repo. PHP 8.1+, GPL v3.
 - Consult BRAND KIT.md for CSS styling, color schemes, and fonts.
 - Do not rewrite working code without being asked.
 - Do not add comments unless asked.
+- When creating import-ready content, update `content/content-manifest.json` in the same change with all applicable stable metadata. Follow the existing schema and use portable slugs and filenames instead of WordPress-assigned IDs.
 
 ## Commands
 

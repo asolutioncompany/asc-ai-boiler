@@ -76,6 +76,10 @@ The top-level `taxonomies` object contains taxonomy keys such as `category` and 
 
 Export writes names and descriptions for terms assigned to synchronized published content. Difference detection compares each declared term and field with WordPress. The `asc_ai_boiler_manifest_taxonomies` filter controls the supported taxonomy list.
 
+### Content creation manifest contract
+
+Every change that creates import-ready content must add all applicable manifest data in the same change. This includes the content type, title, slug, filename, publication date, companion filenames, SEO titles and keyphrases, categories, tags, primary category, media metadata, media bindings, and supported post metadata. Omit fields that do not apply. Reference related content by portable slugs and filenames so a database import can create the complete content record without a preparatory export. Never add WordPress-assigned post IDs, attachment IDs, term IDs, or other environment-specific values.
+
 ### Tests
 
 The WordPress integration test configuration lives at the repository root. Plugin tests live under `tests/asc-ai-plugin/`, outside the deployable `asc-ai-plugin/` directory. The suite requires PHPUnit and the WordPress test library. Manual WordPress and Yoast checks remain part of release verification because the automated suite does not exercise the full admin UI or a production Yoast indexable rebuild.
