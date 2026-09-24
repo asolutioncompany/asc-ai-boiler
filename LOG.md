@@ -2,7 +2,7 @@
 
 Running log of architectural and design decisions. Newest entries at top.
 
-### Version 1.4.0 (In Development)
+### Version 1.4.0
 - **[asc-ai-plugin] Feature**: Added provider-aware SEO manifest synchronization for meta descriptions, social descriptions, X descriptions, social titles, X titles, focus keyphrases, and primary categories across import, export, and difference detection.
 - **[asc-ai-plugin] Architecture**: Moved Yoast metadata names behind the `SeoSync` adapter and filters. Restore now persists SEO metadata before the post update used for Yoast indexable rebuilding.
 - **[asc-ai-example] Content**: Completed the example manifest SEO data for pages, posts, and Portfolio entries, including social and X descriptions, social and X titles, focus keyphrases, and applicable primary categories.

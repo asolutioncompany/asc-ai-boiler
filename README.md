@@ -177,7 +177,7 @@ location ~* /wp-content/plugins/asc-ai-example/content/.*\.(html|json|txt)$ {
 
 ## Release Notes
 
-### What's New in v1.4.0 (In Development)
+### What's New in v1.4.0
 
 - **Provider-Neutral SEO Sync**: Made the content manifest SEO contract independent of any SEO plugin and added Yoast SEO as the first provider.
 - **Complete Yoast Metadata Import**: Fixed import, export, and difference detection for all declared Yoast metadata. Added portable primary-category synchronization by category slug.
