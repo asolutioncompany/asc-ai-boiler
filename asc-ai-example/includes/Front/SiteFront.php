@@ -151,18 +151,15 @@ class SiteFront {
 	}
 
 	public function render_theme_toggle_shortcode(): string {
-		$sun_url = Media::get_other_media_url( 'sun.svg' );
-		$moon_url = Media::get_other_media_url( 'moon.svg' );
-
 		return '<span class="example-theme-toggle" role="group" aria-label="'
 			. esc_attr__( 'Theme', \ASC_AI_EXAMPLE_TEXT_DOMAIN )
 			. '">'
 			. '<button type="button" class="example-theme-toggle-btn example-theme-toggle-btn--light" aria-pressed="false" aria-label="'
 			. esc_attr__( 'Light theme', \ASC_AI_EXAMPLE_TEXT_DOMAIN )
-			. '"><img class="example-theme-toggle-icon" src="' . esc_url( $sun_url ) . '" alt="" width="20" height="20" aria-hidden="true"></button>'
+			. '"><svg class="example-theme-toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="M12 3V4M12 20V21M4 12H3M6.31412 6.31412L5.5 5.5M17.6859 6.31412L18.5 5.5M6.31412 17.69L5.5 18.5001M17.6859 17.69L18.5 18.5001M21 12H20M16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>'
 			. '<button type="button" class="example-theme-toggle-btn example-theme-toggle-btn--dark" aria-pressed="false" aria-label="'
 			. esc_attr__( 'Dark theme', \ASC_AI_EXAMPLE_TEXT_DOMAIN )
-			. '"><img class="example-theme-toggle-icon" src="' . esc_url( $moon_url ) . '" alt="" width="20" height="20" aria-hidden="true"></button>'
+			. '"><svg class="example-theme-toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path fill-rule="evenodd" clip-rule="evenodd" d="M8.23129 2.24048C9.24338 1.78695 10.1202 2.81145 9.80357 3.70098C8.72924 6.71928 9.38932 10.1474 11.6193 12.3765C13.8606 14.617 17.3114 15.2755 20.3395 14.1819C21.2206 13.8637 22.2173 14.7319 21.7817 15.7199C21.7688 15.7491 21.7558 15.7782 21.7427 15.8074C20.9674 17.5266 19.7272 19.1434 18.1227 20.2274C16.4125 21.3828 14.3957 22.0001 12.3316 22.0001H12.3306C9.93035 21.9975 7.6057 21.1603 5.75517 19.6321C3.90463 18.1039 2.64345 15.9797 2.18793 13.6237C1.73241 11.2677 2.11094 8.82672 3.2586 6.71917C4.34658 4.72121 6.17608 3.16858 8.20153 2.25386L8.23129 2.24048Z" fill="currentColor"></path></svg></button>'
 			. '</span>';
 	}
 

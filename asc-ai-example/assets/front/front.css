@@ -1881,17 +1881,6 @@ body.example-site-dark .example-tag {
 .example-theme-toggle-icon {
 	display: block;
 	pointer-events: none;
-	filter: brightness(0) invert(1);
-}
-
-.example-site-light .example-theme-toggle-btn--dark .example-theme-toggle-icon {
-	filter: brightness(0) saturate(100%);
-}
-
-.example-site-light .example-theme-toggle-btn--dark:hover .example-theme-toggle-icon,
-.example-site-light .example-theme-toggle-btn--dark:focus-visible .example-theme-toggle-icon,
-.example-site-light .example-theme-toggle-btn--dark:active .example-theme-toggle-icon {
-	filter: brightness(0) invert(1);
 }
 
 .example-header .example-theme-toggle {
@@ -2010,6 +1999,20 @@ body.example-site-dark .example-tag {
 
 .example-faq-item {
 	width: 100%;
+	background-color: var(--example-surface);
+	border: 1px solid var(--example-card-border);
+	border-radius: 12px;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+.example-site-light .example-faq-item {
+	border-color: var(--example-tag-border);
+}
+
+.example-faq-item:hover,
+.example-faq-item:focus-within {
+	border-color: var(--example-interactive-border-color);
 }
 
 .example-faq-question {
@@ -2018,9 +2021,8 @@ body.example-site-dark .example-tag {
 	align-items: center;
 	justify-content: space-between;
 	padding: 16px 20px;
-	background-color: var(--example-surface);
-	border: 1px solid var(--example-card-border);
-	border-radius: 12px;
+	background-color: transparent;
+	border: 0;
 	cursor: pointer;
 	box-sizing: border-box;
 	user-select: none;
@@ -2028,12 +2030,6 @@ body.example-site-dark .example-tag {
 
 .example-faq-question::-webkit-details-marker {
 	display: none;
-}
-
-.example-faq-question:hover,
-.example-faq-question:focus-visible,
-.example-faq-question:active {
-	border-color: var(--example-interactive-border-color);
 }
 
 .example-faq-question-left {
@@ -2072,11 +2068,7 @@ body.example-site-dark .example-tag {
 }
 
 .example-faq-answer {
-	margin-top: 8px;
-	padding: 20px;
-	background-color: var(--example-surface);
-	border: 1px solid var(--example-card-border);
-	border-radius: 12px;
+	padding: 0 20px 20px;
 	box-sizing: border-box;
 }
 
