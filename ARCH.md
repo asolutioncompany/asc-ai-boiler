@@ -137,8 +137,9 @@ Namespaces:
 2. **Server-Side Rendering (FOUC Prevention)**:
    - `Front::filter_body_class()` evaluates `$_COOKIE['asc_cookie']` and applies `example-site-dark` (default) or `example-site-light` to `<body>`.
    - `ThemeShell::render_document()` injects `style="color-scheme: dark"` or `style="color-scheme: light"` onto `<html>`.
-3. **Markup and Shortcode**: `[example_theme_toggle]` renders an accessible button group with the sun and moon SVG files from `content/other-media/`.
+3. **Markup and Shortcode**: `[example_theme_toggle]` renders an accessible button group with inline sun and moon SVG markup.
 4. **Client-Side Toggle**: Dependency-free vanilla JavaScript in `assets/front/front.js` (`initThemeToggle()`) syncs cookie state, toggles body classes, and manages `aria-pressed`.
 5. **Styles**: `assets/front/front.css` uses CSS custom properties defined in `body` (light) and overridden in `body.example-site-dark`.
 6. **Server Caching**: Nginx FastCGI cache partitioned using `$asc_theme` cookie map variable.
-7. **Front-End Icons**: `Front::icon_svg()` and `[example_icon]` render [WordPress Dashicons](https://github.com/WordPress/dashicons) paths as inline SVG for search, close, menu, information, performance, and arrow controls. The public site does not enqueue the Dashicons stylesheet or font. The theme selector uses the dedicated sun and moon files in `content/other-media/`.
+7. **Front-End Icons**: `Front::icon_svg()` and `[example_icon]` render [WordPress Dashicons](https://github.com/WordPress/dashicons) paths as inline SVG for search, close, menu, information, performance, and arrow controls. The theme selector also renders its sun and moon icons inline. The public site does not enqueue the Dashicons stylesheet or font.
+8. **Favicon**: `Front::render_favicon()` renders the performance icon as an inline SVG data URI and suppresses the duplicate WordPress Site Icon links on the public site.

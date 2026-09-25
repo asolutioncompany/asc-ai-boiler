@@ -84,6 +84,8 @@ Understanding how static content files interact with WordPress is key to a smoot
 4. **Dynamic Manifest Auto-Population**: When you add new posts, pages, custom post types, or media in the WordPress dashboard and run an Export, the synchronization tool automatically writes them into `content-manifest.json`. Similarly, dropping new HTML files on disk without manifest entries allows Import fallback creation, after which the manifest is automatically regenerated.
 5. **AI Desktop Workflow**: You can have AI generate `content-manifest.json` entries directly (titles, slugs, publication dates, taxonomies, media bindings, custom post meta) so that running Import on a fresh WordPress install instantly sets up the entire site without manual dashboard clicking. Subsequent exports ensure canonical slug sanitization and synchronized GMT timestamps.
 
+Every import-ready content change must update `content/content-manifest.json` in the same change. Add every applicable stable field, including companion files, SEO metadata, taxonomies, media records, media bindings, and supported post metadata. Use portable slugs and filenames instead of WordPress-assigned IDs. This requirement lets a fresh WordPress installation import a complete content record without a preparatory export.
+
 ## Additional Notes
 
 - **Theme and Builder Compatibility**: While AI can be used to directly modify a theme, this framework is designed for greater portability. It decouples the design and content, allowing you to use any theme or site builder alongside the framework without locking your AI-generated assets into a specific theme structure.
@@ -176,6 +178,12 @@ location ~* /wp-content/plugins/asc-ai-example/content/.*\.(html|json|txt)$ {
 ```
 
 ## Release Notes
+
+### What's New in v1.4.1
+
+- **Complete Content Manifests**: Added mandatory agent and architecture guidance that requires import-ready content changes to include all applicable `content/content-manifest.json` metadata in the same change. Manifest relationships must use portable slugs and filenames instead of WordPress-assigned IDs.
+- **Inline Front-End Icons**: Restored inline sun and moon theme-toggle icons and the inline SVG favicon. Removed duplicate WordPress Site Icon output to prevent separate icon and cropped favicon downloads on public pages.
+- **Unified FAQ Surfaces**: Combined each FAQ question and answer under one shared border and surface. Increased the light-mode border contrast.
 
 ### What's New in v1.4.0
 

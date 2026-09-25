@@ -22,7 +22,7 @@ use ASC\AI_EXAMPLE\Front\Front;
  */
 class Core {
 
-	public const VERSION = '1.4.0';
+	public const VERSION = '1.4.1';
 
 	private static ?Core $instance = null;
 

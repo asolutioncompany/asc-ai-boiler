@@ -2,6 +2,11 @@
 
 Running log of architectural and design decisions. Newest entries at top.
 
+### Version 1.4.1
+- **[repo] Content contract**: Added mandatory guidance to `AGENTS.md` and `ARCH.md` that requires every import-ready content change to update `content/content-manifest.json` with all applicable portable metadata in the same change.
+- **[asc-ai-example] Performance**: Restored inline sun and moon theme-toggle icons, restored the inline SVG favicon data URI, and suppressed duplicate WordPress Site Icon output. These changes remove the separate `sun.svg`, `moon.svg`, `performance.svg`, and cropped performance icon requests from public pages.
+- **[asc-ai-example] Interface**: Merged each FAQ question and answer into one bordered surface and increased light-mode FAQ border contrast.
+
 ### Version 1.4.0
 - **[asc-ai-plugin] Feature**: Added provider-aware SEO manifest synchronization for meta descriptions, social descriptions, X descriptions, social titles, X titles, focus keyphrases, and primary categories across import, export, and difference detection.
 - **[asc-ai-plugin] Architecture**: Moved Yoast metadata names behind the `SeoSync` adapter and filters. Restore now persists SEO metadata before the post update used for Yoast indexable rebuilding.

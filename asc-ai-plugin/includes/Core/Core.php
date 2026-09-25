@@ -21,7 +21,7 @@ use ASC\AI_BOILER\Admin\Admin as BoilerAdmin;
  */
 class Core {
 
-	public const VERSION = '1.4.0';
+	public const VERSION = '1.4.1';
 
 	private static ?Core $instance = null;
 
