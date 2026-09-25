@@ -182,7 +182,7 @@ location ~* /wp-content/plugins/asc-ai-example/content/.*\.(html|json|txt)$ {
 ### What's New in v1.4.1
 
 - **Complete Content Manifests**: Added mandatory agent and architecture guidance that requires import-ready content changes to include all applicable `content/content-manifest.json` metadata in the same change. Manifest relationships must use portable slugs and filenames instead of WordPress-assigned IDs.
-- **Inline Front-End Icons**: Restored inline sun and moon theme-toggle icons and the inline SVG favicon. Removed duplicate WordPress Site Icon output to prevent separate icon and cropped favicon downloads on public pages.
+- **Inline Front-End Icons**: Finished inlining the sun and moon theme-toggle icons and inlined the SVG favicon as a data URI. Removed duplicate WordPress Site Icon output to prevent separate icon and cropped favicon downloads on public pages.
 - **Unified FAQ Surfaces**: Combined each FAQ question and answer under one shared border and surface. Increased the light-mode border contrast.
 
 ### What's New in v1.4.0

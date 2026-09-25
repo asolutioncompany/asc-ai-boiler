@@ -4,7 +4,7 @@ Running log of architectural and design decisions. Newest entries at top.
 
 ### Version 1.4.1
 - **[repo] Content contract**: Added mandatory guidance to `AGENTS.md` and `ARCH.md` that requires every import-ready content change to update `content/content-manifest.json` with all applicable portable metadata in the same change.
-- **[asc-ai-example] Performance**: Restored inline sun and moon theme-toggle icons, restored the inline SVG favicon data URI, and suppressed duplicate WordPress Site Icon output. These changes remove the separate `sun.svg`, `moon.svg`, `performance.svg`, and cropped performance icon requests from public pages.
+- **[asc-ai-example] Performance**: Finished inlining the sun and moon theme-toggle icons, inlined the SVG favicon as a data URI, and suppressed duplicate WordPress Site Icon output. These changes remove the separate `sun.svg`, `moon.svg`, `performance.svg`, and cropped performance icon requests from public pages.
 - **[asc-ai-example] Interface**: Merged each FAQ question and answer into one bordered surface and increased light-mode FAQ border contrast.
 
 ### Version 1.4.0
