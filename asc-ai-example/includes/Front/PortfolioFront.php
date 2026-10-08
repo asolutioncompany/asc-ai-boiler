@@ -207,7 +207,7 @@ class PortfolioFront {
 		return '<div class="example-card-section-actions">'
 			. '<a class="example-button-blue" href="' . esc_url( $url ) . '">'
 			. esc_html( $label )
-			. ' →'
+			. SvgIcons::get_svg( 'arrow-right', 'example-button-icon' )
 			. '</a>'
 			. '</div>';
 	}

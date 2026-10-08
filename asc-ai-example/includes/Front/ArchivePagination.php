@@ -55,12 +55,12 @@ class ArchivePagination {
 		$prev_markup = '';
 		if ( '' === $prev_url ) {
 			$prev_markup = '<span class="example-button-blue example-listing-pagination-prev example-listing-pagination-link--disabled" aria-disabled="true">'
-				. '← '
+				. SvgIcons::get_svg( 'arrow-left', 'example-button-icon example-button-icon--before' )
 				. esc_html__( 'Previous', \ASC_AI_EXAMPLE_TEXT_DOMAIN )
 				. '</span>';
 		} else {
 			$prev_markup = '<a class="example-button-blue example-listing-pagination-prev" href="' . esc_url( $prev_url ) . '">'
-				. '← '
+				. SvgIcons::get_svg( 'arrow-left', 'example-button-icon example-button-icon--before' )
 				. esc_html__( 'Previous', \ASC_AI_EXAMPLE_TEXT_DOMAIN )
 				. '</a>';
 		}
@@ -69,12 +69,12 @@ class ArchivePagination {
 		if ( '' === $next_url ) {
 			$next_markup = '<span class="example-button-blue example-listing-pagination-next example-listing-pagination-link--disabled" aria-disabled="true">'
 				. esc_html__( 'Next', \ASC_AI_EXAMPLE_TEXT_DOMAIN )
-				. ' →'
+				. SvgIcons::get_svg( 'arrow-right', 'example-button-icon' )
 				. '</span>';
 		} else {
 			$next_markup = '<a class="example-button-blue example-listing-pagination-next" href="' . esc_url( $next_url ) . '">'
 				. esc_html__( 'Next', \ASC_AI_EXAMPLE_TEXT_DOMAIN )
-				. ' →'
+				. SvgIcons::get_svg( 'arrow-right', 'example-button-icon' )
 				. '</a>';
 		}
 

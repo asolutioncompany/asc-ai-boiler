@@ -117,16 +117,18 @@ class Front {
 	}
 
 	/**
-	 * Add asc-site-dark or asc-site-light to the body class list based on the theme cookie.
+	 * Add the automatic or chosen theme class to the body class list.
 	 *
 	 * @param string[] $classes Existing body classes from WordPress.
 	 * @return string[]
 	 */
 	public function filter_body_class( array $classes ): array {
 		$raw = (string) ( $_COOKIE['asc_cookie'] ?? $_COOKIE['asc-cookie'] ?? '' );
-		$theme_class = 'example-site-dark';
+		$theme_class = 'example-site-auto';
 		if ( 'asc-light' === $raw ) {
 			$theme_class = 'example-site-light';
+		} elseif ( 'asc-dark' === $raw ) {
+			$theme_class = 'example-site-dark';
 		}
 		$classes[] = $theme_class;
 		return $classes;
@@ -470,10 +472,17 @@ class Front {
 
 		return '<a class="example-button-blue" href="' . esc_url( $permalink ) . '" aria-label="' . esc_attr( $accessible_label ) . '">'
 			. esc_html__( 'Read More', \ASC_AI_EXAMPLE_TEXT_DOMAIN )
-			. ' →</a>';
+			. SvgIcons::get_svg( 'arrow-right', 'example-button-icon' ) . '</a>';
 	}
 
 	public static function icon_svg( string $name, string $class = '' ): string {
+		if ( in_array( $name, array( 'arrow-right', 'arrow-left', 'external-link', 'chevron-up' ), true ) ) {
+			return SvgIcons::get_svg( $name, $class );
+		}
+		if ( in_array( $name, array( 'arrow-up', 'chevron-down' ), true ) ) {
+			return SvgIcons::get_svg( 'chevron-up', $class );
+		}
+
 		$path = '';
 		switch ( $name ) {
 			case 'performance':
@@ -481,9 +490,6 @@ class Front {
 				break;
 			case 'search':
 				$path = 'M12.14 4.18c1.87 1.87 2.11 4.75 0.72 6.89 0.12 0.1 0.22 0.21 0.36 0.31 0.2 0.16 0.47 0.36 0.81 0.59 0.34 0.24 0.56 0.39 0.66 0.47 0.42 0.31 0.73 0.57 0.94 0.78 0.32 0.32 0.6 0.65 0.84 1 0.25 0.35 0.44 0.69 0.59 1.040 0.14 0.35 0.21 0.68 0.18 1-0.020 0.32-0.14 0.59-0.36 0.81s-0.49 0.34-0.81 0.36c-0.31 0.020-0.65-0.040-0.99-0.19-0.35-0.14-0.7-0.34-1.040-0.59-0.35-0.24-0.68-0.52-1-0.84-0.21-0.21-0.47-0.52-0.77-0.93-0.1-0.13-0.25-0.35-0.47-0.66-0.22-0.32-0.4-0.57-0.56-0.78-0.16-0.2-0.29-0.35-0.44-0.5-2.070 1.090-4.69 0.76-6.44-0.98-2.14-2.15-2.14-5.64 0-7.78 2.15-2.15 5.63-2.15 7.78 0zM10.73 10.54c1.36-1.37 1.36-3.58 0-4.95-1.37-1.37-3.59-1.37-4.95 0-1.37 1.37-1.37 3.58 0 4.95 1.36 1.37 3.58 1.37 4.95 0z';
-				break;
-			case 'arrow-right':
-				$path = 'M6 15l5-5-5-5 1-2 7 7-7 7z';
 				break;
 			case 'close':
 				$path = 'M14.95 6.46l-3.54 3.54 3.54 3.54-1.41 1.41-3.54-3.53-3.53 3.53-1.42-1.42 3.53-3.53-3.53-3.53 1.42-1.42 3.53 3.53 3.54-3.53z';
@@ -493,12 +499,6 @@ class Front {
 				break;
 			case 'info':
 				$path = 'M9 15h2V9H9v6zm1-10c-0.5 0-1 0.5-1 1s0.5 1 1 1 1-0.5 1-1-0.5-1-1-1zm0-4c-5 0-9 4-9 9s4 9 9 9 9-4 9-9-4-9-9-9zm0 16c-3.9 0-7-3.1-7-7s3.1-7 7-7 7 3.1 7 7-3.1 7-7 7z';
-				break;
-			case 'chevron-down':
-				$path = 'M5 6l5 5 5-5 2 1-7 7-7-7z';
-				break;
-			case 'arrow-up':
-				$path = 'M15 14l-5-5-5 5-2-1 7-7 7 7z';
 				break;
 			default:
 				return '';

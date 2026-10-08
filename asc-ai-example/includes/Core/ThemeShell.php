@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use ASC\AI_EXAMPLE\Front\CallToAction;
 use ASC\AI_EXAMPLE\Front\SiteFront;
+use ASC\AI_EXAMPLE\Front\SvgIcons;
 
 /**
  * @since 1.0
@@ -109,9 +110,11 @@ final class ThemeShell {
 
 	public static function render_document(): void {
 		$raw = (string) ( $_COOKIE['asc_cookie'] ?? $_COOKIE['asc-cookie'] ?? '' );
-		$color_scheme = 'dark';
+		$color_scheme = 'light dark';
 		if ( 'asc-light' === $raw ) {
 			$color_scheme = 'light';
+		} elseif ( 'asc-dark' === $raw ) {
+			$color_scheme = 'dark';
 		}
 		?><!DOCTYPE html>
 <html <?php language_attributes(); ?> style="color-scheme: <?php echo $color_scheme; ?>">
@@ -243,7 +246,7 @@ final class ThemeShell {
 		echo '<section class="example-full-content">';
 		echo '<h1 class="example-page-title">' . esc_html__( 'Page Not Found', 'asc-ai-example' ) . '</h1>';
 		echo '<p style="text-align: center;">' . esc_html__( 'The page you requested could not be found.', 'asc-ai-example' ) . '</p>';
-		echo '<div class="example-card-section-actions"><a class="example-button-blue" href="' . esc_url( home_url( '/' ) ) . '">' . esc_html__( 'Return Home →', 'asc-ai-example' ) . '</a></div>';
+		echo '<div class="example-card-section-actions"><a class="example-button-blue" href="' . esc_url( home_url( '/' ) ) . '">' . esc_html__( 'Return Home', 'asc-ai-example' ) . SvgIcons::get_svg( 'arrow-right', 'example-button-icon' ) . '</a></div>';
 		echo '</section>';
 	}
 

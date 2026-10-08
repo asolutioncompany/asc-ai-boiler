@@ -22,11 +22,11 @@ This document defines the graphical styling, typography, and color schemes for t
 
 ## Color Scheme
 
-The site implements a dual-theme (light and dark) system using CSS custom properties (variables), defaulting to **dark mode** on initial visit.
+The site implements a dual-theme (light and dark) system using CSS custom properties. It follows the visitor's system preference until they choose a theme.
 
 ### Theme Colors
 
-| Variable | Description / Purpose | Light Mode Value | Dark Mode Value (Default) |
+| Variable | Description / Purpose | Light Mode Value | Dark Mode Value |
 | :--- | :--- | :--- | :--- |
 | `--example-bg` | Main page background | `#ffffff` | `#080d15` |
 | `--example-surface` | Surfaces (cards, inputs, panels) | `#f2efef` | `#0f1724` |
@@ -37,7 +37,7 @@ The site implements a dual-theme (light and dark) system using CSS custom proper
 
 ### Accents & Utility Colors
 
-| Variable | Description / Purpose | Light Mode Value | Dark Mode Value (Default) |
+| Variable | Description / Purpose | Light Mode Value | Dark Mode Value |
 | :--- | :--- | :--- | :--- |
 | `--example-cyan` | Cyan links, borders, and highlights | `#0b7285` | `#22d3ee` |
 | `--example-green` | Green highlights / success status | `#2b8a3e` | `#3fb950` |
@@ -49,10 +49,10 @@ The site implements a dual-theme (light and dark) system using CSS custom proper
 | `--example-button-bg` | Accessible button background behind white text | `#0b7285` | `#0e7490` |
 | `--example-light-teal` | Light sky blue details | `#15aabf` | `#22d3ee` |
 | `--example-theme-toggle-bg` | Theme switcher background | `#ced5e0` | `#172335` |
-| `--example-tag-bg` | Tag and badge background | `#dbdada` | `#080d15` |
-| `--example-tag-border` | Tag and badge borders | `#adb5bd` | `#253952` |
+| `--example-tag-bg` | Tag and badge background | `#dbdada` | `#0f1724` |
+| `--example-tag-border` | Tag and category pill borders | `#adb5bd` | `#36485a` |
 | `--example-card-bg` | Card container background | `#ffffff` | `#18263a` |
-| `--example-card-border` | Card container borders | `#dee2e6` | `#243b5a` |
+| `--example-card-border` | Card, FAQ, and pill border color | `#adb5bd` | `#36485a` |
 | `--example-interactive-border-color` | Shared hover, focus, and active border color | `#161616` | `#f8fbff` |
 | `--example-interactive-border` | Shared interactive border style | `2px solid #161616` | `2px solid #f8fbff` |
 | `--example-btn-hover-border` | Button interaction outline | `2px solid #161616` | `2px solid #f8fbff` |

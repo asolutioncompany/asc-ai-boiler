@@ -94,7 +94,7 @@ Every import-ready content change must update `content/content-manifest.json` in
 - **Source Control is Crucial**: The synchronization tool makes its best recommendations for importing and exporting, but it may not always make the correct guess. Disabling the import/export of an item could cause data loss if data is simultaneously exported and imported. Putting your content under source control protects against these edge cases; if a WordPress administrator makes a mistake or overwrites content, they can simply revert the files via version control and re-import from the plugin files.
 - **Performance Optimization**: The synchronization tool itself can be deactivated in production environments to make the website lean and eliminate unnecessary backend overhead.
 - **Custom Design Advantages**: Building a custom design with this framework significantly reduces the overhead of loading bloated features that might never be used, allowing for full customizations and improved page load speeds.
-- **Theme Toggle & Server Caching**: The framework supports cookie-based light/dark theme toggling (`asc_cookie`). When using full-page caching solutions (Nginx FastCGI, Varnish, Redis page cache), the cache key must be partitioned by the theme cookie to prevent serving cached pages in the wrong theme. See [`THEME_TOGGLE.md`](THEME_TOGGLE.md) for configuration details and a copy-ready prompt that removes light/dark theme switching and its cache variation for a fixed-theme site.
+- **Theme Toggle & Server Caching**: The example site follows the visitor's system color preference until they choose a theme. An explicit light or dark choice persists in the `asc_cookie` cookie. Full-page caches must separate automatic, light, and dark HTML responses. See [`THEME_TOGGLE.md`](THEME_TOGGLE.md) for configuration details and a copy-ready prompt that removes light/dark theme switching and its cache variation for a fixed-theme site.
 
 ## Limitations
 
@@ -179,6 +179,13 @@ location ~* /wp-content/plugins/asc-ai-example/content/.*\.(html|json|txt)$ {
 
 ## Release Notes
 
+### What's New in v1.4.2
+
+- **Inline SVG Icons**: Added `SvgIcons` to render Font Awesome arrows, chevrons, and external-link icons without an icon font. Kept the Fast WordPress and theme toggle icons.
+- **System Theme Preference**: The example site follows the visitor's system light or dark preference until they choose a theme. Saved choices continue to use a cookie, and the cache guide covers automatic, light, and dark responses.
+- **Design Updates**: Refined the FAQ accordion, card image corners, border and pill colors, button icons, footer width, and scroll-to-top control. Updated the theme FAQ answer.
+- **Aligned Package Versions**: Bumped `asc-ai-example`, `asc-ai-plugin`, and `asc-ai-theme` to 1.4.2.
+
 ### What's New in v1.4.1
 
 - **Complete Content Manifests**: Added mandatory agent and architecture guidance that requires import-ready content changes to include all applicable `content/content-manifest.json` metadata in the same change. Manifest relationships must use portable slugs and filenames instead of WordPress-assigned IDs.
@@ -196,7 +203,7 @@ location ~* /wp-content/plugins/asc-ai-example/content/.*\.(html|json|txt)$ {
 
 ### What's New in v1.3.0
 
-- **Theme Toggle and Dark Mode Support**: Added a cookie-persisted light/dark theme toggle to `asc-ai-example` that defaults to dark mode. PHP evaluates the theme cookie (`asc_cookie`) on the server to prevent a flash of the wrong theme. The reusable `[example_theme_toggle]` shortcode provides accessible inline theme controls.
+- **Theme Toggle and Dark Mode Support**: Added a cookie-persisted light/dark theme toggle to `asc-ai-example`. PHP evaluates explicit theme cookies (`asc_cookie`) on the server to prevent a flash of the wrong theme. The reusable `[example_theme_toggle]` shortcode provides accessible inline theme controls.
 - **Cache Compatibility and Guidance**: Added documentation and Nginx FastCGI configuration guidelines (`THEME_TOGGLE.md`) for ensuring page caches partition cached HTML responses by theme.
 
 ### What's New in v1.2.1

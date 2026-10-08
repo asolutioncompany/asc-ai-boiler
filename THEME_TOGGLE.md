@@ -12,13 +12,15 @@ The framework implements a flash-free, cookie-persisted theme toggle:
    - Sets a 1-year persistent cookie named `asc_cookie` with values `asc-dark` or `asc-light` (`SameSite=Lax`, `path=/`).
    - Toggles body classes `example-site-dark` and `example-site-light`.
    - Updates `aria-pressed` states on the theme toggle buttons for accessibility.
-   - Defaults to `asc-dark` when no cookie is present.
+   - Follows the browser's `prefers-color-scheme` setting when no cookie is present. It does not set a cookie until the visitor chooses a theme.
+   - Updates the theme when the system preference changes, until the visitor chooses a theme.
 
 2. **Server-Side Rendering (PHP)**:
    - `Front::filter_body_class()` checks `$_COOKIE['asc_cookie']` (and `$_COOKIE['asc-cookie']` fallback) on every request.
-   - Adds `example-site-dark` (default) or `example-site-light` directly to the `<body>` element during WordPress HTML generation.
-   - `ThemeShell::render_document()` sets the `style="color-scheme: dark"` or `style="color-scheme: light"` attribute on `<html>`.
-   - **Why server-side detection matters**: Setting the correct body class and color-scheme in the initial HTML payload completely eliminates flash-of-wrong-theme (FOUC) when loading cached or uncached pages.
+   - Adds `example-site-auto` when no cookie exists, or `example-site-dark` or `example-site-light` for an explicit choice.
+   - CSS applies the system color preference to `example-site-auto` before JavaScript loads.
+   - `ThemeShell::render_document()` sets the `<html>` color scheme to `light dark` for automatic mode, or to the explicit cookie choice.
+   - **Why server-side detection matters**: The initial HTML and CSS render the correct theme without a flash of the wrong theme (FOUC).
 
 3. **Shortcode and Partial Integration**:
    - Shortcode: `[example_theme_toggle]`
@@ -58,7 +60,7 @@ The theme control loads `sun.svg` and `moon.svg` from `content/other-media/`. `F
 ## 3. Web Server and FastCGI Caching Configuration
 
 > [!IMPORTANT]
-> When full-page caching is active (such as Nginx FastCGI cache, Varnish, or Redis full-page cache), the cache key **must** incorporate the theme cookie value.
+> When full-page caching is active (such as Nginx FastCGI cache, Varnish, or Redis full-page cache), the cache key **must** separate automatic, light, and dark modes.
 > Without this, the cache would store whatever theme was requested first and serve that cached HTML to all subsequent visitors regardless of their cookie preference.
 
 ### Nginx FastCGI Setup
@@ -71,10 +73,11 @@ Add a map inside the `http { ... }` block to map the theme cookie to a variable:
 http {
     ...
     # Nginx converts cookie name hyphens to underscores ($cookie_asc_cookie matches asc_cookie and asc-cookie)
-    # Default to "dark" when no cookie is present
+    # Keep visitors without a theme cookie in the automatic cache group
     map $cookie_asc_cookie $asc_theme {
         "asc-light"  "light";
-        default       "dark";
+        "asc-dark"   "dark";
+        default       "auto";
     }
     ...
 }
@@ -87,7 +90,7 @@ In your site's `server { ... }` block, include `|$asc_theme` in your `fastcgi_ca
 ```nginx
 server {
     ...
-    # Include theme variable in the cache key so light and dark pages are cached independently
+    # Cache automatic, light, and dark pages independently
     fastcgi_cache_key "$scheme$request_method$host$request_uri|$asc_theme";
     ...
 }
@@ -117,8 +120,10 @@ sub vcl_hash {
     # Add theme cookie to cache hash
     if (req.http.Cookie ~ "asc_cookie=asc-light") {
         hash_data("theme:light");
-    } else {
+    } else if (req.http.Cookie ~ "asc_cookie=asc-dark") {
         hash_data("theme:dark");
+    } else {
+        hash_data("theme:auto");
     }
 }
 ```
@@ -126,7 +131,7 @@ sub vcl_hash {
 ### Cloudflare / CDN Custom Cache Keys
 
 If your CDN plan supports Custom Cache Keys (e.g. Cloudflare Enterprise Cache Rules / Custom Cache Keys):
-- Add `asc_cookie` to the cookie list in your cache key definition so the edge caches separate HTML payloads for light and dark visitors.
+- Add `asc_cookie` to the cookie list in your cache key definition so the edge caches separate automatic, light, and dark HTML payloads.
 
 #### Fallback: Origin Cache-Control Header
 

@@ -2,6 +2,13 @@
 
 Running log of architectural and design decisions. Newest entries at top.
 
+### Version 1.4.2
+- **[repo] Release**: Bumped the example plugin, sync plugin, and bare theme to 1.4.2.
+- **[asc-ai-example] Icons**: Added `Front\SvgIcons` for inline Font Awesome arrows, chevrons, and external-link icons. Replaced arrow characters in buttons. Kept the Fast WordPress Dashicon and existing light and dark theme icons.
+- **[asc-ai-example] Theme**: Made the no-cookie theme follow the visitor's system preference, including changes made while the page is open. Explicit choices remain stored in a cookie. Updated cache guidance to separate automatic, light, and dark responses.
+- **[asc-ai-example] Interface**: Made the FAQ an accordion with 18px questions and answers, a five-pixel state border, and a right chevron. Refined card images, borders, pills, button icons, footer width, and the wide-screen scroll-to-top control.
+- **[asc-ai-example] Content**: Revised the theme FAQ answer to explain system preference and cookie-aware caching without server-specific instructions.
+
 ### Version 1.4.1
 - **[repo] Content contract**: Added mandatory guidance to `AGENTS.md` and `ARCH.md` that requires every import-ready content change to update `content/content-manifest.json` with all applicable portable metadata in the same change.
 - **[asc-ai-example] Performance**: Finished inlining the sun and moon theme-toggle icons, inlined the SVG favicon as a data URI, and suppressed duplicate WordPress Site Icon output. These changes remove the separate `sun.svg`, `moon.svg`, `performance.svg`, and cropped performance icon requests from public pages.

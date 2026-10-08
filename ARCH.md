@@ -133,13 +133,13 @@ Namespaces:
 
 ### Theme System & Theme Toggle Architecture
 
-1. **State Persistence**: 1-year cookie named `asc_cookie` storing `asc-dark` (default) or `asc-light`.
+1. **State Persistence**: No cookie means follow the browser's color preference. An explicit choice sets a 1-year `asc_cookie` with `asc-dark` or `asc-light`.
 2. **Server-Side Rendering (FOUC Prevention)**:
-   - `Front::filter_body_class()` evaluates `$_COOKIE['asc_cookie']` and applies `example-site-dark` (default) or `example-site-light` to `<body>`.
-   - `ThemeShell::render_document()` injects `style="color-scheme: dark"` or `style="color-scheme: light"` onto `<html>`.
+   - `Front::filter_body_class()` evaluates `$_COOKIE['asc_cookie']` and applies `example-site-auto`, `example-site-dark`, or `example-site-light` to `<body>`.
+   - `ThemeShell::render_document()` injects `style="color-scheme: light dark"` for automatic mode, or the explicit scheme, onto `<html>`.
 3. **Markup and Shortcode**: `[example_theme_toggle]` renders an accessible button group with inline sun and moon SVG markup.
 4. **Client-Side Toggle**: Dependency-free vanilla JavaScript in `assets/front/front.js` (`initThemeToggle()`) syncs cookie state, toggles body classes, and manages `aria-pressed`.
-5. **Styles**: `assets/front/front.css` uses CSS custom properties defined in `body` (light) and overridden in `body.example-site-dark`.
-6. **Server Caching**: Nginx FastCGI cache partitioned using `$asc_theme` cookie map variable.
-7. **Front-End Icons**: `Front::icon_svg()` and `[example_icon]` render [WordPress Dashicons](https://github.com/WordPress/dashicons) paths as inline SVG for search, close, menu, information, performance, and arrow controls. The theme selector also renders its sun and moon icons inline. The public site does not enqueue the Dashicons stylesheet or font.
+5. **Styles**: `assets/front/front.css` uses light CSS custom properties in `body` and dark overrides for `body.example-site-dark` or `body.example-site-auto` under a dark system preference.
+6. **Server Caching**: Nginx FastCGI cache partitioned into automatic, light, and dark responses using `$asc_theme`.
+7. **Front-End Icons**: `Front::icon_svg()` and `[example_icon]` render inline SVG. `Front\SvgIcons` supplies Font Awesome arrow, chevron, and external-link icons. WordPress Dashicons paths remain for search, close, menu, information, and the Fast WordPress performance icon. The theme selector keeps its inline sun and moon icons. The public site does not enqueue an icon font.
 8. **Favicon**: `Front::render_favicon()` renders the performance icon as an inline SVG data URI and suppresses the duplicate WordPress Site Icon links on the public site.
