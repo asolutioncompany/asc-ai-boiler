@@ -231,6 +231,7 @@ class PortfolioAdmin {
 		}
 
 		$attachment_ids = PostMeta::parse_portfolio_gallery_attachment_ids( $raw );
-		update_post_meta( $post_id, PostMeta::PORTFOLIO_GALLERY_META_KEY, implode( ',', $attachment_ids ) );
+		$media_paths = PostMeta::portfolio_gallery_media_paths_from_ids( $attachment_ids );
+		update_post_meta( $post_id, PostMeta::PORTFOLIO_GALLERY_META_KEY, implode( ',', $media_paths ) );
 	}
 }

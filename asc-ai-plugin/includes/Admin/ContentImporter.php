@@ -293,6 +293,18 @@ final class ContentImporter {
 
 		$post_id = (int) $post->ID;
 		$post_type = (string) $post->post_type;
+		$page_resolve = self::seed_page_resolve_for( $type_key, $filename );
+		if ( null !== $page_resolve && 'front_page' === $page_resolve['type'] && 'trash' === $post->post_status ) {
+			$restored = wp_untrash_post( $post_id );
+			if ( ! $restored instanceof WP_Post ) {
+				$messages[] = sprintf( __( 'Failed to restore %s from the trash.', \ASC_AI_PLUGIN_DOMAIN ), $relative_path );
+				return false;
+			}
+			$post = get_post( $post_id );
+			if ( ! $post instanceof WP_Post ) {
+				return false;
+			}
+		}
 
 		$shell_meta_repaired = self::repair_shell_partial_meta_if_needed( $type_key, $filename, $post_id );
 		if ( $shell_meta_repaired ) {
@@ -446,12 +458,49 @@ final class ContentImporter {
 			$companion_changed = CompanionFileSync::import_companion_files_for_post( $post_id, $filename, $relative_path, $messages, $manifest_entry );
 		}
 
+		$page_setting_changed = false;
+		if ( null !== $page_resolve && in_array( $page_resolve['type'], array( 'front_page', 'privacy_policy' ), true ) ) {
+			$current_post = get_post( $post_id );
+			if ( $current_post instanceof WP_Post && 'publish' !== $current_post->post_status ) {
+				$result = wp_update_post( array( 'ID' => $post_id, 'post_status' => 'publish' ), true );
+				if ( is_wp_error( $result ) ) {
+					$messages[] = sprintf(
+						__( 'Failed to publish %1$s: %2$s', \ASC_AI_PLUGIN_DOMAIN ),
+						$relative_path,
+						$result->get_error_message()
+					);
+					return false;
+				}
+				$page_setting_changed = true;
+			}
+
+			if ( 'front_page' === $page_resolve['type'] ) {
+				if ( (int) get_option( 'page_on_front' ) !== $post_id ) {
+					update_option( 'page_on_front', $post_id );
+					$page_setting_changed = true;
+				}
+				if ( 'page' !== get_option( 'show_on_front' ) ) {
+					update_option( 'show_on_front', 'page' );
+					$page_setting_changed = true;
+				}
+				if ( (int) get_option( 'page_on_front' ) !== $post_id || 'page' !== get_option( 'show_on_front' ) ) {
+					$messages[] = sprintf( __( 'Failed to set %s as the static front page.', \ASC_AI_PLUGIN_DOMAIN ), $relative_path );
+					return false;
+				}
+				$messages[] = sprintf( __( 'Set %1$s as the static front page (ID %2$d).', \ASC_AI_PLUGIN_DOMAIN ), $relative_path, $post_id );
+			} elseif ( (int) get_option( 'wp_page_for_privacy_policy' ) !== $post_id ) {
+				update_option( 'wp_page_for_privacy_policy', $post_id );
+				$page_setting_changed = true;
+			}
+		}
+
 		return $content_changed || $title_slug_changed || $taxonomy_changed || $timestamps_changed
 			|| ! $existed_before
 			|| $shell_meta_repaired
 			|| $seo_changed
 			|| $primary_category_changed
-			|| $companion_changed;
+			|| $companion_changed
+			|| $page_setting_changed;
 	}
 
 	/**
@@ -1086,6 +1135,12 @@ final class ContentImporter {
 		if ( 'slug' === $resolve['type'] && isset( $resolve['slug'] ) && '' !== $resolve['slug'] ) {
 			$args['post_name'] = (string) $resolve['slug'];
 		}
+		if ( 'front_page' === $resolve['type'] ) {
+			$args['post_name'] = 'home';
+		}
+		if ( 'privacy_policy' === $resolve['type'] ) {
+			$args['post_name'] = 'privacy-policy';
+		}
 
 		$post_id = wp_insert_post( $args, true );
 		if ( is_wp_error( $post_id ) || ! is_int( $post_id ) || $post_id <= 0 ) {
@@ -1095,11 +1150,6 @@ final class ContentImporter {
 		$post = get_post( $post_id );
 		if ( ! $post instanceof WP_Post ) {
 			return null;
-		}
-
-		if ( 'front_page' === $resolve['type'] ) {
-			update_option( 'page_on_front', $post_id );
-			update_option( 'show_on_front', 'page' );
 		}
 
 		return $post;
@@ -1129,10 +1179,11 @@ final class ContentImporter {
 			return '';
 		}
 		if ( SyncConfig::CONTENT_TYPE_PAGES === $type_key ) {
-			if ( ! isset( ContentSyncProfile::page_body_map()[ $filename ] ) ) {
+			$resolve = self::seed_page_resolve_for( $type_key, $filename );
+			if ( null === $resolve ) {
 				return '';
 			}
-			return (string) ContentSyncProfile::page_body_map()[ $filename ]['title'];
+			return (string) $resolve['title'];
 		}
 		return '';
 	}
@@ -1166,10 +1217,26 @@ final class ContentImporter {
 		if ( SyncConfig::CONTENT_TYPE_PAGES !== $type_key ) {
 			return null;
 		}
-		if ( ! isset( ContentSyncProfile::page_body_map()[ $filename ] ) ) {
+		$page_body_map = ContentSyncProfile::page_body_map();
+		$mapped = $page_body_map[ $filename ] ?? null;
+		if ( 'home.html' === $filename ) {
+			$title = 'Home';
+			if ( is_array( $mapped ) && isset( $mapped['title'] ) && '' !== trim( (string) $mapped['title'] ) ) {
+				$title = (string) $mapped['title'];
+			}
+			return array( 'type' => 'front_page', 'title' => $title );
+		}
+		if ( 'privacy-policy.html' === $filename ) {
+			$title = 'Privacy Policy';
+			if ( is_array( $mapped ) && isset( $mapped['title'] ) && '' !== trim( (string) $mapped['title'] ) ) {
+				$title = (string) $mapped['title'];
+			}
+			return array( 'type' => 'privacy_policy', 'title' => $title );
+		}
+		if ( ! is_array( $mapped ) ) {
 			return null;
 		}
-		return ContentSyncProfile::page_body_map()[ $filename ];
+		return $mapped;
 	}
 
 	/**
@@ -1181,18 +1248,51 @@ final class ContentImporter {
 	 */
 	public static function resolve_page_post( array $resolve ): ?WP_Post {
 		if ( 'front_page' === $resolve['type'] ) {
-			$page_id = (int) get_option( 'page_on_front' );
-			if ( $page_id <= 0 ) {
-				return null;
+			$home_post = get_page_by_path( 'home', OBJECT, 'page' );
+			if ( $home_post instanceof WP_Post && ! in_array( $home_post->post_status, array( 'trash', 'auto-draft' ), true ) ) {
+				return $home_post;
 			}
-			$post = get_post( $page_id );
-			if ( ! $post instanceof WP_Post || 'page' !== $post->post_type || 'publish' !== $post->post_status ) {
-				return null;
+
+			if ( 'page' === get_option( 'show_on_front' ) ) {
+				$page_id = (int) get_option( 'page_on_front' );
+				if ( $page_id > 0 ) {
+					$post = get_post( $page_id );
+					if ( $post instanceof WP_Post && 'page' === $post->post_type && ! in_array( $post->post_status, array( 'trash', 'auto-draft' ), true ) ) {
+						return $post;
+					}
+				}
 			}
-			return $post;
+
+			$trashed_pages = get_posts(
+				array(
+					'post_type' => 'page',
+					'post_status' => 'trash',
+					'meta_key' => '_wp_desired_post_slug',
+					'meta_value' => 'home',
+					'posts_per_page' => 1,
+				)
+			);
+			if ( isset( $trashed_pages[0] ) && $trashed_pages[0] instanceof WP_Post ) {
+				return $trashed_pages[0];
+			}
+			if ( $home_post instanceof WP_Post && 'trash' === $home_post->post_status ) {
+				return $home_post;
+			}
+			return null;
 		}
 
-		if ( 'slug' !== $resolve['type'] ) {
+		if ( 'privacy_policy' === $resolve['type'] ) {
+			$page_id = (int) get_option( 'wp_page_for_privacy_policy' );
+			if ( $page_id > 0 ) {
+				$post = get_post( $page_id );
+				if ( $post instanceof WP_Post && 'page' === $post->post_type && ! in_array( $post->post_status, array( 'trash', 'auto-draft' ), true ) ) {
+					return $post;
+				}
+			}
+			$resolve['slug'] = 'privacy-policy';
+		}
+
+		if ( ! in_array( $resolve['type'], array( 'slug', 'front_page', 'privacy_policy' ), true ) ) {
 			return null;
 		}
 
@@ -1205,7 +1305,7 @@ final class ContentImporter {
 		}
 
 		$post = get_page_by_path( $slug, OBJECT, 'page' );
-		if ( ! $post instanceof WP_Post || 'publish' !== $post->post_status ) {
+		if ( ! $post instanceof WP_Post || in_array( $post->post_status, array( 'trash', 'auto-draft' ), true ) ) {
 			return null;
 		}
 

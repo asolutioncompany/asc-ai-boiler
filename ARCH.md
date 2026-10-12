@@ -80,6 +80,12 @@ Export writes names and descriptions for terms assigned to synchronized publishe
 
 Every change that creates import-ready content must add all applicable manifest data in the same change. This includes the content type, title, slug, filename, publication date, companion filenames, SEO titles and keyphrases, categories, tags, primary category, media metadata, media bindings, and supported post metadata. Omit fields that do not apply. Reference related content by portable slugs and filenames so a database import can create the complete content record without a preparatory export. Never add WordPress-assigned post IDs, attachment IDs, term IDs, or other environment-specific values.
 
+### Special page filenames
+
+`content/pages/home.html` is the front page signal. Import resolves or creates the Home page from that filename, publishes it, and sets the WordPress `show_on_front` and `page_on_front` options. The `types.pages` manifest row supplies metadata but does not declare the page role. Import applies the filename rule even when that row is missing. Export maps the selected static front page to `home.html`.
+
+`content/pages/privacy-policy.html` is the privacy policy signal. Import publishes that page and sets `wp_page_for_privacy_policy` to its WordPress ID. Its manifest row supplies metadata and has no separate privacy policy flag.
+
 ### Tests
 
 The WordPress integration test configuration lives at the repository root. Plugin tests live under `tests/asc-ai-plugin/`, outside the deployable `asc-ai-plugin/` directory. The suite requires PHPUnit and the WordPress test library. Manual WordPress and Yoast checks remain part of release verification because the automated suite does not exercise the full admin UI or a production Yoast indexable rebuild.

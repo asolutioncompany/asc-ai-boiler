@@ -2,6 +2,11 @@
 
 Running log of architectural and design decisions. Newest entries at top.
 
+### Version 1.5.0
+- **[repo] Release**: Updated the example plugin, sync plugin, and bare theme to 1.5.0.
+- **[asc-ai-plugin] Import**: Reused existing Home and Privacy Policy pages, including WordPress's draft Privacy Policy. Import now publishes both pages, sets Home as the static front page, and assigns the Privacy Policy page in WordPress settings. Home import uses the `home.html` filename even when its manifest row is missing, ignores a stale front page ID while WordPress shows latest posts, restores a previously trashed Home page, and creates new Home pages with the canonical `home` slug.
+- **[asc-ai-example] Gallery**: Stored portable media filenames or attachment slugs for Portfolio galleries. Import and export preserve these values, while gallery display resolves them to attachment IDs. Existing ID-based galleries remain readable.
+
 ### Version 1.4.2
 - **[repo] Release**: Bumped the example plugin, sync plugin, and bare theme to 1.4.2.
 - **[asc-ai-example] Icons**: Added `Front\SvgIcons` for inline Font Awesome arrows, chevrons, and external-link icons. Replaced arrow characters in buttons. Kept the Fast WordPress Dashicon and existing light and dark theme icons.

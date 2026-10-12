@@ -865,7 +865,7 @@ final class ContentSync {
 
 		if ( SyncConfig::CONTENT_TYPE_PAGES === $type_key ) {
 			$front_id = (int) get_option( 'page_on_front' );
-			if ( $front_id > 0 && $front_id === (int) $post->ID ) {
+			if ( 'page' === get_option( 'show_on_front' ) && $front_id > 0 && $front_id === (int) $post->ID ) {
 				return 'home.html';
 			}
 			return self::slug_filename( $post );
@@ -1366,9 +1366,9 @@ final class ContentSync {
 		}
 
 		if ( SyncConfig::CONTENT_TYPE_PAGES === $type_key ) {
-			$page_body_map = ContentSyncProfile::page_body_map();
-			if ( isset( $page_body_map[ $filename ] ) ) {
-				$resolved = ContentImporter::resolve_page_post( $page_body_map[ $filename ] );
+			$resolve = ContentImporter::seed_page_resolve_for( $type_key, $filename );
+			if ( null !== $resolve ) {
+				$resolved = ContentImporter::resolve_page_post( $resolve );
 				if ( $resolved instanceof WP_Post ) {
 					if ( $published_only && 'publish' !== $resolved->post_status ) {
 						return null;

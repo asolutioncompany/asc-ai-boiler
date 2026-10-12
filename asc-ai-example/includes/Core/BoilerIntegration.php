@@ -52,7 +52,7 @@ final class BoilerIntegration {
 		$keys[] = array(
 			'meta_key'   => PostMeta::PORTFOLIO_GALLERY_META_KEY,
 			'post_types' => array( RegisterPortfolio::POST_TYPE ),
-			'type'       => 'slug',
+			'type'       => 'raw',
 		);
 		return $keys;
 	}

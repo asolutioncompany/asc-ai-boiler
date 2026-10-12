@@ -3,7 +3,7 @@
  * Manifest- and filter-driven metadata for {@see ContentSync} (no product-layer imports).
  *
  * Defaults are built from `content-manifest.json` plus WordPress conventions (for example
- * `home.html` resolves via `front_page`, and the front page always backs up as `home.html`).
+ * `home.html` resolves via `front_page`, and a selected static front page backs up as `home.html`).
  * Product code may adjust maps by filtering {@see ContentSyncProfile::FILTER_PROFILE}; partial
  * overrides merge on top of manifest-derived defaults.
  *
@@ -356,6 +356,14 @@ final class ContentSyncProfile {
 			if ( 'home.html' === $fn ) {
 				$map[ $fn ] = array(
 					'type' => 'front_page',
+					'title' => $title,
+				);
+				continue;
+			}
+
+			if ( 'privacy-policy.html' === $fn ) {
+				$map[ $fn ] = array(
+					'type' => 'privacy_policy',
 					'title' => $title,
 				);
 				continue;

@@ -41,7 +41,7 @@ class PostMeta {
 	public const BLOG_CTA_LINK_URL_META_KEY = '_example_blog_cta_link_url';
 
 	/**
-	 * Portfolio post gallery attachment IDs (comma-separated).
+	 * Portfolio post gallery media filenames or attachment slugs (comma-separated).
 	 *
 	 * @var string
 	 */
@@ -82,7 +82,7 @@ class PostMeta {
 	}
 
 	/**
-	 * Parse comma-separated attachment IDs or an array of values into a list of positive integers.
+	 * Resolve comma-separated gallery filenames, attachment slugs, or legacy IDs to attachment IDs.
 	 *
 	 * @param mixed $raw Stored meta value or raw input.
 	 *
@@ -101,7 +101,19 @@ class PostMeta {
 		$ids = array();
 
 		foreach ( $parts as $part ) {
-			$id = absint( trim( $part ) );
+			$value = trim( $part );
+			$id = 0;
+			if ( ctype_digit( $value ) ) {
+				$id = absint( $value );
+			} elseif ( '' !== $value ) {
+				$id = Media::find_attachment_id_by_media_path( $value );
+				if ( 0 === $id ) {
+					$post = get_page_by_path( $value, OBJECT, 'attachment' );
+					if ( $post instanceof \WP_Post ) {
+						$id = (int) $post->ID;
+					}
+				}
+			}
 			if ( $id > 0 && ! in_array( $id, $ids, true ) ) {
 				$ids[] = $id;
 			}
@@ -112,6 +124,20 @@ class PostMeta {
 		}
 
 		return array_values( $ids );
+	}
+
+	public static function portfolio_gallery_media_paths_from_ids( array $attachment_ids ): array {
+		$paths = array();
+		foreach ( $attachment_ids as $attachment_id ) {
+			$path = trim( (string) get_post_meta( $attachment_id, Media::META_MEDIA_PATH, true ) );
+			if ( '' === $path ) {
+				$path = (string) get_post_field( 'post_name', $attachment_id );
+			}
+			if ( '' !== $path && ! in_array( $path, $paths, true ) ) {
+				$paths[] = $path;
+			}
+		}
+		return $paths;
 	}
 
 	/**

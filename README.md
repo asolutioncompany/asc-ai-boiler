@@ -86,6 +86,12 @@ Understanding how static content files interact with WordPress is key to a smoot
 
 Every import-ready content change must update `content/content-manifest.json` in the same change. Add every applicable stable field, including companion files, SEO metadata, taxonomies, media records, media bindings, and supported post metadata. Use portable slugs and filenames instead of WordPress-assigned IDs. This requirement lets a fresh WordPress installation import a complete content record without a preparatory export.
 
+### Home and Privacy Policy Pages
+
+The sync plugin identifies the Home page by the exact filename `content/pages/home.html`. Import creates or updates that page, publishes it, sets `show_on_front` to `page`, and sets `page_on_front` to the page's WordPress ID. This works even when the manifest has no Home row. Export writes the selected static front page to `home.html`.
+
+The manifest row for `home.html` stores its title, slug, date, and other content metadata. It does not contain a front page flag. Keep the row in `content/content-manifest.json` for a complete import-ready site, but use the `home.html` filename to select the front page. The same filename rule applies to `content/pages/privacy-policy.html`: import publishes the page and assigns its ID to WordPress's privacy policy setting.
+
 ## Additional Notes
 
 - **Theme and Builder Compatibility**: While AI can be used to directly modify a theme, this framework is designed for greater portability. It decouples the design and content, allowing you to use any theme or site builder alongside the framework without locking your AI-generated assets into a specific theme structure.
@@ -178,6 +184,12 @@ location ~* /wp-content/plugins/asc-ai-example/content/.*\.(html|json|txt)$ {
 ```
 
 ## Release Notes
+
+### What's New in v1.5.0
+
+- **Home and Privacy Policy Import**: Import replaces existing page content, publishes both pages, sets Home as the static front page, and assigns the Privacy Policy page in WordPress settings. It recognizes `home.html` even when its manifest row is missing, ignores a stale front page ID when WordPress shows latest posts, and restores a trashed Home page before creating a new one.
+- **Portable Portfolio Galleries**: Gallery metadata now stores media filenames or attachment slugs. Existing galleries stored with attachment IDs remain readable.
+- **Aligned Package Versions**: Updated `asc-ai-example`, `asc-ai-plugin`, and `asc-ai-theme` to 1.5.0.
 
 ### What's New in v1.4.2
 
