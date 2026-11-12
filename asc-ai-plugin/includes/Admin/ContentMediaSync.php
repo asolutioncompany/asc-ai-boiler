@@ -362,18 +362,43 @@ final class ContentMediaSync {
 	 *
 	 * @return array{updated:int, processed:int}
 	 */
-	public static function import_from_plugin_files( array &$messages ): array {
+	/**
+	 * Import a batch of content/media/ files into the WordPress media library.
+	 *
+	 * @param int $offset Starting index into the file list.
+	 * @param int $limit Number of files to process.
+	 * @param list<string> $messages Log lines.
+	 *
+	 * @return array{processed:int, updated:int, next_offset:int, total:int, done:bool}
+	 */
+	public static function import_media_batch( int $offset, int $limit, array &$messages ): array {
 		self::ensure_media_directory_exists();
 
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 
+		$all_files = self::list_media_files();
+		$total = count( $all_files );
+		$offset = max( 0, $offset );
+		$limit = max( 1, $limit );
+
+		if ( $offset >= $total ) {
+			return array(
+				'processed' => 0,
+				'updated' => 0,
+				'next_offset' => $total,
+				'total' => $total,
+				'done' => true,
+			);
+		}
+
 		$manifest_rows = self::index_manifest_media_rows( self::load_manifest_media_rows() );
+		$batch_files = array_slice( $all_files, $offset, $limit );
 		$updated = 0;
 		$processed = 0;
 
-		foreach ( self::list_media_files() as $relative_path ) {
+		foreach ( $batch_files as $relative_path ) {
 			$processed++;
 			$row = $manifest_rows[ $relative_path ] ?? array();
 			if ( self::import_media_file( $relative_path, $row, $messages ) ) {
@@ -381,12 +406,107 @@ final class ContentMediaSync {
 			}
 		}
 
-		$bindings_updated = self::apply_media_bindings( $messages );
-		$updated += $bindings_updated;
+		$next_offset = $offset + $processed;
+		$done = false;
+		if ( $next_offset >= $total ) {
+			$done = true;
+		}
 
 		return array(
-			'updated' => $updated,
 			'processed' => $processed,
+			'updated' => $updated,
+			'next_offset' => $next_offset,
+			'total' => $total,
+			'done' => $done,
+		);
+	}
+
+	/**
+	 * Import content/media/ into the WordPress media library and apply manifest bindings.
+	 *
+	 * @param list<string> $messages Log lines.
+	 *
+	 * @return array{updated:int, processed:int}
+	 */
+	public static function import_from_plugin_files( array &$messages ): array {
+		$offset = 0;
+		$limit = SyncConfig::get_media_sync_batch_size();
+		$total_updated = 0;
+		$total_processed = 0;
+		$done = false;
+
+		while ( ! $done ) {
+			$batch = self::import_media_batch( $offset, $limit, $messages );
+			$total_updated += $batch['updated'];
+			$total_processed += $batch['processed'];
+			$offset = $batch['next_offset'];
+			$done = $batch['done'];
+		}
+
+		$bindings_updated = self::apply_media_bindings( $messages );
+		$total_updated += $bindings_updated;
+
+		return array(
+			'updated' => $total_updated,
+			'processed' => $total_processed,
+		);
+	}
+
+	/**
+	 * Export a batch of bound attachments to content/media/.
+	 *
+	 * @param int $offset Starting index into attachment IDs.
+	 * @param int $limit Number of attachments to process.
+	 * @param list<string> $messages Log lines.
+	 *
+	 * @return array{processed:int, updated:int, next_offset:int, total:int, done:bool}
+	 */
+	public static function export_media_batch( int $offset, int $limit, array &$messages ): array {
+		self::ensure_media_directory_exists();
+
+		$attachment_ids = self::collect_attachment_ids_for_export();
+		$total = count( $attachment_ids );
+		$offset = max( 0, $offset );
+		$limit = max( 1, $limit );
+
+		if ( $offset >= $total ) {
+			return array(
+				'processed' => 0,
+				'updated' => 0,
+				'next_offset' => $total,
+				'total' => $total,
+				'done' => true,
+			);
+		}
+
+		$batch_ids = array_slice( $attachment_ids, $offset, $limit );
+		$updated = 0;
+		$processed = 0;
+
+		foreach ( $batch_ids as $attachment_id ) {
+			$processed++;
+			$relative_path = trim( (string) get_post_meta( $attachment_id, self::META_MEDIA_PATH, true ) );
+			if ( '' === $relative_path ) {
+				continue;
+			}
+
+			if ( self::export_attachment_to_media_path( $attachment_id, $relative_path, $messages ) ) {
+				$updated++;
+			}
+		}
+
+		$next_offset = $offset + $processed;
+		$done = false;
+		if ( $next_offset >= $total ) {
+			$done = true;
+		}
+
+		return array(
+			'processed' => $processed,
+			'updated' => $updated,
+			'next_offset' => $next_offset,
+			'total' => $total,
+			'done' => $done,
 		);
 	}
 
@@ -398,21 +518,24 @@ final class ContentMediaSync {
 	 * @return list<array<string, mixed>>
 	 */
 	public static function export_to_plugin_files( array &$messages ): array {
-		self::ensure_media_directory_exists();
+		$offset = 0;
+		$limit = SyncConfig::get_media_sync_batch_size();
+		$done = false;
+
+		while ( ! $done ) {
+			$batch = self::export_media_batch( $offset, $limit, $messages );
+			$offset = $batch['next_offset'];
+			$done = $batch['done'];
+		}
 
 		$rows_by_path = array();
-
 		foreach ( self::collect_attachment_ids_for_export() as $attachment_id ) {
 			$relative_path = trim( (string) get_post_meta( $attachment_id, self::META_MEDIA_PATH, true ) );
 			if ( '' === $relative_path ) {
 				continue;
 			}
-
-			self::export_attachment_to_media_path( $attachment_id, $relative_path, $messages );
-
 			$rows_by_path[ $relative_path ] = self::build_manifest_media_row_from_attachment( $attachment_id, $relative_path );
 		}
-
 		ksort( $rows_by_path, SORT_STRING );
 
 		return array_values( $rows_by_path );

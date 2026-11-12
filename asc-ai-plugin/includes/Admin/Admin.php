@@ -92,9 +92,13 @@ class Admin {
 				'strings' => array(
 					'import_starting' => __( 'Import starting…', \ASC_AI_PLUGIN_DOMAIN ),
 					'import_progress' => __( 'Importing: processed %1$s of %2$s plugin files…', \ASC_AI_PLUGIN_DOMAIN ),
+					'import_media_progress' => __( 'Importing media: processed %1$s of %2$s images…', \ASC_AI_PLUGIN_DOMAIN ),
+					'import_database_progress' => __( 'Finalizing import: updating metadata and bindings…', \ASC_AI_PLUGIN_DOMAIN ),
 					'import_complete' => __( 'Import complete: %1$s post(s) updated across %2$s scanned content files.', \ASC_AI_PLUGIN_DOMAIN ),
 					'export_starting' => __( 'Export starting…', \ASC_AI_PLUGIN_DOMAIN ),
 					'export_progress' => __( 'Export: +%1$s file(s), +%2$s manifest metadata refresh(es). Totals: %3$s files, %4$s metadata.', \ASC_AI_PLUGIN_DOMAIN ),
+					'export_media_progress' => __( 'Exporting media: processed %1$s of %2$s attachments…', \ASC_AI_PLUGIN_DOMAIN ),
+					'export_finalize_progress' => __( 'Finalizing export: writing manifest…', \ASC_AI_PLUGIN_DOMAIN ),
 					'export_complete' => __( 'Export finished. Wrote %s HTML file(s) and updated content-manifest.json.', \ASC_AI_PLUGIN_DOMAIN ),
 					'export_complete_with_meta' => __( 'Export finished. Wrote %1$s HTML file(s) and updated content-manifest.json; metadata refreshed for %2$s post(s).', \ASC_AI_PLUGIN_DOMAIN ),
 					'failure' => __( 'Export/import failed: %s', \ASC_AI_PLUGIN_DOMAIN ),

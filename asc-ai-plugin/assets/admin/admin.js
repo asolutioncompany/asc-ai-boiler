@@ -246,6 +246,7 @@
 			$importMessages.empty();
 			$importProgress.text(str.import_starting || 'Import starting…');
 			setRunning(true);
+			var phase = 'content';
 			var offset = 0;
 			var totalUpdated = 0;
 
@@ -253,6 +254,7 @@
 				$.post(ajaxUrl, {
 					action: sync.import_action,
 					_ajax_nonce: sync.nonce,
+					phase: phase,
 					offset: offset,
 					confirmed: '1'
 				}).done(function (res) {
@@ -268,10 +270,18 @@
 					}
 					appendDetailMessages($importMessages, d.messages || []);
 					totalUpdated += d.updated_in_batch || 0;
-					offset = d.next_offset;
+					phase = d.phase || 'content';
+					offset = d.next_offset || 0;
 					var totalJobs = d.total_jobs || 0;
 					var processed = Math.min(offset, totalJobs);
-					$importProgress.text(sprintf(str.import_progress, String(processed), String(totalJobs)));
+					if (phase === 'media') {
+						var mediaFmt = str.import_media_progress || 'Importing media: processed %1$s of %2$s images…';
+						$importProgress.text(sprintf(mediaFmt, String(processed), String(totalJobs)));
+					} else if (phase === 'finalize') {
+						$importProgress.text(str.import_database_progress || 'Finalizing import: updating metadata and bindings…');
+					} else {
+						$importProgress.text(sprintf(str.import_progress, String(processed), String(totalJobs)));
+					}
 					if (d.done) {
 						$importStatus.removeClass('asc-ai-boiler-sync-status--import-running').addClass('asc-ai-boiler-sync-status--import-done');
 						$importProgress.text(sprintf(str.import_complete, String(totalUpdated), String(totalJobs)));
@@ -300,8 +310,10 @@
 			$exportMessages.empty();
 			$exportProgress.text(str.export_starting || 'Export starting…');
 			setRunning(true);
+			var phase = 'posts';
 			var typeIndex = 0;
 			var postOffset = 0;
+			var mediaOffset = 0;
 			var runningFiles = 0;
 			var runningMeta = 0;
 
@@ -309,8 +321,10 @@
 				$.post(ajaxUrl, {
 					action: sync.export_action,
 					_ajax_nonce: sync.nonce,
+					phase: phase,
 					type_index: typeIndex,
-					post_offset: postOffset
+					post_offset: postOffset,
+					media_offset: mediaOffset
 				}).done(function (res) {
 					if (!res || !res.success || !res.data) {
 						$exportStatus.removeClass('asc-ai-boiler-sync-status--export-running').addClass('asc-ai-boiler-sync-status--export-error');
@@ -327,8 +341,28 @@
 					var batchMeta = d.manifest_metadata_refreshed_in_batch || 0;
 					runningFiles += batchFiles;
 					runningMeta += batchMeta;
-					typeIndex = d.type_index;
-					postOffset = d.post_offset;
+					phase = d.phase || 'posts';
+					typeIndex = d.type_index || 0;
+					postOffset = d.post_offset || 0;
+					mediaOffset = d.media_offset || 0;
+					if (phase === 'media') {
+						var mediaTotal = d.total_media || 0;
+						var mediaProcessed = Math.min(mediaOffset, mediaTotal);
+						var expMediaFmt = str.export_media_progress || 'Exporting media: processed %1$s of %2$s attachments…';
+						$exportProgress.text(sprintf(expMediaFmt, String(mediaProcessed), String(mediaTotal)));
+					} else if (phase === 'finalize') {
+						$exportProgress.text(str.export_finalize_progress || 'Finalizing export: writing manifest…');
+					} else {
+						$exportProgress.text(
+							sprintf(
+								str.export_progress,
+								String(batchFiles),
+								String(batchMeta),
+								String(runningFiles),
+								String(runningMeta)
+							)
+						);
+					}
 					if (d.done) {
 						$exportStatus.removeClass('asc-ai-boiler-sync-status--export-running').addClass('asc-ai-boiler-sync-status--export-done');
 						if (runningMeta > 0 && str.export_complete_with_meta) {
@@ -341,15 +375,6 @@
 						setRunning(false);
 						return;
 					}
-					$exportProgress.text(
-						sprintf(
-							str.export_progress,
-							String(batchFiles),
-							String(batchMeta),
-							String(runningFiles),
-							String(runningMeta)
-						)
-					);
 					runBatch();
 				}).fail(function (xhr) {
 					var msg = 'request failed';

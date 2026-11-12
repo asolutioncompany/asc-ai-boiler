@@ -57,6 +57,26 @@ final class SyncConfig {
 	public const CONTENT_SYNC_BATCH_SIZE = 100;
 
 	/**
+	 * How many media files to process per AJAX batch.
+	 *
+	 * @var int
+	 */
+	public const MEDIA_SYNC_BATCH_SIZE = 5;
+
+	/**
+	 * Get the batch size for media sync operations.
+	 *
+	 * @return int
+	 */
+	public static function get_media_sync_batch_size(): int {
+		$batch_size = (int) apply_filters( 'asc_ai_boiler_media_sync_batch_size', self::MEDIA_SYNC_BATCH_SIZE );
+		if ( $batch_size < 1 ) {
+			return 1;
+		}
+		return $batch_size;
+	}
+
+	/**
 	 * When true ("1"), export removes plugin HTML files that have no matching published content.
 	 *
 	 * @var string

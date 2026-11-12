@@ -22,18 +22,90 @@ final class ContentExporter {
 	 *
 	 * @param int $type_index Index into the ordered type keys from {@see ContentSyncProfile::sync_types()}.
 	 * @param int $post_offset Offset into the current type's published post list.
+	 * @param string $phase Current export phase ('posts', 'media', or 'finalize').
+	 * @param int $media_offset Offset into the attachment ID export list.
 	 *
 	 * @return array{
 	 *   ok: bool,
 	 *   done: bool,
+	 *   phase: string,
 	 *   type_index: int,
 	 *   post_offset: int,
+	 *   media_offset: int,
+	 *   total_media?: int,
+	 *   processed_in_phase?: int,
+	 *   total_in_phase?: int,
 	 *   updated_in_batch: int,
 	 *   manifest_metadata_refreshed_in_batch: int,
-	 *   messages: list<string>
+	 *   messages: list<string>,
+	 *   summary?: array{pages_scanned:int, partials_scanned:int, posts_scanned:int, images_scanned:int}
 	 * }
 	 */
-	public static function run_export_batch( int $type_index, int $post_offset ): array {
+	public static function run_export_batch( int $type_index, int $post_offset, string $phase = 'posts', int $media_offset = 0 ): array {
+		if ( 'media' === $phase ) {
+			$limit = SyncConfig::get_media_sync_batch_size();
+			$messages = array();
+			$media_batch = ContentMediaSync::export_media_batch( $media_offset, $limit, $messages );
+
+			$is_media_done = $media_batch['done'];
+			$next_phase = 'media';
+			$next_offset = $media_batch['next_offset'];
+			if ( $is_media_done ) {
+				$next_phase = 'finalize';
+				$next_offset = $media_batch['total'];
+			}
+
+			return array(
+				'ok' => true,
+				'done' => false,
+				'phase' => $next_phase,
+				'type_index' => $type_index,
+				'post_offset' => $post_offset,
+				'media_offset' => $next_offset,
+				'total_media' => $media_batch['total'],
+				'processed_in_phase' => $next_offset,
+				'total_in_phase' => $media_batch['total'],
+				'updated_in_batch' => $media_batch['updated'],
+				'manifest_metadata_refreshed_in_batch' => 0,
+				'messages' => $messages,
+				'summary' => ContentSync::get_sync_summary_totals(),
+			);
+		}
+
+		if ( 'finalize' === $phase ) {
+			$messages = array();
+			if ( SyncConfig::is_export_cleanup() ) {
+				self::delete_orphan_plugin_files( $messages );
+			}
+			ContentManifest::write_content_export_manifest( $messages );
+
+			if ( self::$normalized_count > 0 ) {
+				$messages[] = sprintf(
+					/* translators: %d: number of files */
+					_n(
+						'Normalized %d plugin file to canonical export form on disk.',
+						'Normalized %d plugin files to canonical export form on disk.',
+						self::$normalized_count,
+						\ASC_AI_PLUGIN_DOMAIN
+					),
+					self::$normalized_count
+				);
+			}
+
+			return array(
+				'ok' => true,
+				'done' => true,
+				'phase' => 'done',
+				'type_index' => $type_index,
+				'post_offset' => $post_offset,
+				'media_offset' => $media_offset,
+				'updated_in_batch' => 0,
+				'manifest_metadata_refreshed_in_batch' => 0,
+				'messages' => $messages,
+				'summary' => ContentSync::get_sync_summary_totals(),
+			);
+		}
+
 		$type_entries = ContentSyncProfile::sync_types();
 		$type_keys = array_keys( $type_entries );
 		$num_types = count( $type_keys );
@@ -155,28 +227,6 @@ final class ContentExporter {
 			}
 		}
 
-		$done = $ti >= $num_types;
-		if ( $done && $num_types > 0 ) {
-			if ( SyncConfig::is_export_cleanup() ) {
-				self::delete_orphan_plugin_files( $messages );
-			}
-			self::maybe_export_plugin_media( $messages );
-			ContentManifest::write_content_export_manifest( $messages );
-
-			if ( self::$normalized_count > 0 ) {
-				$messages[] = sprintf(
-					/* translators: %d: number of files */
-					_n(
-						'Normalized %d plugin file to canonical export form on disk.',
-						'Normalized %d plugin files to canonical export form on disk.',
-						self::$normalized_count,
-						\ASC_AI_PLUGIN_DOMAIN
-					),
-					self::$normalized_count
-				);
-			}
-		}
-
 		if ( $timestamp_touched_count > 0 ) {
 			$messages[] = sprintf(
 				/* translators: %d: number of files */
@@ -190,11 +240,56 @@ final class ContentExporter {
 			);
 		}
 
+		$posts_done = false;
+		if ( $ti >= $num_types ) {
+			$posts_done = true;
+		}
+
+		if ( $posts_done ) {
+			$has_media = SyncConfig::is_media_sync_enabled();
+			if ( $has_media ) {
+				$attachment_ids = ContentMediaSync::collect_attachment_ids_for_export();
+				$media_count = count( $attachment_ids );
+				if ( $media_count > 0 ) {
+					return array(
+						'ok' => true,
+						'done' => false,
+						'phase' => 'media',
+						'type_index' => $ti,
+						'post_offset' => $po,
+						'media_offset' => 0,
+						'total_media' => $media_count,
+						'processed_in_phase' => 0,
+						'total_in_phase' => $media_count,
+						'updated_in_batch' => $updated_in_batch,
+						'manifest_metadata_refreshed_in_batch' => $manifest_metadata_refreshed_in_batch,
+						'messages' => $messages,
+						'summary' => ContentSync::get_sync_summary_totals(),
+					);
+				}
+			}
+
+			return array(
+				'ok' => true,
+				'done' => false,
+				'phase' => 'finalize',
+				'type_index' => $ti,
+				'post_offset' => $po,
+				'media_offset' => 0,
+				'updated_in_batch' => $updated_in_batch,
+				'manifest_metadata_refreshed_in_batch' => $manifest_metadata_refreshed_in_batch,
+				'messages' => $messages,
+				'summary' => ContentSync::get_sync_summary_totals(),
+			);
+		}
+
 		return array(
 			'ok' => true,
-			'done' => $done,
+			'done' => false,
+			'phase' => 'posts',
 			'type_index' => $ti,
 			'post_offset' => $po,
+			'media_offset' => 0,
 			'updated_in_batch' => $updated_in_batch,
 			'manifest_metadata_refreshed_in_batch' => $manifest_metadata_refreshed_in_batch,
 			'messages' => $messages,
@@ -214,12 +309,14 @@ final class ContentExporter {
 		$messages = array();
 		$updated = 0;
 		$manifest_metadata_refreshed = 0;
+		$phase = 'posts';
 		$type_index = 0;
 		$post_offset = 0;
+		$media_offset = 0;
 		$done = false;
 
 		while ( ! $done ) {
-			$batch = self::run_export_batch( $type_index, $post_offset );
+			$batch = self::run_export_batch( $type_index, $post_offset, $phase, $media_offset );
 			if ( ! $batch['ok'] ) {
 				return array(
 					'ok' => false,
@@ -232,8 +329,10 @@ final class ContentExporter {
 			$messages = array_merge( $messages, $batch['messages'] );
 			$updated += $batch['updated_in_batch'];
 			$manifest_metadata_refreshed += $batch['manifest_metadata_refreshed_in_batch'];
+			$phase = $batch['phase'];
 			$type_index = $batch['type_index'];
 			$post_offset = $batch['post_offset'];
+			$media_offset = $batch['media_offset'] ?? 0;
 			$done = $batch['done'];
 		}
 

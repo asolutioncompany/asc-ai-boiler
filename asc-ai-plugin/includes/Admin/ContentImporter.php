@@ -19,30 +19,95 @@ final class ContentImporter {
 	/**
 	 * Process up to {@see SyncConfig::CONTENT_SYNC_BATCH_SIZE} import jobs starting at $offset.
 	 *
-	 * @param int $offset Index into the canonical job list.
+	 * @param int $offset Index into the current phase job list.
 	 * @param bool $confirmed User confirmed replace.
+	 * @param string $phase Current import phase ('content', 'media', or 'finalize').
 	 *
 	 * @return array{
 	 *   ok:bool,
 	 *   done:bool,
+	 *   phase:string,
 	 *   next_offset:int,
 	 *   updated_in_batch:int,
 	 *   processed_in_batch:int,
 	 *   total_jobs:int,
 	 *   messages:list<string>,
-	 *   summary?:array{pages_scanned:int, posts_scanned:int, images_scanned:int}
+	 *   summary?:array{pages_scanned:int, partials_scanned:int, posts_scanned:int, images_scanned:int}
 	 * }
 	 */
-	public static function run_import_batch( int $offset, bool $confirmed ): array {
+	public static function run_import_batch( int $offset, bool $confirmed, string $phase = 'content' ): array {
 		if ( ! $confirmed ) {
 			return array(
 				'ok' => false,
 				'done' => true,
+				'phase' => $phase,
 				'next_offset' => 0,
 				'updated_in_batch' => 0,
 				'processed_in_batch' => 0,
 				'total_jobs' => 0,
 				'messages' => array( __( 'Import was not confirmed.', \ASC_AI_PLUGIN_DOMAIN ) ),
+				'summary' => ContentSync::get_sync_summary_totals(),
+			);
+		}
+
+		if ( 'media' === $phase ) {
+			$limit = SyncConfig::get_media_sync_batch_size();
+			$messages = array();
+			$media_batch = ContentMediaSync::import_media_batch( $offset, $limit, $messages );
+
+			$is_media_done = $media_batch['done'];
+			$next_phase = 'media';
+			$next_offset = $media_batch['next_offset'];
+			if ( $is_media_done ) {
+				$next_phase = 'finalize';
+				$next_offset = 0;
+			}
+
+			return array(
+				'ok' => true,
+				'done' => false,
+				'phase' => $next_phase,
+				'next_offset' => $next_offset,
+				'updated_in_batch' => $media_batch['updated'],
+				'processed_in_batch' => $media_batch['processed'],
+				'total_jobs' => $media_batch['total'],
+				'messages' => $messages,
+				'summary' => ContentSync::get_sync_summary_totals(),
+			);
+		}
+
+		if ( 'finalize' === $phase ) {
+			$messages = array();
+			self::maybe_run_import_cleanup( $confirmed, $messages );
+			ContentMediaSync::apply_media_bindings( $messages );
+			PostMetaSync::import_post_meta_from_manifest( $messages );
+			TaxonomySync::import_manifest_taxonomies( $messages );
+			YoastSync::sync_all_yoast_social_meta( $messages );
+			ContentManifest::maybe_normalize_content_manifest_from_wordpress( $messages );
+
+			$norm_count = ContentExporter::get_normalized_count();
+			if ( $norm_count > 0 ) {
+				$messages[] = sprintf(
+					/* translators: %d: number of files */
+					_n(
+						'Normalized %d plugin file to canonical export form on disk.',
+						'Normalized %d plugin files to canonical export form on disk.',
+						$norm_count,
+						\ASC_AI_PLUGIN_DOMAIN
+					),
+					$norm_count
+				);
+			}
+
+			return array(
+				'ok' => true,
+				'done' => true,
+				'phase' => 'done',
+				'next_offset' => 1,
+				'updated_in_batch' => 0,
+				'processed_in_batch' => 1,
+				'total_jobs' => 1,
+				'messages' => $messages,
 				'summary' => ContentSync::get_sync_summary_totals(),
 			);
 		}
@@ -55,43 +120,6 @@ final class ContentImporter {
 			ContentExporter::reset_normalized_count();
 			ContentManifest::invalidate_content_manifest_cache();
 			ContentSync::ensure_partial_posts_from_manifest();
-		}
-
-		if ( $offset >= $total_jobs ) {
-			$messages = array();
-			if ( $offset > 0 && $confirmed ) {
-				self::maybe_run_import_cleanup( $confirmed, $messages );
-				self::maybe_import_plugin_media( $messages );
-				PostMetaSync::import_post_meta_from_manifest( $messages );
-				TaxonomySync::import_manifest_taxonomies( $messages );
-				YoastSync::sync_all_yoast_social_meta( $messages );
-				ContentManifest::maybe_normalize_content_manifest_from_wordpress( $messages );
-
-				if ( ContentExporter::get_normalized_count() > 0 ) {
-					$norm_count = ContentExporter::get_normalized_count();
-					$messages[] = sprintf(
-						/* translators: %d: number of files */
-						_n(
-							'Normalized %d plugin file to canonical export form on disk.',
-							'Normalized %d plugin files to canonical export form on disk.',
-							$norm_count,
-							\ASC_AI_PLUGIN_DOMAIN
-						),
-						$norm_count
-					);
-				}
-			}
-
-			return array(
-				'ok' => true,
-				'done' => true,
-				'next_offset' => $total_jobs,
-				'updated_in_batch' => 0,
-				'processed_in_batch' => 0,
-				'total_jobs' => $total_jobs,
-				'messages' => $messages,
-				'summary' => ContentSync::get_sync_summary_totals(),
-			);
 		}
 
 		$batch_size = SyncConfig::CONTENT_SYNC_BATCH_SIZE;
@@ -111,34 +139,48 @@ final class ContentImporter {
 		}
 
 		$next_offset = $offset + $processed_in_batch;
+		$content_done = false;
+		if ( $next_offset >= $total_jobs ) {
+			$content_done = true;
+		}
 
-		$done = $next_offset >= $total_jobs;
-		if ( $done && $confirmed && $total_jobs > 0 ) {
-			self::maybe_run_import_cleanup( $confirmed, $messages );
-			self::maybe_import_plugin_media( $messages );
-			PostMetaSync::import_post_meta_from_manifest( $messages );
-			TaxonomySync::import_manifest_taxonomies( $messages );
-			YoastSync::sync_all_yoast_social_meta( $messages );
-			ContentManifest::maybe_normalize_content_manifest_from_wordpress( $messages );
-
-			if ( ContentExporter::get_normalized_count() > 0 ) {
-				$norm_count = ContentExporter::get_normalized_count();
-				$messages[] = sprintf(
-					/* translators: %d: number of files */
-					_n(
-						'Normalized %d plugin file to canonical export form on disk.',
-						'Normalized %d plugin files to canonical export form on disk.',
-						$norm_count,
-						\ASC_AI_PLUGIN_DOMAIN
-					),
-					$norm_count
-				);
+		if ( $content_done ) {
+			$has_media = SyncConfig::is_media_sync_enabled();
+			if ( $has_media ) {
+				$media_files = ContentMediaSync::list_media_files();
+				$media_count = count( $media_files );
+				if ( $media_count > 0 ) {
+					return array(
+						'ok' => true,
+						'done' => false,
+						'phase' => 'media',
+						'next_offset' => 0,
+						'updated_in_batch' => $updated_in_batch,
+						'processed_in_batch' => $processed_in_batch,
+						'total_jobs' => $media_count,
+						'messages' => $messages,
+						'summary' => ContentSync::get_sync_summary_totals(),
+					);
+				}
 			}
+
+			return array(
+				'ok' => true,
+				'done' => false,
+				'phase' => 'finalize',
+				'next_offset' => 0,
+				'updated_in_batch' => $updated_in_batch,
+				'processed_in_batch' => $processed_in_batch,
+				'total_jobs' => 1,
+				'messages' => $messages,
+				'summary' => ContentSync::get_sync_summary_totals(),
+			);
 		}
 
 		return array(
 			'ok' => true,
-			'done' => $done,
+			'done' => false,
+			'phase' => 'content',
 			'next_offset' => $next_offset,
 			'updated_in_batch' => $updated_in_batch,
 			'processed_in_batch' => $processed_in_batch,
@@ -172,11 +214,12 @@ final class ContentImporter {
 
 		$messages = array();
 		$updated = 0;
+		$phase = 'content';
 		$offset = 0;
 		$done = false;
 
 		while ( ! $done ) {
-			$batch = self::run_import_batch( $offset, true );
+			$batch = self::run_import_batch( $offset, true, $phase );
 			if ( ! $batch['ok'] ) {
 				return array(
 					'ok' => false,
@@ -187,6 +230,7 @@ final class ContentImporter {
 
 			$messages = array_merge( $messages, $batch['messages'] );
 			$updated += $batch['updated_in_batch'];
+			$phase = $batch['phase'];
 			$offset = $batch['next_offset'];
 			$done = $batch['done'];
 		}

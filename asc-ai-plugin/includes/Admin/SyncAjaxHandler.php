@@ -86,6 +86,10 @@ final class SyncAjaxHandler {
 			);
 		}
 
+		$phase = 'content';
+		if ( isset( $_POST['phase'] ) ) {
+			$phase = sanitize_key( (string) wp_unslash( $_POST['phase'] ) );
+		}
 		$offset = 0;
 		if ( isset( $_POST['offset'] ) ) {
 			$offset = absint( (string) wp_unslash( $_POST['offset'] ) );
@@ -95,7 +99,7 @@ final class SyncAjaxHandler {
 			$confirmed = true;
 		}
 
-		$result = ContentImporter::run_import_batch( $offset, $confirmed );
+		$result = ContentImporter::run_import_batch( $offset, $confirmed, $phase );
 		if ( ! $result['ok'] ) {
 			$fallback = __( 'Import failed.', \ASC_AI_PLUGIN_DOMAIN );
 			$msg = $result['messages'][0] ?? $fallback;
@@ -131,6 +135,10 @@ final class SyncAjaxHandler {
 			);
 		}
 
+		$phase = 'posts';
+		if ( isset( $_POST['phase'] ) ) {
+			$phase = sanitize_key( (string) wp_unslash( $_POST['phase'] ) );
+		}
 		$type_index = 0;
 		if ( isset( $_POST['type_index'] ) ) {
 			$type_index = absint( (string) wp_unslash( $_POST['type_index'] ) );
@@ -139,8 +147,12 @@ final class SyncAjaxHandler {
 		if ( isset( $_POST['post_offset'] ) ) {
 			$post_offset = absint( (string) wp_unslash( $_POST['post_offset'] ) );
 		}
+		$media_offset = 0;
+		if ( isset( $_POST['media_offset'] ) ) {
+			$media_offset = absint( (string) wp_unslash( $_POST['media_offset'] ) );
+		}
 
-		$result = ContentExporter::run_export_batch( $type_index, $post_offset );
+		$result = ContentExporter::run_export_batch( $type_index, $post_offset, $phase, $media_offset );
 		if ( ! $result['ok'] ) {
 			$batch_fail = __( 'Export batch failed.', \ASC_AI_PLUGIN_DOMAIN );
 			wp_send_json_error( array( 'message' => $batch_fail ) );
